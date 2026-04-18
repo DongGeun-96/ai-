@@ -61,97 +61,7 @@
     .send-btn:active{transform:scale(0.9)}
     .send-btn svg{width:17px;height:17px;fill:white;margin-left:1px}
 
-    /* ─── SHARED SECTION STYLES ─── */
-    .sec{padding:24px 0 0}
-    .sec-head{display:flex;align-items:center;justify-content:space-between;padding:0 24px;margin-bottom:14px}
-    .sec-title{font-size:17px;font-weight:800;color:var(--text-0)}
-    .sec-more{font-size:12px;font-weight:600;color:var(--text-3);cursor:pointer;border:none;background:none;font-family:inherit}
-
-    /* ─── HERO BANNER CAROUSEL ─── */
-    .banner-wrap{padding:16px 24px 0;position:relative}
-    .banner-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:4px}
-    .banner-track::-webkit-scrollbar{display:none}
-    .banner-card{
-      flex-shrink:0;width:calc(100% - 20px);scroll-snap-align:start;
-      border-radius:20px;padding:28px 24px;min-height:160px;
-      display:flex;flex-direction:column;justify-content:flex-end;
-      position:relative;overflow:hidden;cursor:pointer;
-      transition:transform .15s;
-    }
-    .banner-card:active{transform:scale(0.98)}
-    .banner-card.grad1{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
-    .banner-card.grad2{background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)}
-    .banner-card.grad3{background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)}
-    .banner-card.grad4{background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%)}
-    .banner-emoji{font-size:40px;margin-bottom:12px}
-    .banner-title{font-size:20px;font-weight:800;color:white;line-height:1.35;margin-bottom:6px;text-shadow:0 1px 8px rgba(0,0,0,0.15)}
-    .banner-desc{font-size:13px;font-weight:400;color:rgba(255,255,255,0.85);line-height:1.45}
-    .banner-tag{position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;color:white;letter-spacing:0.3px}
-    .banner-dots{display:flex;justify-content:center;gap:6px;padding:12px 0 0}
-    .banner-dot{width:6px;height:6px;border-radius:50%;background:var(--text-4);transition:all .3s}
-    .banner-dot.active{width:18px;border-radius:3px;background:var(--accent)}
-
-    /* ─── HOT PROCEDURE HORIZONTAL ─── */
-    .hot-scroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 24px}
-    .hot-scroll::-webkit-scrollbar{display:none}
-    .hot-card{
-      flex-shrink:0;width:130px;scroll-snap-align:start;
-      border-radius:16px;overflow:hidden;cursor:pointer;
-      transition:transform .15s;position:relative;
-    }
-    .hot-card:active{transform:scale(0.96)}
-    .hot-card-bg{
-      width:100%;aspect-ratio:3/4;
-      display:flex;flex-direction:column;justify-content:flex-end;
-      padding:14px;position:relative;
-    }
-    .hot-rank{
-      position:absolute;top:10px;left:10px;
-      width:26px;height:26px;border-radius:8px;
-      background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-      display:flex;align-items:center;justify-content:center;
-      font-size:12px;font-weight:800;color:white;font-family:'DM Sans',sans-serif;
-    }
-    .hot-emoji{font-size:32px;margin-bottom:8px}
-    .hot-name{font-size:13px;font-weight:700;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.3);line-height:1.3}
-    .hot-trend{font-size:10px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:3px}
-
-    /* ─── VIDEO HORIZONTAL ─── */
-    .vid-scroll{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 24px}
-    .vid-scroll::-webkit-scrollbar{display:none}
-    .vid-card{flex-shrink:0;width:260px;scroll-snap-align:start;cursor:pointer;transition:transform .15s}
-    .vid-card:active{transform:scale(0.97)}
-    .vid-thumb{width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--bg-sub);position:relative}
-    .vid-thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .vid-thumb iframe{width:100%;height:100%;border:none;display:block}
-    .vid-duration{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:white;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:2px 7px;border-radius:5px}
-    .vid-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.15)}
-    .vid-play svg{width:40px;height:40px;fill:white;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))}
-    .vid-info{padding:10px 2px 0}
-    .vid-title{font-size:13px;font-weight:600;color:var(--text-0);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .vid-ch{font-size:11.5px;color:var(--text-3);margin-top:3px}
-
-    /* ─── COMMUNITY CARDS ─── */
-    .comm-scroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 24px}
-    .comm-scroll::-webkit-scrollbar{display:none}
-    .comm-card{
-      flex-shrink:0;width:220px;scroll-snap-align:start;
-      background:var(--bg-sub);border-radius:16px;padding:18px;
-      cursor:pointer;transition:transform .15s;
-      display:flex;flex-direction:column;gap:8px;
-    }
-    .comm-card:active{transform:scale(0.97)}
-    .comm-tag{display:inline-flex;align-self:flex-start;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px}
-    .comm-tag.review{background:rgba(123,143,212,0.1);color:var(--accent)}
-    .comm-tag.question{background:rgba(240,146,59,0.1);color:#E08A3A}
-    .comm-tag.info{background:rgba(45,184,110,0.1);color:#2DB86E}
-    .comm-title-text{font-size:14px;font-weight:700;color:var(--text-0);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .comm-preview{font-size:12px;color:var(--text-2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .comm-bottom{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-3);margin-top:auto}
-    .comm-stat{display:flex;align-items:center;gap:2px}
-    .comm-stat svg{width:12px;height:12px;fill:var(--text-4)}
-
-    .bottom-pad{height:32px;flex-shrink:0}
+.bottom-pad{height:32px;flex-shrink:0}
 
     /* ─── CHAT SCREEN ─── */
     .chat-screen{position:fixed;inset:0;max-width:768px;margin:0 auto;z-index:200;display:flex;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
@@ -218,90 +128,23 @@
     </div>
   </div>
 
-  <!-- 홈 (배너 + 인기 + 영상 + 커뮤니티 모아보기) -->
+  <!-- 홈 -->
   <div class="panel" id="panel-home">
     <div class="scroll-panel">
-
-      <!-- Banner Carousel -->
-      <div class="banner-wrap">
-        <div class="banner-track" id="bannerTrack">
-          <div class="banner-card grad1" onclick="switchTab('ai')">
-            <span class="banner-tag">NEW</span>
-            <div class="banner-emoji">🤖</div>
-            <p class="banner-title">AI가 분석하는<br>나만의 맞춤 시술</p>
-            <p class="banner-desc">성별·나이 맞춤 객관적 상담 받아보세요</p>
-          </div>
-          <div class="banner-card grad2">
-            <span class="banner-tag">HOT</span>
-            <div class="banner-emoji">👀</div>
-            <p class="banner-title">2026 상반기<br>인기 시술 TOP 10</p>
-            <p class="banner-desc">올해 가장 많이 찾는 시술은?</p>
-          </div>
-          <div class="banner-card grad3">
-            <span class="banner-tag">EVENT</span>
-            <div class="banner-emoji">💎</div>
-            <p class="banner-title">첫 상담 시<br>무료 시술 분석 리포트</p>
-            <p class="banner-desc">AI가 당신에게 맞는 시술을 분석해드려요</p>
-          </div>
-          <div class="banner-card grad4">
-            <span class="banner-tag">GUIDE</span>
-            <div class="banner-emoji">📋</div>
-            <p class="banner-title">성형 전 필수 체크리스트</p>
-            <p class="banner-desc">수술 전 꼭 확인해야 할 7가지</p>
-          </div>
-        </div>
-        <div class="banner-dots" id="bannerDots"></div>
-      </div>
-
-      <!-- 인기 시술 -->
-      <div class="sec">
-        <div class="sec-head">
-          <span class="sec-title">🔥 지금 뜨는 시술</span>
-          <button class="sec-more">더보기</button>
-        </div>
-        <div class="hot-scroll" id="hotScroll"></div>
-      </div>
-
-      <!-- 영상 -->
-      <div class="sec">
-        <div class="sec-head">
-          <span class="sec-title">🎬 성형 정보 영상</span>
-          <button class="sec-more" onclick="switchTab('video')">전체보기</button>
-        </div>
-        <div class="vid-scroll" id="vidScrollHome"></div>
-      </div>
-
-      <!-- 커뮤니티 -->
-      <div class="sec">
-        <div class="sec-head">
-          <span class="sec-title">💬 실시간 커뮤니티</span>
-          <button class="sec-more" onclick="switchTab('community')">전체보기</button>
-        </div>
-        <div class="comm-scroll" id="commScrollHome"></div>
-      </div>
-
       <div class="bottom-pad"></div>
     </div>
   </div>
 
-  <!-- 영상 전체 -->
+  <!-- 영상 -->
   <div class="panel" id="panel-video">
     <div class="scroll-panel">
-      <div class="sec">
-        <div class="sec-head"><span class="sec-title">🎬 성형 정보 영상</span></div>
-        <div class="vid-scroll" id="vidScrollFull" style="flex-wrap:wrap;padding-bottom:32px"></div>
-      </div>
       <div class="bottom-pad"></div>
     </div>
   </div>
 
-  <!-- 커뮤니티 전체 -->
+  <!-- 커뮤니티 -->
   <div class="panel" id="panel-community">
     <div class="scroll-panel">
-      <div class="sec">
-        <div class="sec-head"><span class="sec-title">💬 커뮤니티</span></div>
-        <div class="comm-scroll" id="commScrollFull" style="flex-wrap:wrap;padding-bottom:32px"></div>
-      </div>
       <div class="bottom-pad"></div>
     </div>
   </div>
@@ -358,86 +201,6 @@ function switchTab(tab){
   document.getElementById('panel-'+tab).classList.add('active');
 }
 document.getElementById('tabNav').addEventListener('click',e=>{const b=e.target.closest('.tab-btn');if(b)switchTab(b.dataset.tab)});
-
-/* ─── Banner dots ─── */
-const bannerTrack=document.getElementById('bannerTrack');
-const bannerDots=document.getElementById('bannerDots');
-const bannerCount=bannerTrack.children.length;
-for(let i=0;i<bannerCount;i++){const d=document.createElement('div');d.className='banner-dot'+(i===0?' active':'');bannerDots.appendChild(d)}
-bannerTrack.addEventListener('scroll',()=>{
-  const idx=Math.round(bannerTrack.scrollLeft/(bannerTrack.scrollWidth/bannerCount));
-  bannerDots.querySelectorAll('.banner-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
-});
-
-/* ─── Hot procedures ─── */
-const hotData=[
-  {name:'쌍꺼풀',emoji:'👁️',trend:'🔺 12%',grad:'linear-gradient(135deg,#a18cd1,#fbc2eb)'},
-  {name:'코 성형',emoji:'👃',trend:'🔺 8%',grad:'linear-gradient(135deg,#fbc2eb,#f68084)'},
-  {name:'안면윤곽',emoji:'💎',trend:'🔺 15%',grad:'linear-gradient(135deg,#667eea,#764ba2)'},
-  {name:'리프팅',emoji:'✨',trend:'🔺 5%',grad:'linear-gradient(135deg,#4facfe,#00f2fe)'},
-  {name:'지방흡입',emoji:'🏃‍♀️',trend:'🔻 3%',grad:'linear-gradient(135deg,#43e97b,#38f9d7)'},
-  {name:'필러',emoji:'💉',trend:'🔺 20%',grad:'linear-gradient(135deg,#fa709a,#fee140)'},
-  {name:'보톡스',emoji:'💆',trend:'━ 유지',grad:'linear-gradient(135deg,#a8edea,#fed6e3)'},
-  {name:'눈밑지방',emoji:'🌙',trend:'🔺 18%',grad:'linear-gradient(135deg,#d4fc79,#96e6a1)'},
-];
-document.getElementById('hotScroll').innerHTML=hotData.map((h,i)=>`
-  <div class="hot-card"><div class="hot-card-bg" style="background:${h.grad}">
-    <div class="hot-rank">${i+1}</div>
-    <div class="hot-emoji">${h.emoji}</div>
-    <p class="hot-name">${h.name}</p>
-    <p class="hot-trend">${h.trend}</p>
-  </div></div>`).join('');
-
-/* ─── Videos ─── */
-const vidData=[
-  {id:'rMq_hYMABfg',title:'성형외과 의사가 말하는 쌍꺼풀 수술 전 꼭 알아야 할 것들',ch:'닥터프렌즈',dur:'12:34'},
-  {id:'G7zS-MFpKJQ',title:'코 성형 전 반드시 체크해야 할 5가지 포인트',ch:'성형외과 전문의',dur:'8:21'},
-  {id:'pRnQBMwnpDs',title:'안면윤곽 수술 종류와 회복 과정 총정리',ch:'뷰티인사이드',dur:'15:07'},
-  {id:'8D0yK3VhKxE',title:'필러 vs 보톡스 차이점 완벽 정리',ch:'피부과 전문의',dur:'10:45'},
-  {id:'jNQXAC9IVRw',title:'리프팅 시술 비교: 실리프팅 vs 울쎄라 vs 써마지',ch:'메디컬 리뷰',dur:'13:22'},
-];
-function renderVids(container,data){
-  container.innerHTML=data.map(v=>`
-    <div class="vid-card" data-vid="${v.id}">
-      <div class="vid-thumb">
-        <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
-        <div class="vid-play"><svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55C3.97 2.33 2.27 4.81 1.48 7.74.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="white"/></svg></div>
-        <span class="vid-duration">${v.dur}</span>
-      </div>
-      <div class="vid-info"><p class="vid-title">${v.title}</p><p class="vid-ch">${v.ch}</p></div>
-    </div>`).join('');
-  container.addEventListener('click',e=>{
-    const c=e.target.closest('.vid-card');if(!c)return;
-    c.querySelector('.vid-thumb').innerHTML=`<iframe src="https://www.youtube.com/embed/${c.dataset.vid}?autoplay=1&rel=0" allow="autoplay;encrypted-media" allowfullscreen></iframe>`;
-  });
-}
-renderVids(document.getElementById('vidScrollHome'),vidData.slice(0,4));
-renderVids(document.getElementById('vidScrollFull'),vidData);
-
-/* ─── Community ─── */
-const commData=[
-  {tag:'review',tagText:'후기',title:'쌍꺼풀 매몰법 3개월 후기',preview:'자연유착으로 했는데 붓기 빠지니까 진짜 자연스러워요...',time:'32분 전',views:1842,comments:47},
-  {tag:'question',tagText:'질문',title:'코 재수술 고민 중인데 조언 부탁드려요',preview:'2년 전에 실리콘으로 했는데 콧대가 약간 휘어진 느낌...',time:'1시간 전',views:956,comments:23},
-  {tag:'info',tagText:'정보',title:'안면윤곽 vs 사각턱 보톡스 비교',preview:'수술이 부담스러운 분들을 위해 비교 정리해봤습니다...',time:'3시간 전',views:3201,comments:89},
-  {tag:'review',tagText:'후기',title:'울쎄라 시술 솔직 후기 (통증, 효과)',preview:'30대 초반인데 팔자주름이 고민이라 울쎄라 받아봤어요...',time:'5시간 전',views:2104,comments:56},
-  {tag:'question',tagText:'질문',title:'지방흡입 후 압박복 얼마나 입어야 하나요?',preview:'다음주에 복부 지방흡입 예정인데 궁금합니다...',time:'6시간 전',views:731,comments:18},
-  {tag:'info',tagText:'정보',title:'연령대별 추천 시술 정리 (20~50대)',preview:'성형외과 상담 + 개인 조사 기반으로 정리...',time:'8시간 전',views:5420,comments:134},
-];
-function renderComm(container,data){
-  container.innerHTML=data.map(p=>`
-    <div class="comm-card">
-      <span class="comm-tag ${p.tag}">${p.tagText}</span>
-      <p class="comm-title-text">${p.title}</p>
-      <p class="comm-preview">${p.preview}</p>
-      <div class="comm-bottom">
-        <span>${p.time}</span>
-        <span class="comm-stat"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>${p.views.toLocaleString()}</span>
-        <span class="comm-stat"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>${p.comments}</span>
-      </div>
-    </div>`).join('');
-}
-renderComm(document.getElementById('commScrollHome'),commData.slice(0,4));
-renderComm(document.getElementById('commScrollFull'),commData);
 
 /* ─── Chat ─── */
 const chatScreen=document.getElementById('chatScreen'),chatWelcome=document.getElementById('chatWelcome'),chatMessages=document.getElementById('chatMessages'),chatInputEl=document.getElementById('chatInput'),mainInputEl=document.getElementById('mainInput');
