@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI 성형상담</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{
+      --text-0:#0E0E1A;--text-1:#3B3B5C;--text-2:#7C7C9A;--text-3:#B0B0C8;--text-4:#D1D5DB;
+      --accent:#7B8FD4;--accent-light:#A8BAE8;
+      --bg:#FFFFFF;--bg-sub:#F7F8FA;
+      --glass-border:rgba(123,143,212,0.15);
+      --divider:rgba(0,0,0,0.05);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
+      --safe-top:env(safe-area-inset-top,0px);
+    }
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text-0);display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+    .app{width:100%;max-width:768px;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+    /* ─── HEADER ─── */
+    .header{flex-shrink:0;padding:calc(var(--safe-top)+14px) 24px 0;background:var(--bg)}
+    .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .header-logo{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700;color:var(--text-0);letter-spacing:-0.3px}
+    .header-logo span{color:var(--accent)}
+    .tab-nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:14px;border-bottom:1px solid var(--divider)}
+    .tab-nav::-webkit-scrollbar{display:none}
+    .tab-btn{flex-shrink:0;padding:9px 18px;border-radius:24px;border:none;font-size:13.5px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .25s;color:var(--text-2);background:rgba(0,0,0,0.03)}
+    .tab-btn.active{background:var(--text-0);color:var(--bg)}
+
+    /* ─── PANELS ─── */
+    .panel{flex:1;display:none;flex-direction:column;overflow:hidden}
+    .panel.active{display:flex}
+    .scroll-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .scroll-panel::-webkit-scrollbar{display:none}
+
+    /* ─── AI PANEL ─── */
+    .ai-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px}
+    .greeting{text-align:center;margin-bottom:32px;opacity:0;animation:fadeUp .7s .1s forwards}
+    .greeting-label{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-family:'DM Sans',sans-serif;padding:5px 14px;border:1px solid rgba(123,143,212,0.2);border-radius:20px;background:rgba(123,143,212,0.06);margin-bottom:16px}
+    .greeting-title{font-size:26px;font-weight:300;line-height:1.4;letter-spacing:-0.3px}
+    .greeting-title strong{font-weight:700}
+    .greeting-sub{margin-top:12px;font-size:13px;color:var(--text-3);line-height:1.6}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .orb-area{display:flex;flex-direction:column;align-items:center;opacity:0;animation:fadeUp .8s .25s forwards}
+    .orb-wrap{width:200px;height:200px;cursor:pointer}
+    #orbCanvas{width:100%;height:100%;display:block}
+    .orb-hint{margin-top:18px;font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:7px}
+    .orb-hint-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+    .input-bar{flex-shrink:0;padding:14px 24px;padding-bottom:calc(16px + var(--safe-bottom))}
+    .input-inner{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--glass-border);border-radius:22px;padding:7px 7px 7px 20px;transition:border-color .3s,box-shadow .3s}
+    .input-inner:focus-within{border-color:var(--accent-light);box-shadow:0 4px 24px rgba(123,143,212,0.12)}
+    .input-inner input{flex:1;border:none;outline:none;font-size:14.5px;font-family:'Noto Sans KR',sans-serif;color:var(--text-0);background:transparent}
+    .input-inner input::placeholder{color:var(--text-3)}
+    .send-btn{width:42px;height:42px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent-light),var(--accent));display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s;box-shadow:0 3px 12px rgba(123,143,212,0.25);flex-shrink:0}
+    .send-btn:active{transform:scale(0.9)}
+    .send-btn svg{width:17px;height:17px;fill:white;margin-left:1px}
+
+    /* ─── SHARED SECTION STYLES ─── */
+    .sec{padding:24px 0 0}
+    .sec-head{display:flex;align-items:center;justify-content:space-between;padding:0 24px;margin-bottom:14px}
+    .sec-title{font-size:17px;font-weight:800;color:var(--text-0)}
+    .sec-more{font-size:12px;font-weight:600;color:var(--text-3);cursor:pointer;border:none;background:none;font-family:inherit}
+
+    /* ─── HERO BANNER CAROUSEL ─── */
+    .banner-wrap{padding:16px 24px 0;position:relative}
+    .banner-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:4px}
+    .banner-track::-webkit-scrollbar{display:none}
+    .banner-card{
+      flex-shrink:0;width:calc(100% - 20px);scroll-snap-align:start;
+      border-radius:20px;padding:28px 24px;min-height:160px;
+      display:flex;flex-direction:column;justify-content:flex-end;
+      position:relative;overflow:hidden;cursor:pointer;
+      transition:transform .15s;
+    }
+    .banner-card:active{transform:scale(0.98)}
+    .banner-card.grad1{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+    .banner-card.grad2{background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)}
+    .banner-card.grad3{background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)}
+    .banner-card.grad4{background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%)}
+    .banner-emoji{font-size:40px;margin-bottom:12px}
+    .banner-title{font-size:20px;font-weight:800;color:white;line-height:1.35;margin-bottom:6px;text-shadow:0 1px 8px rgba(0,0,0,0.15)}
+    .banner-desc{font-size:13px;font-weight:400;color:rgba(255,255,255,0.85);line-height:1.45}
+    .banner-tag{position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;color:white;letter-spacing:0.3px}
+    .banner-dots{display:flex;justify-content:center;gap:6px;padding:12px 0 0}
+    .banner-dot{width:6px;height:6px;border-radius:50%;background:var(--text-4);transition:all .3s}
+    .banner-dot.active{width:18px;border-radius:3px;background:var(--accent)}
+
+    /* ─── HOT PROCEDURE HORIZONTAL ─── */
+    .hot-scroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 24px}
+    .hot-scroll::-webkit-scrollbar{display:none}
+    .hot-card{
+      flex-shrink:0;width:130px;scroll-snap-align:start;
+      border-radius:16px;overflow:hidden;cursor:pointer;
+      transition:transform .15s;position:relative;
+    }
+    .hot-card:active{transform:scale(0.96)}
+    .hot-card-bg{
+      width:100%;aspect-ratio:3/4;
+      display:flex;flex-direction:column;justify-content:flex-end;
+      padding:14px;position:relative;
+    }
+    .hot-rank{
+      position:absolute;top:10px;left:10px;
+      width:26px;height:26px;border-radius:8px;
+      background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:800;color:white;font-family:'DM Sans',sans-serif;
+    }
+    .hot-emoji{font-size:32px;margin-bottom:8px}
+    .hot-name{font-size:13px;font-weight:700;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.3);line-height:1.3}
+    .hot-trend{font-size:10px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:3px}
+
+    /* ─── VIDEO HORIZONTAL ─── */
+    .vid-scroll{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 24px}
+    .vid-scroll::-webkit-scrollbar{display:none}
+    .vid-card{flex-shrink:0;width:260px;scroll-snap-align:start;cursor:pointer;transition:transform .15s}
+    .vid-card:active{transform:scale(0.97)}
+    .vid-thumb{width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--bg-sub);position:relative}
+    .vid-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .vid-thumb iframe{width:100%;height:100%;border:none;display:block}
+    .vid-duration{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:white;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:2px 7px;border-radius:5px}
+    .vid-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.15)}
+    .vid-play svg{width:40px;height:40px;fill:white;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))}
+    .vid-info{padding:10px 2px 0}
+    .vid-title{font-size:13px;font-weight:600;color:var(--text-0);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .vid-ch{font-size:11.5px;color:var(--text-3);margin-top:3px}
+
+    /* ─── COMMUNITY CARDS ─── */
+    .comm-scroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 24px}
+    .comm-scroll::-webkit-scrollbar{display:none}
+    .comm-card{
+      flex-shrink:0;width:220px;scroll-snap-align:start;
+      background:var(--bg-sub);border-radius:16px;padding:18px;
+      cursor:pointer;transition:transform .15s;
+      display:flex;flex-direction:column;gap:8px;
+    }
+    .comm-card:active{transform:scale(0.97)}
+    .comm-tag{display:inline-flex;align-self:flex-start;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px}
+    .comm-tag.review{background:rgba(123,143,212,0.1);color:var(--accent)}
+    .comm-tag.question{background:rgba(240,146,59,0.1);color:#E08A3A}
+    .comm-tag.info{background:rgba(45,184,110,0.1);color:#2DB86E}
+    .comm-title-text{font-size:14px;font-weight:700;color:var(--text-0);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .comm-preview{font-size:12px;color:var(--text-2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .comm-bottom{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-3);margin-top:auto}
+    .comm-stat{display:flex;align-items:center;gap:2px}
+    .comm-stat svg{width:12px;height:12px;fill:var(--text-4)}
+
+    .bottom-pad{height:32px;flex-shrink:0}
+
+    /* ─── CHAT SCREEN ─── */
+    .chat-screen{position:fixed;inset:0;max-width:768px;margin:0 auto;z-index:200;display:flex;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
+    .chat-screen.open{transform:translateY(0);pointer-events:all}
+    .chat-header{padding:calc(var(--safe-top)+12px) 20px 12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-bottom:1px solid var(--divider)}
+    .chat-back{position:absolute;left:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:10px;color:var(--text-2)}
+    .chat-back:active{background:rgba(0,0,0,0.04)}
+    .chat-back svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+    .chat-header-title{font-size:15px;font-weight:600;color:var(--text-0)}
+    .chat-welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px 20px}
+    .chat-orb-wrap{width:160px;height:160px;margin-bottom:24px}
+    #chatOrbCanvas{width:100%;height:100%;display:block}
+    .chat-welcome-title{font-size:20px;font-weight:300;color:var(--text-0);text-align:center;line-height:1.5}
+    .chat-welcome-title strong{font-weight:700}
+    .chat-welcome-sub{margin-top:8px;font-size:13px;color:var(--text-3);text-align:center}
+    .chat-messages{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px 24px 8px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+    .chat-messages::-webkit-scrollbar{display:none}
+    .chat-messages.hidden{display:none}
+    .msg{max-width:72%;padding:12px 16px;font-size:14px;line-height:1.7;border-radius:18px;animation:msgSlide .3s cubic-bezier(.34,1.56,.64,1) both}
+    @keyframes msgSlide{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .msg.ai{background:var(--bg-sub);color:var(--text-1);border-bottom-left-radius:5px;align-self:flex-start;white-space:pre-line}
+    .msg.user{background:linear-gradient(135deg,var(--accent-light),var(--accent));color:white;border-bottom-right-radius:5px;align-self:flex-end;box-shadow:0 3px 12px rgba(123,143,212,0.2)}
+    .typing-bubble{align-self:flex-start;background:var(--bg-sub);border-radius:18px;border-bottom-left-radius:5px;padding:14px 18px;display:flex;gap:5px;align-items:center;animation:msgSlide .3s both}
+    .t-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:tDot 1.4s ease-in-out infinite}
+    .t-dot:nth-child(2){animation-delay:.18s}.t-dot:nth-child(3){animation-delay:.36s}
+    @keyframes tDot{0%,65%,100%{transform:translateY(0);opacity:.3}32%{transform:translateY(-5px);opacity:1}}
+    .chat-input-area{flex-shrink:0;padding:10px 24px;padding-bottom:calc(14px + var(--safe-bottom));border-top:1px solid var(--divider)}
+    .chat-input-inner{display:flex;align-items:center;gap:10px;background:var(--bg-sub);border:1.5px solid var(--divider);border-radius:22px;padding:7px 7px 7px 18px;transition:border-color .3s,box-shadow .3s}
+    .chat-input-inner input{flex:1;border:none;outline:none;font-size:14px;font-family:'Noto Sans KR',sans-serif;color:var(--text-0);background:transparent}
+    .chat-input-inner input::placeholder{color:var(--text-3)}
+    .chat-input-inner:focus-within{border-color:var(--accent-light);box-shadow:0 4px 24px rgba(123,143,212,0.12)}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top"><span class="header-logo">AI <span>성형상담</span></span></div>
+    <div class="tab-nav" id="tabNav">
+      <button class="tab-btn active" data-tab="ai">AI 상담</button>
+      <button class="tab-btn" data-tab="home">홈</button>
+      <button class="tab-btn" data-tab="video">영상</button>
+      <button class="tab-btn" data-tab="community">커뮤니티</button>
+    </div>
+  </div>
+
+  <!-- AI 상담 -->
+  <div class="panel active" id="panel-ai">
+    <div class="ai-main">
+      <div class="greeting">
+        <span class="greeting-label">AI Consultation</span>
+        <h1 class="greeting-title">당신만을 위한<br><strong>성형 전문 AI 상담</strong></h1>
+        <p class="greeting-sub">광고 없는 객관적 정보와 맞춤 분석으로<br>신뢰할 수 있는 선택을 도와드립니다</p>
+      </div>
+      <div class="orb-area" id="orbArea">
+        <div class="orb-wrap"><canvas id="orbCanvas" width="400" height="400"></canvas></div>
+        <div class="orb-hint"><div class="orb-hint-dot"></div>터치하여 상담 시작</div>
+      </div>
+    </div>
+    <div class="input-bar">
+      <div class="input-inner">
+        <input type="text" id="mainInput" placeholder="궁금한 시술을 입력해 보세요" enterkeyhint="send" autocomplete="off">
+        <button class="send-btn" id="mainSend"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 홈 (배너 + 인기 + 영상 + 커뮤니티 모아보기) -->
+  <div class="panel" id="panel-home">
+    <div class="scroll-panel">
+
+      <!-- Banner Carousel -->
+      <div class="banner-wrap">
+        <div class="banner-track" id="bannerTrack">
+          <div class="banner-card grad1" onclick="switchTab('ai')">
+            <span class="banner-tag">NEW</span>
+            <div class="banner-emoji">🤖</div>
+            <p class="banner-title">AI가 분석하는<br>나만의 맞춤 시술</p>
+            <p class="banner-desc">성별·나이 맞춤 객관적 상담 받아보세요</p>
+          </div>
+          <div class="banner-card grad2">
+            <span class="banner-tag">HOT</span>
+            <div class="banner-emoji">👀</div>
+            <p class="banner-title">2026 상반기<br>인기 시술 TOP 10</p>
+            <p class="banner-desc">올해 가장 많이 찾는 시술은?</p>
+          </div>
+          <div class="banner-card grad3">
+            <span class="banner-tag">EVENT</span>
+            <div class="banner-emoji">💎</div>
+            <p class="banner-title">첫 상담 시<br>무료 시술 분석 리포트</p>
+            <p class="banner-desc">AI가 당신에게 맞는 시술을 분석해드려요</p>
+          </div>
+          <div class="banner-card grad4">
+            <span class="banner-tag">GUIDE</span>
+            <div class="banner-emoji">📋</div>
+            <p class="banner-title">성형 전 필수 체크리스트</p>
+            <p class="banner-desc">수술 전 꼭 확인해야 할 7가지</p>
+          </div>
+        </div>
+        <div class="banner-dots" id="bannerDots"></div>
+      </div>
+
+      <!-- 인기 시술 -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-title">🔥 지금 뜨는 시술</span>
+          <button class="sec-more">더보기</button>
+        </div>
+        <div class="hot-scroll" id="hotScroll"></div>
+      </div>
+
+      <!-- 영상 -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-title">🎬 성형 정보 영상</span>
+          <button class="sec-more" onclick="switchTab('video')">전체보기</button>
+        </div>
+        <div class="vid-scroll" id="vidScrollHome"></div>
+      </div>
+
+      <!-- 커뮤니티 -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-title">💬 실시간 커뮤니티</span>
+          <button class="sec-more" onclick="switchTab('community')">전체보기</button>
+        </div>
+        <div class="comm-scroll" id="commScrollHome"></div>
+      </div>
+
+      <div class="bottom-pad"></div>
+    </div>
+  </div>
+
+  <!-- 영상 전체 -->
+  <div class="panel" id="panel-video">
+    <div class="scroll-panel">
+      <div class="sec">
+        <div class="sec-head"><span class="sec-title">🎬 성형 정보 영상</span></div>
+        <div class="vid-scroll" id="vidScrollFull" style="flex-wrap:wrap;padding-bottom:32px"></div>
+      </div>
+      <div class="bottom-pad"></div>
+    </div>
+  </div>
+
+  <!-- 커뮤니티 전체 -->
+  <div class="panel" id="panel-community">
+    <div class="scroll-panel">
+      <div class="sec">
+        <div class="sec-head"><span class="sec-title">💬 커뮤니티</span></div>
+        <div class="comm-scroll" id="commScrollFull" style="flex-wrap:wrap;padding-bottom:32px"></div>
+      </div>
+      <div class="bottom-pad"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat -->
+<div class="chat-screen" id="chatScreen">
+  <div class="chat-header">
+    <button class="chat-back" id="chatClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+    <span class="chat-header-title">AI 상담</span>
+  </div>
+  <div class="chat-welcome" id="chatWelcome">
+    <div class="chat-orb-wrap"><canvas id="chatOrbCanvas" width="400" height="400"></canvas></div>
+    <p class="chat-welcome-title">어떤 부분이<br><strong>고민이세요?</strong></p>
+    <p class="chat-welcome-sub">궁금한 시술이나 부위를 알려주세요</p>
+  </div>
+  <div class="chat-messages hidden" id="chatMessages"></div>
+  <div class="chat-input-area">
+    <div class="chat-input-inner">
+      <input type="text" id="chatInput" placeholder="궁금한 내용을 입력해 주세요" enterkeyhint="send" autocomplete="off">
+      <button class="send-btn" id="chatSend"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── Orb ─── */
+class SwirlOrb{
+  constructor(c,s){this.canvas=c;this.ctx=c.getContext('2d');this.size=s;this.dpr=Math.min(window.devicePixelRatio||1,2);this.t=Math.random()*100;this.isThinking=false;this.raf=null;this._setup()}
+  _setup(){const s=this.size;this.canvas.width=s*this.dpr;this.canvas.height=s*this.dpr;this.canvas.style.width=s+'px';this.canvas.style.height=s+'px';this.ctx.scale(this.dpr,this.dpr)}
+  setThinking(v){this.isThinking=v}
+  start(){if(this.raf)return;const l=()=>{this._draw();this.raf=requestAnimationFrame(l)};this.raf=requestAnimationFrame(l)}
+  stop(){cancelAnimationFrame(this.raf);this.raf=null}
+  _draw(){
+    const{ctx,size}=this,cx=size/2,cy=size/2;this.t+=.012*(this.isThinking?2:1);ctx.clearRect(0,0,size,size);const t=this.t;
+    const B=[
+      {x:cx+Math.sin(t*.5)*size*.1,y:cy+Math.cos(t*.4)*size*.08,r:size*(.36+Math.sin(t*.7)*.04),c1:'rgba(140,165,225,0.6)',c2:'rgba(140,165,225,0.16)',c3:'rgba(140,165,225,0)'},
+      {x:cx+Math.cos(t*.35)*size*.12,y:cy+Math.sin(t*.55)*size*.1,r:size*(.3+Math.cos(t*.9)*.03),c1:'rgba(160,140,210,0.5)',c2:'rgba(160,140,210,0.12)',c3:'rgba(160,140,210,0)'},
+      {x:cx+Math.sin(t*.6+1)*size*.04,y:cy+Math.cos(t*.5+1)*size*.04,r:size*(.18+Math.sin(t*1.1)*.02),c1:'rgba(240,245,255,0.9)',c2:'rgba(230,238,255,0.35)',c3:'rgba(230,238,255,0)'},
+      {x:cx+Math.cos(t*.28+2)*size*.13,y:cy+Math.sin(t*.33+2)*size*.11,r:size*(.44+Math.sin(t*.6+1)*.05),c1:'rgba(180,200,240,0.32)',c2:'rgba(180,200,240,0.08)',c3:'rgba(180,200,240,0)'},
+      {x:cx+Math.sin(t*.42+3)*size*.09,y:cy+Math.cos(t*.3+3)*size*.1,r:size*(.26+Math.cos(t*.8+2)*.03),c1:'rgba(175,160,220,0.4)',c2:'rgba(175,160,220,0.1)',c3:'rgba(175,160,220,0)'},
+    ];
+    for(const b of B){const g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c1);g.addColorStop(.45,b.c2);g.addColorStop(1,b.c3);ctx.fillStyle=g;ctx.fillRect(0,0,size,size)}
+  }
+}
+const mainOrb=new SwirlOrb(document.getElementById('orbCanvas'),200);
+const chatOrb=new SwirlOrb(document.getElementById('chatOrbCanvas'),160);
+mainOrb.start();
+
+/* ─── Tab ─── */
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab)});
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+document.getElementById('tabNav').addEventListener('click',e=>{const b=e.target.closest('.tab-btn');if(b)switchTab(b.dataset.tab)});
+
+/* ─── Banner dots ─── */
+const bannerTrack=document.getElementById('bannerTrack');
+const bannerDots=document.getElementById('bannerDots');
+const bannerCount=bannerTrack.children.length;
+for(let i=0;i<bannerCount;i++){const d=document.createElement('div');d.className='banner-dot'+(i===0?' active':'');bannerDots.appendChild(d)}
+bannerTrack.addEventListener('scroll',()=>{
+  const idx=Math.round(bannerTrack.scrollLeft/(bannerTrack.scrollWidth/bannerCount));
+  bannerDots.querySelectorAll('.banner-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+});
+
+/* ─── Hot procedures ─── */
+const hotData=[
+  {name:'쌍꺼풀',emoji:'👁️',trend:'🔺 12%',grad:'linear-gradient(135deg,#a18cd1,#fbc2eb)'},
+  {name:'코 성형',emoji:'👃',trend:'🔺 8%',grad:'linear-gradient(135deg,#fbc2eb,#f68084)'},
+  {name:'안면윤곽',emoji:'💎',trend:'🔺 15%',grad:'linear-gradient(135deg,#667eea,#764ba2)'},
+  {name:'리프팅',emoji:'✨',trend:'🔺 5%',grad:'linear-gradient(135deg,#4facfe,#00f2fe)'},
+  {name:'지방흡입',emoji:'🏃‍♀️',trend:'🔻 3%',grad:'linear-gradient(135deg,#43e97b,#38f9d7)'},
+  {name:'필러',emoji:'💉',trend:'🔺 20%',grad:'linear-gradient(135deg,#fa709a,#fee140)'},
+  {name:'보톡스',emoji:'💆',trend:'━ 유지',grad:'linear-gradient(135deg,#a8edea,#fed6e3)'},
+  {name:'눈밑지방',emoji:'🌙',trend:'🔺 18%',grad:'linear-gradient(135deg,#d4fc79,#96e6a1)'},
+];
+document.getElementById('hotScroll').innerHTML=hotData.map((h,i)=>`
+  <div class="hot-card"><div class="hot-card-bg" style="background:${h.grad}">
+    <div class="hot-rank">${i+1}</div>
+    <div class="hot-emoji">${h.emoji}</div>
+    <p class="hot-name">${h.name}</p>
+    <p class="hot-trend">${h.trend}</p>
+  </div></div>`).join('');
+
+/* ─── Videos ─── */
+const vidData=[
+  {id:'rMq_hYMABfg',title:'성형외과 의사가 말하는 쌍꺼풀 수술 전 꼭 알아야 할 것들',ch:'닥터프렌즈',dur:'12:34'},
+  {id:'G7zS-MFpKJQ',title:'코 성형 전 반드시 체크해야 할 5가지 포인트',ch:'성형외과 전문의',dur:'8:21'},
+  {id:'pRnQBMwnpDs',title:'안면윤곽 수술 종류와 회복 과정 총정리',ch:'뷰티인사이드',dur:'15:07'},
+  {id:'8D0yK3VhKxE',title:'필러 vs 보톡스 차이점 완벽 정리',ch:'피부과 전문의',dur:'10:45'},
+  {id:'jNQXAC9IVRw',title:'리프팅 시술 비교: 실리프팅 vs 울쎄라 vs 써마지',ch:'메디컬 리뷰',dur:'13:22'},
+];
+function renderVids(container,data){
+  container.innerHTML=data.map(v=>`
+    <div class="vid-card" data-vid="${v.id}">
+      <div class="vid-thumb">
+        <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
+        <div class="vid-play"><svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55C3.97 2.33 2.27 4.81 1.48 7.74.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="white"/></svg></div>
+        <span class="vid-duration">${v.dur}</span>
+      </div>
+      <div class="vid-info"><p class="vid-title">${v.title}</p><p class="vid-ch">${v.ch}</p></div>
+    </div>`).join('');
+  container.addEventListener('click',e=>{
+    const c=e.target.closest('.vid-card');if(!c)return;
+    c.querySelector('.vid-thumb').innerHTML=`<iframe src="https://www.youtube.com/embed/${c.dataset.vid}?autoplay=1&rel=0" allow="autoplay;encrypted-media" allowfullscreen></iframe>`;
+  });
+}
+renderVids(document.getElementById('vidScrollHome'),vidData.slice(0,4));
+renderVids(document.getElementById('vidScrollFull'),vidData);
+
+/* ─── Community ─── */
+const commData=[
+  {tag:'review',tagText:'후기',title:'쌍꺼풀 매몰법 3개월 후기',preview:'자연유착으로 했는데 붓기 빠지니까 진짜 자연스러워요...',time:'32분 전',views:1842,comments:47},
+  {tag:'question',tagText:'질문',title:'코 재수술 고민 중인데 조언 부탁드려요',preview:'2년 전에 실리콘으로 했는데 콧대가 약간 휘어진 느낌...',time:'1시간 전',views:956,comments:23},
+  {tag:'info',tagText:'정보',title:'안면윤곽 vs 사각턱 보톡스 비교',preview:'수술이 부담스러운 분들을 위해 비교 정리해봤습니다...',time:'3시간 전',views:3201,comments:89},
+  {tag:'review',tagText:'후기',title:'울쎄라 시술 솔직 후기 (통증, 효과)',preview:'30대 초반인데 팔자주름이 고민이라 울쎄라 받아봤어요...',time:'5시간 전',views:2104,comments:56},
+  {tag:'question',tagText:'질문',title:'지방흡입 후 압박복 얼마나 입어야 하나요?',preview:'다음주에 복부 지방흡입 예정인데 궁금합니다...',time:'6시간 전',views:731,comments:18},
+  {tag:'info',tagText:'정보',title:'연령대별 추천 시술 정리 (20~50대)',preview:'성형외과 상담 + 개인 조사 기반으로 정리...',time:'8시간 전',views:5420,comments:134},
+];
+function renderComm(container,data){
+  container.innerHTML=data.map(p=>`
+    <div class="comm-card">
+      <span class="comm-tag ${p.tag}">${p.tagText}</span>
+      <p class="comm-title-text">${p.title}</p>
+      <p class="comm-preview">${p.preview}</p>
+      <div class="comm-bottom">
+        <span>${p.time}</span>
+        <span class="comm-stat"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>${p.views.toLocaleString()}</span>
+        <span class="comm-stat"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>${p.comments}</span>
+      </div>
+    </div>`).join('');
+}
+renderComm(document.getElementById('commScrollHome'),commData.slice(0,4));
+renderComm(document.getElementById('commScrollFull'),commData);
+
+/* ─── Chat ─── */
+const chatScreen=document.getElementById('chatScreen'),chatWelcome=document.getElementById('chatWelcome'),chatMessages=document.getElementById('chatMessages'),chatInputEl=document.getElementById('chatInput'),mainInputEl=document.getElementById('mainInput');
+const consultation={step:'idle',topic:'',gender:'',age:'',reset(){this.step='idle';this.topic='';this.gender='';this.age=''}};
+const topicKeywords={'눈':'눈 수술','쌍꺼풀':'눈 수술','코':'코 수술','콧대':'코 수술','코끝':'코 수술','안면윤곽':'안면윤곽','사각턱':'안면윤곽','광대':'안면윤곽','턱':'안면윤곽','리프팅':'리프팅','주름':'리프팅','처짐':'리프팅','지방흡입':'지방흡입','가슴':'가슴 수술','이마':'이마 성형','필러':'필러 시술','보톡스':'보톡스'};
+function getConsultResponse(topic,gender,age){
+  const n=parseInt(age)||30,g=gender==='남'?'남성':'여성';
+  const r={
+    '눈 수술':`${g}, ${n}세 기준 눈 수술 안내드릴게요.\n\n매몰법과 절개법으로 나뉘어요. ${n<30?'20대는 매몰법 유지력이 좋은 편이에요.':'30대 이후는 절개법이 더 적합할 수 있어요.'} ${gender==='남'?'남성은 자연스러운 인아웃라인이 트렌드예요.':'아웃라인과 인라인 중 선호 스타일이 있으세요?'}\n\n더 궁금한 점 있으시면 말씀해주세요.`,
+    '코 수술':`${g}, ${n}세 기준 코 수술 안내드릴게요.\n\n보형물(실리콘, 고어텍스, 자가연골)에 따라 결과가 달라요. ${gender==='남'?'남성은 라인과 각도가 중요해요.':'코끝과 콧대 밸런스가 중요해요.'}\n\n코끝, 콧대, 전체 중 어디가 신경 쓰이세요?`,
+    '안면윤곽':`${g}, ${n}세 기준 안면윤곽 안내드릴게요.\n\n사각턱, 광대, 턱끝 수술로 나뉘어요. ${gender==='남'?'남성은 자연스러운 각도 교정이 많아요.':'V라인 원하시는 분이 많은데 뼈 구조에 따라 달라요.'}\n\n어떤 부분이 고민이세요?`,
+    '리프팅':`${g}, ${n}세 기준 리프팅 안내드릴게요.\n\n${n<35?'실리프팅이나 울쎄라로도 효과가 좋아요.':n<50?'실리프팅 + 울쎄라 병행이 인기예요.':'절개 리프팅도 고려해볼 수 있어요.'}\n\n어떤 부분이 신경 쓰이세요?`,
+  };
+  return r[topic]||`${g}, ${n}세 기준 ${topic} 안내드릴게요.\n\n수술 방법, 회복 기간, 비용, 부작용 등 안내드릴 수 있어요. 가장 궁금한 부분이 뭐예요?`;
+}
+function openChat(msg){chatScreen.classList.add('open');consultation.reset();chatOrb.start();if(msg&&msg.trim())setTimeout(()=>sendMsg(msg.trim()),400)}
+function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';chatOrb.setThinking(false);chatOrb.stop();consultation.reset()},480)}
+function addUserMsg(t){chatWelcome.style.display='none';chatMessages.classList.remove('hidden');const e=document.createElement('div');e.className='msg user';e.textContent=t;chatMessages.appendChild(e);chatInputEl.value='';chatMessages.scrollTop=chatMessages.scrollHeight}
+function addAiMsg(t,d){chatOrb.setThinking(true);const tp=document.createElement('div');tp.className='typing-bubble';tp.innerHTML='<div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>';chatMessages.appendChild(tp);chatMessages.scrollTop=chatMessages.scrollHeight;setTimeout(()=>{tp.remove();chatOrb.setThinking(false);const e=document.createElement('div');e.className='msg ai';e.textContent=t;chatMessages.appendChild(e);chatMessages.scrollTop=chatMessages.scrollHeight},d||1200)}
+function sendMsg(t){if(!t.trim())return;addUserMsg(t);const s=consultation;
+  if(s.step==='idle'){let d='';for(const[k,v]of Object.entries(topicKeywords)){if(t.includes(k)){d=v;break}}s.topic=d||t;s.step='gender';addAiMsg(`${s.topic}에 관심이 있으시군요.\n\n성별이 어떻게 되세요?`,1000);return}
+  if(s.step==='gender'){if(t.includes('남')||t.includes('male'))s.gender='남';else if(t.includes('여')||t.includes('female'))s.gender='여';else{addAiMsg('남성인지 여성인지 알려주세요.',800);return}s.step='age';addAiMsg('나이가 어떻게 되세요?',1000);return}
+  if(s.step==='age'){const n=parseInt(t.replace(/[^0-9]/g,''));if(!n||n<10||n>100){addAiMsg('나이를 숫자로 입력해주세요. (예: 28)',800);return}s.age=String(n);s.step='consult';addAiMsg(getConsultResponse(s.topic,s.gender,s.age),1800);return}
+  if(s.step==='consult'){addAiMsg('좋은 질문이에요. 수술 방법, 비용, 회복 기간, 부작용 중 뭐가 궁금하세요?',1400)}
+}
+document.getElementById('orbArea').addEventListener('click',()=>openChat());
+document.getElementById('mainSend').addEventListener('click',()=>{const v=mainInputEl.value;if(v.trim()){openChat(v);mainInputEl.value=''}else openChat()});
+mainInputEl.addEventListener('keydown',e=>{if(e.key==='Enter'){const v=mainInputEl.value;if(v.trim()){openChat(v);mainInputEl.value=''}else openChat()}});
+document.getElementById('chatClose').addEventListener('click',closeChat);
+document.getElementById('chatSend').addEventListener('click',()=>sendMsg(chatInputEl.value));
+chatInputEl.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg(chatInputEl.value)});
+let tY=0;chatScreen.addEventListener('touchstart',e=>{tY=e.touches[0].clientY},{passive:true});
+chatScreen.addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-tY>80&&chatMessages.scrollTop===0)closeChat()},{passive:true});
+</script>
+</body>
+</html>
