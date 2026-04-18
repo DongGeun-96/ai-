@@ -228,10 +228,10 @@ function sendMsg(t){if(!t.trim())return;addUserMsg(t);const s=consultation;
 }
 document.getElementById('orbArea').addEventListener('click',()=>openChat());
 document.getElementById('mainSend').addEventListener('click',()=>{const v=mainInputEl.value;if(v.trim()){openChat(v);mainInputEl.value=''}else openChat()});
-mainInputEl.addEventListener('keydown',e=>{if(e.key==='Enter'){const v=mainInputEl.value;if(v.trim()){openChat(v);mainInputEl.value=''}else openChat()}});
+mainInputEl.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter'){const v=mainInputEl.value;if(v.trim()){openChat(v);mainInputEl.value=''}else openChat()}});
 document.getElementById('chatClose').addEventListener('click',closeChat);
 document.getElementById('chatSend').addEventListener('click',()=>sendMsg(chatInputEl.value));
-chatInputEl.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg(chatInputEl.value)});
+chatInputEl.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter')sendMsg(chatInputEl.value)});
 let tY=0;chatScreen.addEventListener('touchstart',e=>{tY=e.touches[0].clientY},{passive:true});
 chatScreen.addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-tY>80&&chatMessages.scrollTop===0)closeChat()},{passive:true});
 </script>
