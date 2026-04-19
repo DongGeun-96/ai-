@@ -1090,16 +1090,22 @@ async function showStyleTrend(){
   await new Promise(r=>setTimeout(r,300));
 }
 
-/* ── 직접 입력 시 고정 공감 한 줄 (AI 호출 X, 대화 리듬 유지) ── */
-const BRIEF_REACTIONS={
-  concern:['편하게 말씀해주셔서 고마워요.','그 마음 충분히 이해돼요.','고민 많이 하셨겠어요.'],
-  revisit:['알겠어요, 그 부분 염두에 두고 볼게요.','말씀해주셔서 감사해요.'],
-  sideEffect:['그 부분이 신경 쓰이실 수밖에 없죠.','조심스러운 부분이네요, 잘 챙겨볼게요.'],
-  focus:['중요한 포인트네요.','그 부분 많이 신경 쓰이시죠.'],
-  recovery:['일정 기준 함께 고려할게요.','그 조건 반영해서 볼게요.'],
-  mood:['그 느낌 좋아요.','분위기 잘 느껴져요.'],
-  priority:['그 관점 기준으로 볼게요.','중요한 기준이네요.']
-};
+/* ── 직접 입력 시 실제 상담사 톤 짧은 리액션 ── */
+function briefReaction(key,text){
+  const areaLabel=AREAS[state.areaKey]?.label||'';
+  // concern: 고민 입력은 별도 고정먘트 없이 진행형 한 줄
+  if(key==='concern'){
+    if(areaLabel) return `네, ${areaLabel} 상담으로 아내해드릴게요.`;
+    return '네, 상담으로 아내해드릴게요.';
+  }
+  if(key==='revisit') return '알겠습니다. 그 부분 반영해서 볼게요.';
+  if(key==='sideEffect') return '알겠습니다. 체크 포인트에 넣어두고 볼게요.';
+  if(key==='focus') return '확인했어요.';
+  if(key==='recovery') return '확인했어요.';
+  if(key==='mood') return '네, 그 방향으로 정리해볼게요.';
+  if(key==='priority') return '그 기준으로 정리해드릴게요.';
+  return '확인했어요.';
+}
 async function reactToCustomInput(key,text,opts){
   opts=opts||{};
   const isPreset={
@@ -1108,9 +1114,9 @@ async function reactToCustomInput(key,text,opts){
     recovery:['짧을수록 좋아요','1~2주 가능해요','상관없어요']
   }[key];
   if(isPreset && isPreset.includes(text)) return;
-  const pool=BRIEF_REACTIONS[key]||['말씀 감사해요.'];
-  const msg=pool[Math.floor(Math.random()*pool.length)];
-  await scriptedReply(msg,360);
+  // concern은 scripted 생략 (askGender가 바로 이어짐)
+  if(key==='concern') return;
+  await scriptedReply(briefReaction(key,text),320);
 }
 
 /* ── 말풍선(공감) + 가벼운 카드(방식) + 칩(후속) 혼합 ── */
@@ -1200,10 +1206,8 @@ async function showMoodLiveTrend(){
 async function showInfoAndVideos(){
   const area=AREAS[state.areaKey];
   await scriptedReply(`${state.focus} / ${state.mood} 기준으로 정리해볼게요.`);
-  // 요즘 방식 요약만 1회 (트렌드 카드)
-  await showFocusTrend();
-  // 참고 영상 2~3개
-  await scriptedReply('참고가 될 만한 영상도 같이 보여드릴게요.',320);
+  // 참고 영상 2~3개만 (카드 덩어리 없이)
+  await scriptedReply('참고 영상 몇 개 골라봤어요.',320);
   const q=`${state.gender||''} ${state.age||''} ${area.label} ${state.focus||''} ${state.mood||''}`.replace(/\s+/g,' ').trim();
   const tp=addTyping();
   try{
@@ -1214,8 +1218,8 @@ async function showInfoAndVideos(){
       addYtCards(data.items.map(v=>({id:v.id,title:v.title||area.label,channel:v.channel||'YouTube',tag:state.age||'영상'})));
     }
   }catch(e){tp.remove();chatOrb.setThinking(false)}
-  await new Promise(r=>setTimeout(r,350));
-  await scriptedReply('이 정보 바탕으로 병원까지 같이 찾아볼게요.',320);
+  await new Promise(r=>setTimeout(r,300));
+  await scriptedReply('조건 정리해서 병원까지 같이 찾아볼게요.',300);
 }
 
 async function goStep3(){
