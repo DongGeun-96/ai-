@@ -865,16 +865,15 @@ async function handleUserInput(text){
     const a=detectAge(text);
     if(g) state.gender=g;
     if(a) state.age=a;
+    // 바로 이어지는 시스템 질문이 있을 때는 짧은 공감만 (중복 방지)
     if(g && a){
-      await scriptedReply(`${g} / ${a} / ${AREAS[state.areaKey].label} 관련 고민이시군요.`);
-      await reactToCustomInput('concern',text);
+      await reactToCustomInput('concern',text,{brief:true});
       goStep2();
     }else if(g && !a){
-      await scriptedReply(`${g} / ${AREAS[state.areaKey].label} 관련이시군요.`);
-      await reactToCustomInput('concern',text);
+      await reactToCustomInput('concern',text,{brief:true});
       askAge();
     }else{
-      await reactToCustomInput('concern',text);
+      await reactToCustomInput('concern',text,{brief:true});
       askGender();
     }
     return;
@@ -882,18 +881,18 @@ async function handleUserInput(text){
 
   if(state.step===2){
     const key=state.step2Pending;
-    if(key==='revisit'){state.revisit=text;await reactToCustomInput('revisit',text);nextStep2Question();return}
-    if(key==='sideEffect'){state.sideEffect=text;await reactToCustomInput('sideEffect',text);nextStep2Question();return}
-    if(key==='focus'){state.focus=text;await reactToCustomInput('focus',text);await showFocusTrend();nextStep2Question();return}
-    if(key==='recovery'){state.recovery=text;await reactToCustomInput('recovery',text);nextStep2Question();return}
-    if(key==='mood'){state.mood=text;await reactToCustomInput('mood',text);await showStyleTrend();await showMoodLiveTrend();nextStep2Question();return}
+    if(key==='revisit'){state.revisit=text;await reactToCustomInput('revisit',text,{brief:true});nextStep2Question();return}
+    if(key==='sideEffect'){state.sideEffect=text;await reactToCustomInput('sideEffect',text,{brief:true});nextStep2Question();return}
+    if(key==='focus'){state.focus=text;await reactToCustomInput('focus',text,{brief:true});await showFocusTrend();nextStep2Question();return}
+    if(key==='recovery'){state.recovery=text;await reactToCustomInput('recovery',text,{brief:true});nextStep2Question();return}
+    if(key==='mood'){state.mood=text;await reactToCustomInput('mood',text,{brief:true});await showStyleTrend();await showMoodLiveTrend();nextStep2Question();return}
     nextStep2Question();
     return;
   }
 
   if(state.step===3 && !state.priority){
     state.priority=text;
-    await reactToCustomInput('priority',text);
+    await reactToCustomInput('priority',text,{brief:true});
     askRegion();
     return;
   }
@@ -916,10 +915,7 @@ async function handleUserInput(text){
 }
 
 async function askGender(){
-  const area=AREAS[state.areaKey].label;
-  await scriptedReply(`${area} 관련 고민이시군요. 먼저 몇 가지만 여쭤볼게요.`);
-  await new Promise(r=>setTimeout(r,250));
-  addAi('상담하시는 분은 어떻게 되세요?');
+  addAi('먼저 몇 가지만 여쭤볼게요.\n상담하시는 분은 어떻게 되세요?');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
     addUser(pick);state.gender=pick;
     askAge();
@@ -1026,7 +1022,6 @@ async function nextStep2Question(){
   }
   // focus + mood 확보 → 정보 + 영상 한 번에
   await showInfoAndVideos();
-  await scriptedReply(`조건 정리했어요. ${state.focus} / ${state.mood}.`);
   goStep3();
 }
 
@@ -1048,7 +1043,8 @@ async function showStyleTrend(){
 
 /* ── 라이브 트렌드 카드 공통 ── */
 /* ── 직접 입력 시 짧은 공감+정보 한 마디 ── */
-async function reactToCustomInput(key,text){
+async function reactToCustomInput(key,text,opts){
+  opts=opts||{};
   // 척 선택에서 나온 값과 일치하면 공감 멘트만 간단히
   const isPreset={
     revisit:['아니요, 처음이에요','네, 재수술이에요','고민 중이에요'],
@@ -1073,13 +1069,15 @@ async function reactToCustomInput(key,text){
     mood:'원하는 분위기에 공감 + 그 느낌이 요즘 어떻게 표현되는지 짧게. 2문장.',
     priority:'우선순위에 공감 + 그 관점으로 병원 고를 때 체크할 포인트 1개만 짧게. 2문장.'
   };
-  await askAI({
-    stepGoal:`STEP ${state.step} 직접입력 응답 (코디 모드). 사용자 입력: "${text}". 
+  const briefGoal=`STEP ${state.step} 직접입력 짧은 공감. 사용자 입력: "${text}". 공감 한 문장 + 간단한 정보 한 줄만. 총 1~2문장. 후속 질문 금지 — 다음 시스템 질문이 바로 이어짐. 인사말/반복 금지.`;
+  const fullGoal=`STEP ${state.step} 직접입력 응답 (코디 모드). 사용자 입력: "${text}". 
 안내 흐름:
 ① 공감 1문장 (고객이 느낀 감정·맥락을 울려주기)
 ② 관련 정보 2~3문장: ${goalMap[key]||'고민에 맞는 일반적 정보'}
-③ 단단한 자연스러운 후속 질문 1개 (그래서 고객이 더 이야기하도록). 조사/제안·세일이 아닌 "상태·경험·느낌·일정·주변 반응·제액 레벨" 등 코칭 질문.
-총 5~7문장·공감 우선, 의학 단정 금지.`,
+③ 단단한 자연스러운 후속 질문 1개 (그래서 고객이 더 이야기하도록). 조사/제안·세일이 아닌 "상태·경험·느낌·일정·주변 반응·제약 레벨" 등 코칭 질문.
+총 5~7문장·공감 우선, 의학 단정 금지.`;
+  await askAI({
+    stepGoal: opts.brief ? briefGoal : fullGoal,
     userText:`(${labelMap[key]||key}) ${text}`
   });
 }
@@ -1109,7 +1107,6 @@ async function liveTrendCard({title,goal,prompt}){
 
 async function showFocusTrend(){
   const area=AREAS[state.areaKey].label;
-  await scriptedReply(`${state.focus} 고민, 요즘 많은 케이스부터 알려드릴게요.`);
   await liveTrendCard({
     title:`📊 ${area} · ${state.focus} 요즘 수술 트렌드`,
     goal:`STEP 2 트렌드 안내 타이도 (코디 모드). ${area}의 "${state.focus}" 고민에 대해:\n① 요즘 많이 선택하는 방식 2~3개, 각 한 줄 특징+선호 이유\n② 이 고민 특유의 주의점 1개\n③ 고객이 더 이야기할 수 있는 잨은 질문 1개 (예: "혹시 주변에 이 부위 수술하신 분 이야기 들어보셔서 안심이 되세요, 아니면 부담에 가까울까요?")\n광고·수치·특정 병원 금지. 마크다운 줄바꾸고 괄호·이모지 구분. 6~8줄.`,
