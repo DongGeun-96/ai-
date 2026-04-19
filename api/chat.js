@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT, SAFETY_MD, loadAreaKnowledge, MODEL, getApiKey, readJson, send } from './_lib.js';
+import { SYSTEM_PROMPT, SAFETY_MD, STATS_MD, loadAreaKnowledge, MODEL, getApiKey, readJson, send } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
@@ -18,8 +18,9 @@ export default async function handler(req, res) {
   const step = Number(payload.step || 0);
   const includeSafety = step === 1 || step >= 6;
   const safety = includeSafety && SAFETY_MD ? `\n\n── 안전·가드레일 ──\n${SAFETY_MD}` : '';
+  const stats = STATS_MD ? `\n\n── 공식 통계·부작용·비용 자료 (인용 가능) ──\n${STATS_MD}` : '';
   const messages = [
-    { role: 'system', content: SYSTEM_PROMPT + stepNote + context + safety + kb },
+    { role: 'system', content: SYSTEM_PROMPT + stepNote + context + safety + kb + stats },
     ...userMessages
   ];
   try {

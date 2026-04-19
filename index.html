@@ -1217,11 +1217,44 @@ function askRecovery(){
 }
 
 async function sendExtra(key){
+  if(key==='cost'){await showOfficialPricing();goStep5();return}
+  if(key==='side'){await showOfficialSideEffects();goStep5();return}
   const info=EXTRA_TOPICS[key];
   addAi(info.text);
   await new Promise(r=>setTimeout(r,400));
   addAi('다른 방향도 볼까요?');
   goStep5();
+}
+
+/* ── 공식 통계 기반 비용 안내 (심평원 + 국민건강) ── */
+async function showOfficialPricing(){
+  const area=AREAS[state.areaKey].label;
+  await scriptedReply(`${area} 비용, 공식 데이터로 안내해드릴게요.`);
+  await liveTrendCard({
+    title:`💰 ${area} · 공식 비급여 가격 안내`,
+    goal:`STEP 5 비용 안내 (심평원 · 국민건강보험 공개 데이터 기반).\n① ${area} 관련 주요 비급여 항목을 공식 포털에서 조회할 수 있다는 점 안내\n② 공식 통계(2024)에서 알려진 가격 스펙트럼: 병원별 가격 편차가 매우 크다(예: 다초점렌즈 최대 23배)\n③ 확인 방법 2개: (1) 국민건강보험 비급여 정보 포털 https://www.nhis.or.kr/nbinfo/index.do  (2) 심평원 비급여진료비 정보 https://www.hira.or.kr/npay/index.do\n④ 비용 비교 체크포인트 3개(마취비 포함 여부/재수술 조건/사후관리 범위)\n⑤ 끝에 고객이 미리 생각해보면 좋은 후속 질문 1개.\n광고·특정 병원 금지. 번호·불릿 사용. 8~12줄.`,
+    prompt:`${state.gender||''} ${state.age||''}, ${area} 부위 지역 기준 ${state.region||'있는 것'} 정도에서 공식 비급여 가격 확인 방법과 비용 이해 톤으로 안내해줘.`
+  });
+  // 비용 링크 버튼 추가
+  addLinks([
+    ['국민건강보험','비급여 정보 포털','https://www.nhis.or.kr/nbinfo/index.do'],
+    ['심평원','비급여진료비 정보','https://www.hira.or.kr/npay/index.do']
+  ]);
+}
+
+/* ── 공식 통계 기반 부작용 사례 안내 ── */
+async function showOfficialSideEffects(){
+  const area=AREAS[state.areaKey].label;
+  await scriptedReply(`${area} 부작용, 공식 통계 기준으로 정리해드릴게요.`);
+  await liveTrendCard({
+    title:`⚠️ ${area} · 공식 부작용·분쟁 통계`,
+    goal:`STEP 5 부작용 안내 (한국소비자원+의료분쟁조정중재원 공식 데이터 기반).\n① 부위별 주요 부작용 패턴 3~4개 (연구·공개 통계 인용)\n② 최근 통계: 한국소비자원 미용·성형 피해구제 동향에서 드러난 주요 쟁점(계약해제 58.1%, 부작용 의심 11.6% 등) 간략 앨거\n③ "정상 회복 과정"과 "이상 신호" 구별 표시 2~3줄\n④ 문제 생김 시 어디로 가나: 의료분쟁조정중재원 https://k-medi.or.kr, 한국소비자원 https://www.kca.go.kr 안내\n⑤ 고객 상황에 맞춘 잨은 후속 질문 1개.\n의학 단정 금지. 공포 조장 금지. 정보 중심. 10~14줄.`,
+    prompt:`${area}의 일반적 부작용 사례를 공식 통계(한국소비자원, 의료중재원) 기준으로 정리해줘. "이거 말고 혹시 걱정되는 멸내퍼집 생각하시는 게 있으세요?" 스타일의 공감 질문 마지막에 붙여줘.`
+  });
+  addLinks([
+    ['한국소비자원','의료 피해구제 안내','https://www.kca.go.kr'],
+    ['의료분쟁조정중재원','분쟁 안내','https://k-medi.or.kr']
+  ]);
 }
 
 /* ── 상담 질문지 자동 생성 ── */

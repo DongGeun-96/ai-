@@ -25,6 +25,7 @@ function readKnowledge(rel) {
 }
 
 export const SAFETY_MD = readKnowledge('general/safety.md');
+export const STATS_MD = readKnowledge('general/stats.md');
 
 export function loadAreaKnowledge(areaKey) {
   const rel = KNOWLEDGE_MAP[areaKey];
