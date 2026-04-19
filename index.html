@@ -1202,7 +1202,7 @@ async function showFocusTrend(){
   const area=AREAS[state.areaKey].label;
   await liveStructuredCard({
     title:`${area} · ${state.focus} 요즘 방식`,
-    emoji:'📊',variant:'trend',
+    emoji:'',variant:'trend',
     schema:`{"summary":"공감 1줄 (감탄·미사여 금지, "~할 수 있어요" 수준)","items":[{"name":"방식명","desc":"한 줄 설명+선호 이유","tag":"선호도/특징"}],"tip":"이 고민 특유 주의점 한 줄","followup":{"question":"고객 상황 더 파악할 잨은 질문","options":["선택지 3개"]}}`,
     instruction:`${area}의 "${state.focus}" 고민에 대해 요즘 한국에서 일반적으로 선호하는 수술/시술 방식 3개를 items로 담아줘. 각 item은 name(방식명), desc(짧은 한 줄 설명·24자 이하), tag(예: "자연스러움", "유지력", "빠른 회복"·8자 이하) 필드만. tip은 이 고민에서 놓치기 쉬운 중요 체크포인트 한 줄. followup.question은 고객 상태·경험·일정 파고드는 질문 한 문장(20자 이하). followup.options는 바로 눌러 이어갈 수 있는 선택지 3개(각 10자 내외). 광고·수치·특정 병원 금지.`
   });
@@ -1212,7 +1212,7 @@ async function showMoodLiveTrend(){
   const area=AREAS[state.areaKey].label;
   await liveStructuredCard({
     title:`${state.mood} 스타일 · 요즘 세팅`,
-    emoji:'✨',variant:'mood',
+    emoji:'',variant:'mood',
     schema:`{"summary":"스타일 분위기 공감 1줄","items":[{"name":"디자인 특징","desc":"어떤 느낌 생기는지","tag":"키워드"}],"tip":"피해야할 과한 세팅 한 줄","followup":{"question":"고객 이상 파악 질문","options":["선택지 3개"]}}`,
     instruction:`${area}에서 "${state.mood}" 분위기를 원할 때 요즘 구체적 디자인·라인 특징 3개. 각 item은 name(12자 이하 특징명), desc(어떤 느낌인지 한 줄 20자 이하), tag(예: "동안", "세련", "디름함"·8자). tip은 요즘 피하는 과한 세팅 한 줄. followup.question은 고객이 원하는 본어·참고 이미지 있는지 묻는 간결 질문(20자 이하). followup.options 3개(각 10자 내외).`
   });
@@ -1381,7 +1381,7 @@ function renderCostCard(areaKey){
   ensureChatActive();
   const el=document.createElement('div');el.className='official-card cost-card';
   el.innerHTML=`
-    <div class="oc-head"><span class="oc-emoji">💰</span><strong>${d.label} 공개 가격 범위</strong></div>
+    <div class="oc-head"><strong>${d.label} 공개 가격 범위</strong></div>
     <ul class="oc-list">
       ${d.cost.map(c=>`<li><span class="oc-item">${esc(c.item)}</span><span class="oc-range">${esc(c.range)}</span>${c.note?`<small>${esc(c.note)}</small>`:''}</li>`).join('')}
     </ul>
@@ -1395,7 +1395,7 @@ function renderSideCard(areaKey){
   ensureChatActive();
   const el=document.createElement('div');el.className='official-card side-card';
   el.innerHTML=`
-    <div class="oc-head"><span class="oc-emoji">⚠️</span><strong>${d.label} 주요 부작용·유의사항</strong></div>
+    <div class="oc-head"><strong>${d.label} 주요 부작용·유의사항</strong></div>
     <ul class="oc-bullets">
       ${d.sideMain.map(x=>`<li>${esc(x)}</li>`).join('')}
     </ul>
