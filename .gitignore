@@ -1,0 +1,8 @@
+.env
+.DS_Store
+node_modules/
+*.DS_Store
+.omc/
+스크린샷*.png
+02_mo.jpg
+AI_성형상담_서비스_기획서_v2.pdf
