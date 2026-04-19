@@ -306,6 +306,17 @@
     .sc-chip{padding:8px 12px;border-radius:14px;font-size:12px;font-weight:700;background:var(--accent);color:#fff;border:none;cursor:pointer;transition:all .2s}
     .sc-chip:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(123,143,212,0.3)}
     .sc-chip.disabled{opacity:.4;pointer-events:none}
+    /* ── 미니 카드 (말풍선 사이에 껴는 가벼운 리스트) ── */
+    .mini-card{align-self:flex-start;max-width:88%;margin:4px 0;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid rgba(123,143,212,0.2);animation:msgSlide .32s both}
+    .mini-card.variant-trend{border-color:rgba(123,143,212,0.3);background:linear-gradient(180deg,#F6F8FE,#fff)}
+    .mini-card.variant-mood{border-color:rgba(255,200,170,0.55);background:linear-gradient(180deg,#FFF9F5,#fff)}
+    .mc-title{font-size:12px;font-weight:800;color:var(--accent-deep);margin-bottom:6px;letter-spacing:.2px}
+    .mc-items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px}
+    .mc-items li{padding:6px 8px;border-radius:8px;background:rgba(123,143,212,0.05);font-size:12.5px;line-height:1.45}
+    .mc-name{font-weight:700;color:var(--text-0);display:flex;align-items:center;gap:6px}
+    .mc-name em{font-style:normal;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;background:var(--accent);color:#fff;letter-spacing:.2px}
+    .mc-desc{font-size:12px;color:var(--text-1);margin-top:2px;line-height:1.5}
+    .tip-line{align-self:flex-start;max-width:88%;margin:4px 0;padding:8px 12px;border-radius:14px;font-size:12.5px;line-height:1.5;color:#5C4A00;background:#FFFBE8;border:1px solid #FFE8A0;animation:msgSlide .32s both}
 
     .ai-summary strong{display:block;font-size:15px;font-weight:700;color:var(--text-0);margin-bottom:6px;letter-spacing:-.2px}
     .ai-summary p{font-size:13px;line-height:1.7;color:var(--text-1);white-space:pre-line}
@@ -1123,19 +1134,16 @@ async function reactToCustomInput(key,text,opts){
   });
 }
 
-/* ── AI JSON 기반 구조화 트렌드 카드 ── */
-async function liveStructuredCard({title,emoji,variant,schema,context,instruction,followUpAsk}){
+/* ── 말풍선(공감) + 가벼운 카드(방식) + 칩(후속) 혼합 ── */
+async function liveStructuredCard({title,emoji,variant,schema,context,instruction}){
   ensureChatActive();
-  const id='struct_'+Date.now();
-  const el=document.createElement('div');el.className=`struct-card loading variant-${variant||'info'}`;
-  el.innerHTML=`<div class="sc-head"><span class="sc-emoji">${emoji||'✨'}</span><strong>${esc(title)}</strong></div><div class="sc-body" id="${id}"><span class="trend-dot"></span><span class="trend-dot"></span><span class="trend-dot"></span></div>`;
-  chatMessages.appendChild(el);scrollBottom();
+  const tp=addTyping();
   try{
-    const stepGoal=`${instruction}\n\n⚔️ 출력 형식 (중요!): 오직 아래 JSON 한 개만 반환. 다른 설명·인사·마크다운 금지. \n\n필드: ${schema}\n꼭 유효한 JSON으로만 반환.`;
+    const stepGoal=`${instruction}\n\n⚔️ 오직 유효 JSON 하나로만 반환. 설명·인사·마크다운 금지. 필드: ${schema}`;
     const payload={
       step:state.step,stepGoal,
       context:context||{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,재수술:state.revisit,포인트:state.focus,스타일:state.mood,areaKey:state.areaKey},
-      messages:[{role:'user',content:`위 스키마에 맞는 JSON만 반환해줘.`}]
+      messages:[{role:'user',content:'스키마에 맞는 JSON만 반환.'}]
     };
     const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     const j=await r.json();
@@ -1143,46 +1151,51 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
     raw=raw.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
     const m=raw.match(/\{[\s\S]*\}/);
     const data=m?JSON.parse(m[0]):null;
-    el.classList.remove('loading');
-    const body=document.getElementById(id);
-    if(!data){body.textContent='정보를 불러오지 못했어요.';return}
-    body.innerHTML=renderStructuredBody(data,followUpAsk);
-    // 후속 질문 칩
-    if(data.followup && Array.isArray(data.followup.options)){
-      const qWrap=document.createElement('div');qWrap.className='sc-followup';
-      qWrap.innerHTML=`<div class="sc-q">${esc(data.followup.question||'혹시 어떤 남상 드세요?')}</div>`;
-      const chipWrap=document.createElement('div');chipWrap.className='sc-chips';
-      data.followup.options.forEach(o=>{
-        const b=document.createElement('button');b.className='sc-chip';b.textContent=o;
-        b.addEventListener('click',()=>{
-          chipWrap.querySelectorAll('.sc-chip').forEach(x=>x.classList.add('disabled'));
-          handleUserInput(o);
-        });
-        chipWrap.appendChild(b);
-      });
-      qWrap.appendChild(chipWrap);el.appendChild(qWrap);
-    }
-    scrollBottom();
-  }catch(e){
-    const body=document.getElementById(id);if(body)body.textContent='정보를 불러오지 못했어요.';
-    el.classList.remove('loading');
-  }
-  await new Promise(r=>setTimeout(r,300));
-}
+    tp.remove();chatOrb.setThinking(false);
+    if(!data){addAi('관련 정보를 불러오지 못했어요.');return}
 
-function renderStructuredBody(d){
-  let html='';
-  if(d.summary){html+=`<div class="sc-summary">${esc(d.summary)}</div>`}
-  if(Array.isArray(d.items) && d.items.length){
-    html+='<ul class="sc-items">';
-    d.items.forEach(it=>{
-      if(typeof it==='string'){html+=`<li><span class="sc-dot">●</span><span>${esc(it)}</span></li>`}
-      else{html+=`<li><div class="sc-item-head">${esc(it.name||'')}</div>${it.desc?`<div class="sc-item-desc">${esc(it.desc)}</div>`:''}${it.tag?`<span class="sc-tag">${esc(it.tag)}</span>`:''}</li>`}
-    });
-    html+='</ul>';
+    // 1) 요약 = 말풍선으로 (고객 공감)
+    if(data.summary){addAi(data.summary);await new Promise(r=>setTimeout(r,280))}
+
+    // 2) 방식/특징 = 간략한 리스트 카드 (제목 없이 작은 카드)
+    if(Array.isArray(data.items) && data.items.length){
+      ensureChatActive();
+      const card=document.createElement('div');card.className=`mini-card variant-${variant||'info'}`;
+      if(title){card.innerHTML=`<div class="mc-title">${emoji||''} ${esc(title)}</div>`}
+      const ul=document.createElement('ul');ul.className='mc-items';
+      data.items.forEach(it=>{
+        const li=document.createElement('li');
+        if(typeof it==='string'){li.innerHTML=`<span>${esc(it)}</span>`}
+        else{
+          li.innerHTML=`<div class="mc-name">${esc(it.name||'')}${it.tag?`<em>${esc(it.tag)}</em>`:''}</div>${it.desc?`<div class="mc-desc">${esc(it.desc)}</div>`:''}`;
+        }
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+      chatMessages.appendChild(card);scrollBottom();
+      await new Promise(r=>setTimeout(r,250));
+    }
+
+    // 3) 팁 = 가벼운 한 줄
+    if(data.tip){
+      ensureChatActive();
+      const t=document.createElement('div');t.className='tip-line';
+      t.innerHTML=`💡 ${esc(data.tip)}`;
+      chatMessages.appendChild(t);scrollBottom();
+      await new Promise(r=>setTimeout(r,200));
+    }
+
+    // 4) 후속 질문 = 말풍선 + 칩
+    if(data.followup && data.followup.question){
+      addAi(data.followup.question);
+      if(Array.isArray(data.followup.options) && data.followup.options.length){
+        addQuickReply(data.followup.options,pick=>{handleUserInput(pick)},'직접 입력하셔도 돼요');
+      }
+    }
+  }catch(e){
+    tp.remove();chatOrb.setThinking(false);
+    addAi('관련 정보를 불러오지 못했어요.');
   }
-  if(d.tip){html+=`<div class="sc-tip"><span class="sc-tip-label">💡 체크</span>${esc(d.tip)}</div>`}
-  return html;
 }
 
 async function showFocusTrend(){
