@@ -909,7 +909,7 @@ async function handleUserInput(text){
 
   if(state.step>=3){
     await askAI({
-      stepGoal:`STEP ${state.step} 보조 답변. 2~3문장. 카드는 이미 화면에 있음.`,
+      stepGoal:`STEP ${state.step} 보조 답변. 공감 1문장 + 관련 정보 2~3문장 + 고객이 더 이야기하고 싶어지게 하는 자연스러운 후속 질문 1개. 대화를 이끌어주세요.`,
       userText:text
     });
   }
@@ -1074,7 +1074,12 @@ async function reactToCustomInput(key,text){
     priority:'우선순위에 공감 + 그 관점으로 병원 고를 때 체크할 포인트 1개만 짧게. 2문장.'
   };
   await askAI({
-    stepGoal:`STEP ${state.step} 직접입력 공감·힌트 응답. 사용자 입력: "${text}". 안내 목표: ${goalMap[key]||'공감 + 고민에 맞는 정보 한 줄.'}`,
+    stepGoal:`STEP ${state.step} 직접입력 응답 (코디 모드). 사용자 입력: "${text}". 
+안내 흐름:
+① 공감 1문장 (고객이 느낀 감정·맥락을 울려주기)
+② 관련 정보 2~3문장: ${goalMap[key]||'고민에 맞는 일반적 정보'}
+③ 단단한 자연스러운 후속 질문 1개 (그래서 고객이 더 이야기하도록). 조사/제안·세일이 아닌 "상태·경험·느낌·일정·주변 반응·제액 레벨" 등 코칭 질문.
+총 5~7문장·공감 우선, 의학 단정 금지.`,
     userText:`(${labelMap[key]||key}) ${text}`
   });
 }
@@ -1107,8 +1112,8 @@ async function showFocusTrend(){
   await scriptedReply(`${state.focus} 고민, 요즘 많은 케이스부터 알려드릴게요.`);
   await liveTrendCard({
     title:`📊 ${area} · ${state.focus} 요즘 수술 트렌드`,
-    goal:`STEP 2 트렌드 안내 타이도. ${area}의 "${state.focus}" 고민에 대해 요즘 한국에서 많이 선택하는 수술 방식 2~3개 소개. 각 방식 이름+한 줄 특징+왜 요즘 선호되는지. 광고/서술·과장 금지, 정보·중성. 마크다운 불릷, 줄바꾸고 괄호로 설명. 5줄 내외.`,
-    prompt:`${state.gender||''} ${state.age||''} 기준, ${area}의 ${state.focus} 고민에 요즘 한국 일반적으로 선호하는 수술 방식 2~3개 알려줘. 광고·서수없이 정보 중심으로.`
+    goal:`STEP 2 트렌드 안내 타이도 (코디 모드). ${area}의 "${state.focus}" 고민에 대해:\n① 요즘 많이 선택하는 방식 2~3개, 각 한 줄 특징+선호 이유\n② 이 고민 특유의 주의점 1개\n③ 고객이 더 이야기할 수 있는 잨은 질문 1개 (예: "혹시 주변에 이 부위 수술하신 분 이야기 들어보셔서 안심이 되세요, 아니면 부담에 가까울까요?")\n광고·수치·특정 병원 금지. 마크다운 줄바꾸고 괄호·이모지 구분. 6~8줄.`,
+    prompt:`${state.gender||''} ${state.age||''} 기준, ${area}의 ${state.focus} 고민에 요즘 한국 일반적으로 선호하는 수술 방식 알려줘. 방식 소개 후에 내 상황을 더 파악할 수 있는 질문도 하나 해줘.`
   });
 }
 
@@ -1116,8 +1121,8 @@ async function showMoodLiveTrend(){
   const area=AREAS[state.areaKey].label;
   await liveTrendCard({
     title:`📊 ${state.mood} 스타일 · 요즘 세팅`,
-    goal:`STEP 2 스타일 트렌드. ${area}에서 "${state.mood}" 분위기를 원할 때 요즘 한국에서 선호하는 구체 디자인 특징 2~3개. "어떤 느낌·라인·포인트·어떤 본어 따라가는데 쓰는지". 광고문구 없이 정보·중성. 5줄 내외.`,
-    prompt:`${state.gender||''} ${state.age||''}, ${area}의 ${state.focus||''} 부위를 '${state.mood}' 스타일로 원할 때 요즘 세팅 알려줘.`
+    goal:`STEP 2 스타일 트렌드 (코디 모드). ${area}에서 "${state.mood}" 분위기를 원할 때:\n① 요즘 한국에서 선호하는 구체 디자인·라인 특징 2~3개\n② "어떤 느낌·어떤 이미지" 수준의 설명\n③ 고객이 원하는 본어 있는지/참고하는 이미지 있는지 묻는 잨은 후속 질문 1개\n광고문구·수치 금지. 정보·중성. 6~8줄.`,
+    prompt:`${state.gender||''} ${state.age||''}, ${area}의 ${state.focus||''} 부위를 '${state.mood}' 스타일로 원할 때 요즘 세팅 알려줘. 마지막에 내 이대온 느낌을 더 잘 아는 데 도움되는 질문도 하나 해줘.`
   });
 }
 
@@ -1358,7 +1363,7 @@ async function goStep6(){
   addHospitalList();
   await new Promise(r=>setTimeout(r,300));
   await askAI({
-    stepGoal:'STEP 6 마무리: 오늘 상담 짧은 한줄 요약 + 따뜻한 인사. 2문장 이내.',
+    stepGoal:'STEP 6 마무리: 오늘 상담 핵심 요약 2문장 + 고객이 다음으로 관리해야 할 것 1문장 (예: "2~3곳 직접 상담 후 비교해 보세요, 원하시면 제가 상담 다녀온 후 정리 도와드릴게요") + 따뜻한 인사 마무리. 총 4~5문장.',
     userText:'오늘 상담 짧게 마무리해줘.'
   });
 }

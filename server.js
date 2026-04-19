@@ -160,7 +160,7 @@ async function handleVision(req, res) {
       body: JSON.stringify({
         model: MODEL,
         temperature: 0.6,
-        max_tokens: 260,
+        max_tokens: 480,
         messages: [
           { role: 'system', content: sys },
           {
@@ -393,8 +393,8 @@ async function handleChat(req, res) {
       body: JSON.stringify({
         model: MODEL,
         messages,
-        temperature: 0.5,
-        max_tokens: 260
+        temperature: 0.65,
+        max_tokens: 480
       })
     });
     const data = await upstream.json();

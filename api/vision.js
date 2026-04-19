@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: MODEL, temperature: 0.6, max_tokens: 260,
+        model: MODEL, temperature: 0.6, max_tokens: 480,
         messages: [
           { role: 'system', content: sys },
           { role: 'user', content: [

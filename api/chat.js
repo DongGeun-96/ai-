@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     const upstream = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, messages, temperature: 0.5, max_tokens: 260 })
+      body: JSON.stringify({ model: MODEL, messages, temperature: 0.65, max_tokens: 480 })
     });
     const data = await upstream.json();
     if (!upstream.ok) return send(res, upstream.status, { error: data?.error?.message || '요청 실패' });
