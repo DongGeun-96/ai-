@@ -217,6 +217,23 @@
     .ai-hospital-meta b{min-width:42px;font-size:10.5px;color:var(--text-3);font-weight:700;letter-spacing:.3px}
     .ai-hospital-meta a{color:var(--accent-deep);font-weight:700;text-decoration:none}
     .ai-hospital-disclaim{margin-top:8px;padding-top:8px;border-top:1px dashed var(--divider);font-size:10px;color:var(--text-3);line-height:1.5}
+    .question-card{align-self:flex-start;max-width:94%;margin:8px 0;background:linear-gradient(135deg,#FFF8E7,#FFEFC9);border:1px solid #F5D578;border-radius:18px;padding:16px 18px;animation:msgSlide .32s both}
+    .question-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .question-card-head strong{font-size:14px;font-weight:800;color:#7A5800}
+    .question-card-head span{font-size:11px;color:#A47A1F;background:rgba(255,255,255,0.6);padding:3px 9px;border-radius:8px;font-weight:700}
+    .question-list{padding-left:20px;display:flex;flex-direction:column;gap:8px}
+    .question-list li{font-size:12.5px;line-height:1.55;color:#3F2E0A}
+    .question-copy{margin-top:14px;width:100%;padding:11px;border:none;border-radius:12px;background:#7A5800;color:#fff;font-weight:800;font-size:12.5px;cursor:pointer}
+    .question-copy:active{opacity:0.8}
+    .compare-card{align-self:flex-start;max-width:96%;margin:8px 0;background:#fff;border:1px solid var(--divider);border-radius:18px;padding:14px;box-shadow:0 6px 20px rgba(124,143,154,0.06);animation:msgSlide .32s both}
+    .compare-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .compare-head strong{font-size:14px;font-weight:800;color:var(--text-0)}
+    .compare-head span{font-size:11px;color:var(--text-3);background:rgba(0,0,0,0.04);padding:3px 9px;border-radius:8px}
+    .compare-table{width:100%;font-size:11px;border-collapse:collapse}
+    .compare-table th,.compare-table td{padding:8px 6px;text-align:left;border-bottom:1px dashed var(--divider);vertical-align:top;line-height:1.4}
+    .compare-table th{font-size:10.5px;color:var(--text-2);font-weight:700;background:rgba(0,0,0,0.02)}
+    .compare-table td strong{font-size:11.5px;color:var(--accent-deep);font-weight:800}
+    .compare-note{margin-top:8px;font-size:10px;color:var(--text-3);line-height:1.5}
 
     .ai-summary{align-self:flex-start;max-width:90%;padding:16px 18px;border-radius:22px;background:linear-gradient(135deg,rgba(168,186,232,0.18),rgba(123,143,212,0.1));border:1px solid rgba(123,143,212,0.18);animation:msgSlide .32s both}
     /* ── YouTube clip cards ── */
@@ -1048,10 +1065,13 @@ async function goStep4(){
 
 function goStep5(){
   setStep(5);
-  const opts=state.recovery?['비용 정보','부작용 사례','다른 지역','병원 체크리스트','충분해요, 정리해줘']:['회복 기간','비용 정보','부작용 사례','다른 지역','병원 체크리스트','충분해요, 정리해줘'];
+  const base=['상담 질문지 받기 ✨','수술 비교표 보기 ✨','비용 정보','부작용 사례','다른 지역','병원 체크리스트','충분해요, 정리해줘'];
+  const opts=state.recovery?base:['회복 기간',...base];
   addQuickReply(opts,pick=>{
     addUser(pick);
     if(pick==='회복 기간')askRecovery();
+    else if(pick==='상담 질문지 받기 ✨')showQuestionList();
+    else if(pick==='수술 비교표 보기 ✨')showSurgeryCompare();
     else if(pick==='비용 정보')sendExtra('cost');
     else if(pick==='부작용 사례')sendExtra('side');
     else if(pick==='다른 지역')askOtherRegion();
@@ -1073,6 +1093,123 @@ async function sendExtra(key){
   addAi(info.text);
   await new Promise(r=>setTimeout(r,400));
   addAi('다른 방향도 볼까요?');
+  goStep5();
+}
+
+/* ── 상담 질문지 자동 생성 ── */
+const QUESTION_BANK={
+  common:[
+    '제 상태(눈·코·도) 기준으로 가장 권하는 수술 방식은?',
+    '그 방식을 선택하신 이유와 다른 선택지는 뭐가 있을까요?',
+    '이 병원에서 해당 수술을 서둘 담당하신 의사님의 경력은 어떻게 될지요?',
+    '수술 일자·마취 방법·소요 시간은 어떻게 잘 되나요?',
+    '종 한 수술의 부작용 확률과 대처 프로토콜은?',
+    '수술 비용은 좀 다 포함되나요? 추가 비용 가능성은?',
+    '재수술 보증이 있나요? 어떤 조건으로 적용되나요?',
+    '수술 후 점검·사후 관리는 몇 차례까지 도와주시나요?'
+  ],
+  eye:[
+    '제 눈꿙·지방·안면근 상태에서 매몰·절개 중 무엇이 더 적합한가요?',
+    '안면교정이 필요한지, 필요하다면 어느 정도인가요?',
+    '제 다른 한쪽 눈과의 비대칭·편차는 어느 레벨까지 맞출 수 있나요?'
+  ],
+  nose:[
+    '제 코 피부·연골 상태에서 구축 가능성은 어느 정도인가요?',
+    '보형물과 자가조직 중 제게 적합한 건 무엇이고 이유는?',
+    '코끝 자가조직은 어디서 채취하고 흡수 가능성은 어느 정도인가요?'
+  ],
+  breast:[
+    '제 체형·조직 상태에 맞는 보형물 종류·사이즈는?',
+    '대흐·소흐 중 이 경우에 적합한 방식은? 이유는?',
+    'BIA-ALCL 관련 보형물 안전성과 정기 검사 주기는?',
+    '향후 구축 의심 증상이 생기면 언제 찾아와야 하나요?'
+  ],
+  lipo:[
+    '일세에 흡입 가능한 부위와 추천 부위는?',
+    '흡입량 기준과 피부 수축·울투불투 관리 방안은?',
+    '마취 방식과 입원 여부, 아프터 케어 일정은?'
+  ],
+  contour:[
+    '제 얼굴·너비·대칭에 맞는 절골 범위는?',
+    '안면신경·필수자·동·정맥과 일정 거리 확보 방법은?',
+    '양악 수술 필요 여부·교정을 겸한다면 어디에서 진행하나요?'
+  ]
+};
+
+async function showQuestionList(){
+  const area=AREAS[state.areaKey];
+  const list=[...QUESTION_BANK.common,...(QUESTION_BANK[state.areaKey]||[])];
+  if(state.revisit&&state.revisit.includes('재수술')){
+    list.push('이전 수술 자료를 가져가야 하나요? 재수술 시 척수 포인트는?');
+    list.push('이전 조직 손상·유착 정도와 재도전 이용 가능성은?');
+  }
+  if(state.sideEffect&&!state.sideEffect.includes('없었어요')){
+    list.push(`이전 증상(${state.sideEffect}) 관련, 이번 수술에서 이를 개선할 수 있는 방향은?`);
+  }
+  await scriptedReply(`${area.label} 상담 갈 때 챙먹하면 좋은 질문 리스트예요.`);
+  ensureChatActive();
+  const wrap=document.createElement('div');wrap.className='question-card';
+  wrap.innerHTML=`<div class="question-card-head"><strong>✨ 상담실 질문지</strong><span>${area.label}</span></div>
+    <ol class="question-list">${list.map(q=>`<li>${esc(q)}</li>`).join('')}</ol>
+    <button class="question-copy" onclick="copyQuestions(this)">함께 복사하기</button>`;
+  wrap.dataset.text=list.map((q,i)=>`${i+1}. ${q}`).join('\n');
+  chatMessages.appendChild(wrap);scrollBottom();
+  await new Promise(r=>setTimeout(r,400));
+  addAi('상담 전에 한번 읽어보시고, 필요한 건 직접 메모해 가세요.');
+  goStep5();
+}
+
+function copyQuestions(btn){
+  const text=btn.parentElement.dataset.text;
+  navigator.clipboard?.writeText(text).then(()=>{
+    btn.textContent='복사 완료 ✓';
+    setTimeout(()=>btn.textContent='함께 복사하기',2000);
+  });
+}
+
+/* ── 수술 방식 비교표 ── */
+const SURGERY_COMPARE={
+  eye:{title:'쌍꺼풀 방식 비교',rows:[
+    {name:'매몰법',recover:'7~10일',scar:'거의 없음',duration:'5~10년 (풀릴 수 있음)',fit:'얖은 눈꿙·동안 세대'},
+    {name:'부분절개',recover:'10~14일',scar:'적음',duration:'반영구 (둘낅·지방 제거)',fit:'척며조직 일부 있는 경우'},
+    {name:'완전절개',recover:'2~3주',scar:'주름으로 자리잡음',duration:'반영구',fit:'눈꿙·지방 많은 졸 눈'}
+  ]},
+  nose:{title:'코 보형물 재료 비교',rows:[
+    {name:'실리콘',recover:'2~3주',scar:'코 안 절개',duration:'반영구 (필요시 교체)',fit:'자연스러운 높이 선호'},
+    {name:'고어텍스',recover:'2~3주',scar:'코 안 절개',duration:'반영구',fit:'끊글·따뚻한 느낌 선호'},
+    {name:'자가당·당골',recover:'2~3주 + 채취부',scar:'채취부 존재',duration:'반영구',fit:'재수술·피부 얖은 경우'}
+  ]},
+  breast:{title:'가슴 보형물 비교',rows:[
+    {name:'스무스 표면',recover:'2~3주',scar:'검등·근동·유률',duration:'반영구',fit:'조직 애착 적음'},
+    {name:'텍스처 표면',recover:'2~3주',scar:'동일',duration:'반영구',fit:'구축 낮으는 탐독'},
+    {name:'자가지방',recover:'1~2주 + 흡입부',scar:'안종·흡입부',duration:'추이수 필요',fit:'자연스러운 텍스처 선호'}
+  ]},
+  lipo:{title:'지방흡입 방식 비교',rows:[
+    {name:'일반 흡입',recover:'1~2주',scar:'4~6mm',duration:'영구적 (결합·제어)',fit:'광범위 부위'},
+    {name:'초음파 흡입',recover:'1~2주',scar:'동일',duration:'동일',fit:'피부 괴산·탄력 동시'},
+    {name:'레이저 흡입',recover:'1주',scar:'타',duration:'동일',fit:'소량·셊세 부위'}
+  ]},
+  contour:{title:'안면윤곽 수술 비교',rows:[
+    {name:'광대축소',recover:'2~3주',scar:'구강 내·롱',duration:'반영구',fit:'안면 넘고 넘은 경우'},
+    {name:'사각턱',recover:'2~3주',scar:'구강 내',duration:'반영구',fit:'턱선·너비 조점'},
+    {name:'앞턱',recover:'2주',scar:'구강 내',duration:'반영구',fit:'뢜식·틀릭·앞턱'},
+    {name:'양악',recover:'4~6주',scar:'구강 내',duration:'반영구',fit:'교정·주소탐·주소·주소텊'}
+  ]}
+};
+
+async function showSurgeryCompare(){
+  const data=SURGERY_COMPARE[state.areaKey];
+  if(!data){addAi('비교표 준비가 아직 없어요. 다른 메뉴를 선택해주세요.');goStep5();return;}
+  await scriptedReply(`${data.title} 표로 정리해드릴게요.`);
+  ensureChatActive();
+  const wrap=document.createElement('div');wrap.className='compare-card';
+  wrap.innerHTML=`<div class="compare-head"><strong>${esc(data.title)}</strong><span>참고용</span></div>
+    <table class="compare-table"><thead><tr><th>방식</th><th>회복</th><th>팋어</th><th>지속</th><th>적합 대상</th></tr></thead><tbody>
+    ${data.rows.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td>${esc(r.recover)}</td><td>${esc(r.scar)}</td><td>${esc(r.duration)}</td><td>${esc(r.fit)}</td></tr>`).join('')}
+    </tbody></table>
+    <p class="compare-note">※ 일반적 특징 기준이며 개인·병원 방식에 따라 달라질 수 있어요.</p>`;
+  chatMessages.appendChild(wrap);scrollBottom();
+  await new Promise(r=>setTimeout(r,400));
   goStep5();
 }
 
