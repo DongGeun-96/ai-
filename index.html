@@ -967,7 +967,7 @@ async function handleUserInput(text){
 }
 
 async function askGender(){
-  addAi('먼저 몇 가지만 여쭤볼게요.\n상담하시는 분은 어떻게 되세요?');
+  addAi('편하게 진행해드릴게요. 먼저 상담받으시는 분부터 알려주세요.');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
     addUser(pick);state.gender=pick;
     askAge();
@@ -975,7 +975,7 @@ async function askGender(){
 }
 
 async function askAge(){
-  addAi('나이대는 어떻게 되세요?\n많이 하는 방식이 연령대마다 조금씩 달라서요.');
+  addAi('나이대도 골라주세요. 연령대별로 많이 하는 방식이 조금씩 달라요.');
   addQuickReply(['20대','30대','40대','50대 이상','선택 안 함'],pick=>{
     addUser(pick);state.age=pick;
     goStep2();
@@ -1037,7 +1037,7 @@ async function nextStep2Question(){
   const area=AREAS[state.areaKey];
   if(!state.revisit){
     state.step2Pending='revisit';
-    addAi(`${area.label} 수술을 한 적 있으세요?\n재수술 상담이면 고려할 점이 달라서요.`);
+    addAi(`${area.label} 수술 이력 여부 알려주세요. 재수술이면 체크 포인트가 달라져요.`);
     addQuickReply(['아니요, 처음이에요','네, 재수술이에요','고민 중이에요'],pick=>{
       addUser(pick);state.revisit=pick;nextStep2Question();
     },'수술 회수 등 자세한 건 알려주셔도 돼요');
@@ -1053,7 +1053,7 @@ async function nextStep2Question(){
   }
   if(!state.focus){
     state.step2Pending='focus';
-    addAi('어떤 부분이 가장 신경 쓰이세요?\n여러 개면 모두 골라주세요.');
+    addAi('신경 쓰이는 부분 골라주세요. 여러 개여도 괜찮아요.');
     addMultiQuickReply(area.focusOptions,async picks=>{
       const txt=picks.join(' / ');addUser(txt);state.focus=txt;
       nextStep2Question();
@@ -1062,7 +1062,7 @@ async function nextStep2Question(){
   }
   if(!state.mood){
     state.step2Pending='mood';
-    addAi('어떤 스타일로 원하세요?\n아래에서 고르거나 직접 표현해 주셔도 돼요.');
+    addAi('원하시는 스타일 골라주세요. 직접 표현해주셔도 돼요.');
     addQuickReply(['자연스럽게','또렷하게','세련되게','동안 느낌'],async pick=>{
       addUser(pick);state.mood=pick;
       nextStep2Question();
@@ -1198,22 +1198,9 @@ async function showMoodLiveTrend(){
 }
 
 async function showInfoAndVideos(){
-  const area=AREAS[state.areaKey];
-  await scriptedReply(`${state.focus} / ${state.mood} 느낌으로 정리해볼게요.`);
-  // 트렌드 1회만, 정보 덩어리 없이
-  await showFocusTrend();
-  await scriptedReply('참고하실 영상도 같이 보여드릴게요.',320);
-  const q=`${state.gender||''} ${state.age||''} ${area.label} ${state.focus||''} ${state.mood||''}`.replace(/\s+/g,' ').trim();
-  const tp=addTyping();
-  try{
-    const res=await fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=3');
-    const data=await res.json();
-    tp.remove();chatOrb.setThinking(false);
-    if(res.ok && Array.isArray(data.items) && data.items.length){
-      addYtCards(data.items.map(v=>({id:v.id,title:v.title||area.label,channel:v.channel||'YouTube',tag:state.age||'영상'})));
-    }
-  }catch(e){tp.remove();chatOrb.setThinking(false)}
-  await new Promise(r=>setTimeout(r,300));
+  // 정보 뾌지 않고 짧게 정리만. 트렌드/영상은 STEP 5 사이드 얔라서 노출.
+  await scriptedReply(`${state.focus} / ${state.mood} 기준으로 정리하고 다음으로 넘어갈게요.`);
+  await new Promise(r=>setTimeout(r,250));
 }
 
 async function goStep3(){
@@ -1222,7 +1209,7 @@ async function goStep3(){
 }
 
 async function askHospitalPriority(){
-  addAi('어떤 조건을 중심으로 병원 정보를 안내해드릴까요?\n중요한 게 여러 개면 모두 고르세요.');
+  addAi('병원 안내 기준 골라주세요. 중요한 게 여러 개면 모두 선택해주세요.');
   addMultiQuickReply(['비용','안전','좋은 후기','의료진 경력','접근성','상담 분위기','사후 관리'],picks=>{
     const txt=picks.join(' / ');addUser(txt);state.priority=txt;
     scriptedReply(`${txt} 중심으로 찾아볼게요.`).then(()=>askRegion());
@@ -1230,7 +1217,7 @@ async function askHospitalPriority(){
 }
 
 async function askRegion(){
-  addAi('어느 지역으로 찾아드릴까요?\n아래에서 고르거나 직접 입력해주셔도 돼요.');
+  addAi('지역 골라주세요. 직접 입력하셔도 돼요.');
   addQuickReply(Object.keys(REGIONS),r=>{addUser(r);pickRegion(r)},'원하는 지역을 입력해도 돼요');
 }
 
@@ -1279,7 +1266,7 @@ function goStep5(){
 }
 
 function askRecovery(){
-  addAi('회복 기간은 얼마나 여유 있으세요?');
+  addAi('회복 기간 여유 정도 알려주세요.');
   addQuickReply(['짧을수록 좋아요','1~2주 가능해요','상관없어요'],pick=>{
     addUser(pick);state.recovery=pick;
     scriptedReply(`${pick} 기준이면 그에 맞춰 안내해드릴게요.`).then(()=>goStep5());
@@ -1516,7 +1503,7 @@ function askOtherRegion(){
     addAi(`${r} 기준으로 다시 조회했어요.`);
     addHospitalList();
     await new Promise(rs=>setTimeout(rs,300));
-    addAi('이 지역으로 볼까요? 더 궁금한 것도 있으세요?');
+    addAi('이 지역 기준으로 정리해드릴게요. 더 궁금한 게 있으면 말씀해주세요.');
     goStep5();
   });
 }
