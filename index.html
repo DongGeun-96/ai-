@@ -935,9 +935,9 @@ async function handleUserInput(text){
     const key=state.step2Pending;
     if(key==='revisit'){state.revisit=text;await reactToCustomInput('revisit',text,{brief:true});nextStep2Question();return}
     if(key==='sideEffect'){state.sideEffect=text;await reactToCustomInput('sideEffect',text,{brief:true});nextStep2Question();return}
-    if(key==='focus'){state.focus=text;await reactToCustomInput('focus',text,{brief:true});await showFocusTrend();nextStep2Question();return}
+    if(key==='focus'){state.focus=text;await reactToCustomInput('focus',text,{brief:true});nextStep2Question();return}
     if(key==='recovery'){state.recovery=text;await reactToCustomInput('recovery',text,{brief:true});nextStep2Question();return}
-    if(key==='mood'){state.mood=text;await reactToCustomInput('mood',text,{brief:true});await showStyleTrend();await showMoodLiveTrend();nextStep2Question();return}
+    if(key==='mood'){state.mood=text;await reactToCustomInput('mood',text,{brief:true});nextStep2Question();return}
     nextStep2Question();
     return;
   }
@@ -1056,7 +1056,6 @@ async function nextStep2Question(){
     addAi('어떤 부분이 가장 신경 쓰이세요?\n여러 개면 모두 골라주세요.');
     addMultiQuickReply(area.focusOptions,async picks=>{
       const txt=picks.join(' / ');addUser(txt);state.focus=txt;
-      await showFocusTrend();
       nextStep2Question();
     },'직접 입력하셔도 돼요');
     return;
@@ -1066,8 +1065,6 @@ async function nextStep2Question(){
     addAi('어떤 스타일로 원하세요?\n아래에서 고르거나 직접 표현해 주셔도 돼요.');
     addQuickReply(['자연스럽게','또렷하게','세련되게','동안 느낌'],async pick=>{
       addUser(pick);state.mood=pick;
-      await showStyleTrend();
-      await showMoodLiveTrend();
       nextStep2Question();
     },'직접 입력해도 돼요');
     return;
@@ -1093,45 +1090,27 @@ async function showStyleTrend(){
   await new Promise(r=>setTimeout(r,300));
 }
 
-/* ── 라이브 트렌드 카드 공통 ── */
-/* ── 직접 입력 시 짧은 공감+정보 한 마디 ── */
+/* ── 직접 입력 시 고정 공감 한 줄 (AI 호출 X, 대화 리듬 유지) ── */
+const BRIEF_REACTIONS={
+  concern:['편하게 말씀해주셔서 고마워요.','그 마음 충분히 이해돼요.','고민 많이 하셨겠어요.'],
+  revisit:['알겠어요, 그 부분 염두에 두고 볼게요.','말씀해주셔서 감사해요.'],
+  sideEffect:['그 부분이 신경 쓰이실 수밖에 없죠.','조심스러운 부분이네요, 잘 챙겨볼게요.'],
+  focus:['중요한 포인트네요.','그 부분 많이 신경 쓰이시죠.'],
+  recovery:['일정 기준 함께 고려할게요.','그 조건 반영해서 볼게요.'],
+  mood:['그 느낌 좋아요.','분위기 잘 느껴져요.'],
+  priority:['그 관점 기준으로 볼게요.','중요한 기준이네요.']
+};
 async function reactToCustomInput(key,text,opts){
   opts=opts||{};
-  // 척 선택에서 나온 값과 일치하면 공감 멘트만 간단히
   const isPreset={
     revisit:['아니요, 처음이에요','네, 재수술이에요','고민 중이에요'],
     mood:['자연스럽게','또렷하게','세련되게','동안 느낌'],
     recovery:['짧을수록 좋아요','1~2주 가능해요','상관없어요']
   }[key];
-  if(isPreset && isPreset.includes(text)){
-    return; // 척 그대로 다음 스텍으로
-  }
-  const labelMap={
-    concern:'고민',
-    revisit:'수술 이력',sideEffect:'이전 부작용',
-    focus:'신경 쓰이는 포인트',recovery:'회복 조건',
-    mood:'원하는 스타일',priority:'중요 조건'
-  };
-  const goalMap={
-    concern:'고민 입력에 공감 + 그 부위 관련 일반적으로 알아두면 좋은 정보 1개만 짧게. 의학 단정 금지. 2~3문장.',
-    revisit:'이전 수술 경험을 이해하고, 재수술 상담 시 고려할 점 1개만 짧게 안내. 1~2문장.',
-    sideEffect:'조심스러운 공감 + 해당 부작용 특징·재수술에서 주의할 점 1개만 짧게. 의학 단정 금지. 1~2문장.',
-    focus:'고민 포인트에 공감 + 일반적으로 어떤 방향으로 접근하는지 간단히. 2문장.',
-    recovery:'조건에 공감 + 그 기간에 적합한 방식 힌트 한 줄. 1~2문장.',
-    mood:'원하는 분위기에 공감 + 그 느낌이 요즘 어떻게 표현되는지 짧게. 2문장.',
-    priority:'우선순위에 공감 + 그 관점으로 병원 고를 때 체크할 포인트 1개만 짧게. 2문장.'
-  };
-  const briefGoal=`STEP ${state.step} 직접입력 짧은 공감. 사용자 입력: "${text}". 공감 한 문장 + 간단한 정보 한 줄만. 총 1~2문장. 후속 질문 금지 — 다음 시스템 질문이 바로 이어짐. 인사말/반복 금지.`;
-  const fullGoal=`STEP ${state.step} 직접입력 응답 (코디 모드). 사용자 입력: "${text}". 
-안내 흐름:
-① 공감 1문장 (고객이 느낀 감정·맥락을 울려주기)
-② 관련 정보 2~3문장: ${goalMap[key]||'고민에 맞는 일반적 정보'}
-③ 단단한 자연스러운 후속 질문 1개 (그래서 고객이 더 이야기하도록). 조사/제안·세일이 아닌 "상태·경험·느낌·일정·주변 반응·제약 레벨" 등 코칭 질문.
-총 5~7문장·공감 우선, 의학 단정 금지.`;
-  await askAI({
-    stepGoal: opts.brief ? briefGoal : fullGoal,
-    userText:`(${labelMap[key]||key}) ${text}`
-  });
+  if(isPreset && isPreset.includes(text)) return;
+  const pool=BRIEF_REACTIONS[key]||['말씀 감사해요.'];
+  const msg=pool[Math.floor(Math.random()*pool.length)];
+  await scriptedReply(msg,360);
 }
 
 /* ── 말풍선(공감) + 가벼운 카드(방식) + 칩(후속) 혼합 ── */
@@ -1220,22 +1199,21 @@ async function showMoodLiveTrend(){
 
 async function showInfoAndVideos(){
   const area=AREAS[state.areaKey];
-  await scriptedReply(`${state.focus} / ${state.mood} 느낌으로 맞춰서 정보부터 보여드릴게요.`);
-  addAi(area.info);
-  await new Promise(r=>setTimeout(r,350));
-  // 유튜브 실시간 추출
-  const q=`${state.gender||''} ${state.age||''} ${area.label} ${state.focus||''} ${state.mood||''} 추천`.replace(/\s+/g,' ').trim();
+  await scriptedReply(`${state.focus} / ${state.mood} 느낌으로 정리해볼게요.`);
+  // 트렌드 1회만, 정보 덩어리 없이
+  await showFocusTrend();
+  await scriptedReply('참고하실 영상도 같이 보여드릴게요.',320);
+  const q=`${state.gender||''} ${state.age||''} ${area.label} ${state.focus||''} ${state.mood||''}`.replace(/\s+/g,' ').trim();
   const tp=addTyping();
   try{
-    const res=await fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=4');
+    const res=await fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=3');
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
     if(res.ok && Array.isArray(data.items) && data.items.length){
-      await scriptedReply('관련 영상 몇 개 골라봤어요.',280);
-      addYtCards(data.items.map(v=>({id:v.id,title:v.title||area.label,channel:v.channel||'YouTube',tag:state.age||'추천'})));
+      addYtCards(data.items.map(v=>({id:v.id,title:v.title||area.label,channel:v.channel||'YouTube',tag:state.age||'영상'})));
     }
   }catch(e){tp.remove();chatOrb.setThinking(false)}
-  await new Promise(r=>setTimeout(r,350));
+  await new Promise(r=>setTimeout(r,300));
 }
 
 async function goStep3(){
