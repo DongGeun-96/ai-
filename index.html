@@ -753,7 +753,7 @@ function addMultiQuickReply(options,onSubmit,placeholderHint){
   ensureChatActive();
   const wrap=document.createElement('div');wrap.className='quick-reply multi';
   const picked=new Set();
-  const update=()=>{submit.disabled=picked.size===0;submit.textContent=picked.size?`선택 완료 (${picked.size}개)`:'하나 이상 고르세요';};
+  const update=()=>{submit.disabled=picked.size===0;submit.textContent=picked.size?`선택 완료 (${picked.size}개)`:'여러 개 고른 뒤 눌러주세요 · 또는 아래에 직접 입력';};
   options.forEach(opt=>{
     const b=document.createElement('button');b.className='qchip multi';b.textContent=opt;
     b.addEventListener('click',()=>{
@@ -771,7 +771,7 @@ function addMultiQuickReply(options,onSubmit,placeholderHint){
   });
   wrap.appendChild(submit);update();
   chatMessages.appendChild(wrap);scrollBottom();
-  if(placeholderHint)chatInputEl.placeholder=placeholderHint;
+  if(placeholderHint)chatInputEl.placeholder='직접 입력: '+(placeholderHint||'자유롭게 적어주세요');
   return wrap;
 }
 
@@ -877,11 +877,11 @@ async function handleUserInput(text){
 
   if(state.step===2){
     const key=state.step2Pending;
-    if(key==='revisit')state.revisit=text;
-    else if(key==='sideEffect')state.sideEffect=text;
-    else if(key==='focus')state.focus=text;
-    else if(key==='recovery')state.recovery=text;
-    else if(key==='mood')state.mood=text;
+    if(key==='revisit'){state.revisit=text;nextStep2Question();return}
+    if(key==='sideEffect'){state.sideEffect=text;nextStep2Question();return}
+    if(key==='focus'){state.focus=text;await showFocusTrend();nextStep2Question();return}
+    if(key==='recovery'){state.recovery=text;nextStep2Question();return}
+    if(key==='mood'){state.mood=text;await showStyleTrend();await showMoodLiveTrend();nextStep2Question();return}
     nextStep2Question();
     return;
   }
