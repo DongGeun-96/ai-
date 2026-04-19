@@ -640,8 +640,7 @@ function addHospitalList(){
       </div>
       <div class="ai-hospital-pills">
         <span class="ai-hospital-pill accent">${esc(state.region)}</span>
-        <span class="ai-hospital-pill">순위 없음</span>
-        <span class="ai-hospital-pill">정보 안내</span>
+        ${h.category?`<span class="ai-hospital-pill">${esc(h.category.split('>').pop())}</span>`:''}
       </div>
       <div class="ai-hospital-meta">
         ${h.address?`<div><b>주소</b>${esc(h.address)}</div>`:''}
