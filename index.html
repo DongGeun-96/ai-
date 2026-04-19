@@ -187,6 +187,9 @@
     .quick-reply{align-self:flex-start;max-width:88%;display:flex;flex-wrap:wrap;gap:6px;padding:2px 2px 6px 2px;animation:msgSlide .32s both}
     .quick-reply.right{align-self:flex-end}
     .qchip{padding:9px 14px;border-radius:16px;font-size:12.5px;font-weight:600;background:#fff;border:1.5px solid var(--glass-border);color:var(--accent-deep);cursor:pointer;transition:all .2s}
+    .qchip.multi.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .qchip.submit{background:var(--accent-deep);color:#fff;border-color:var(--accent-deep);font-weight:800;flex-basis:100%;margin-top:4px}
+    .qchip.submit:disabled{background:#E5E7EE;color:#A0A6BF;border-color:#E5E7EE;cursor:not-allowed}
     .qchip:hover{background:var(--bg-soft);border-color:var(--accent-light)}
     .qchip:active{transform:scale(0.97)}
     .qchip.disabled{opacity:.4;pointer-events:none}
@@ -745,6 +748,33 @@ function addQuickReply(options,onPick,placeholderHint){
   return wrap;
 }
 
+/* 복수 선택 지원 quick reply */
+function addMultiQuickReply(options,onSubmit,placeholderHint){
+  ensureChatActive();
+  const wrap=document.createElement('div');wrap.className='quick-reply multi';
+  const picked=new Set();
+  const update=()=>{submit.disabled=picked.size===0;submit.textContent=picked.size?`선택 완료 (${picked.size}개)`:'하나 이상 고르세요';};
+  options.forEach(opt=>{
+    const b=document.createElement('button');b.className='qchip multi';b.textContent=opt;
+    b.addEventListener('click',()=>{
+      if(picked.has(opt)){picked.delete(opt);b.classList.remove('on')}
+      else{picked.add(opt);b.classList.add('on')}
+      update();
+    });
+    wrap.appendChild(b);
+  });
+  const submit=document.createElement('button');submit.className='qchip submit';submit.disabled=true;
+  submit.addEventListener('click',()=>{
+    if(!picked.size)return;
+    wrap.querySelectorAll('.qchip').forEach(x=>x.classList.add('disabled'));
+    onSubmit([...picked]);
+  });
+  wrap.appendChild(submit);update();
+  chatMessages.appendChild(wrap);scrollBottom();
+  if(placeholderHint)chatInputEl.placeholder=placeholderHint;
+  return wrap;
+}
+
 function addLinks(items){
   ensureChatActive();
   const wrap=document.createElement('div');wrap.className='ai-link-list';
@@ -962,17 +992,17 @@ async function nextStep2Question(){
   }
   if(state.revisit && state.revisit.includes('재수술') && !state.sideEffect){
     state.step2Pending='sideEffect';
-    addAi('이전 수술 후 부작용이나 불편했던 점이 있었을까요?\n알려주시면 재수술 상담 포인트를 더 잘 잡을 수 있어요.');
-    addQuickReply(['특별한 부작용 없었어요','모양이 마음에 안 들었어요','흉지·구축 같은 끊끊함','마취·회복이 힘들었어요','말씀드리기 어려워요'],pick=>{
-      addUser(pick);state.sideEffect=pick;nextStep2Question();
+    addAi('이전 수술 후 부작용이나 불편했던 점이 있었을까요?\n해당되는 게 여러 개면 모두 골라주세요.');
+    addMultiQuickReply(['특별한 부작용 없었어요','모양이 마음에 안 들었어요','흉·구축 같은 끈끈함','마취·회복이 힘들었어요','비대칭이 생겼어요','말씀드리기 어려워요'],picks=>{
+      const txt=picks.join(' / ');addUser(txt);state.sideEffect=txt;nextStep2Question();
     },'증상이나 시기, 경과를 자세히 적어주셔도 돼요');
     return;
   }
   if(!state.focus){
     state.step2Pending='focus';
-    addAi('어떤 부분이 가장 신경 쓰이세요?\n아래에서 고르셔도 되고, 직접 입력하셔도 돼요.');
-    addQuickReply(area.focusOptions,async pick=>{
-      addUser(pick);state.focus=pick;
+    addAi('어떤 부분이 가장 신경 쓰이세요?\n여러 개면 모두 골라주세요.');
+    addMultiQuickReply(area.focusOptions,async picks=>{
+      const txt=picks.join(' / ');addUser(txt);state.focus=txt;
       await showFocusTrend();
       nextStep2Question();
     },'직접 입력하셔도 돼요');
@@ -1080,10 +1110,10 @@ async function goStep3(){
 }
 
 async function askHospitalPriority(){
-  addAi('어떤 조건을 중심으로 병원 정보를 안내해드릴까요?\n원하시는 조건이나 중요한 점을 골라주시거나 직접 적어주셔도 돼요.');
-  addQuickReply(['비용','안전','좋은 후기','의료진 경력','접근성','상담 분위기'],pick=>{
-    addUser(pick);state.priority=pick;
-    scriptedReply(`${pick} 중심으로 찾아볼게요.`).then(()=>askRegion());
+  addAi('어떤 조건을 중심으로 병원 정보를 안내해드릴까요?\n중요한 게 여러 개면 모두 고르세요.');
+  addMultiQuickReply(['비용','안전','좋은 후기','의료진 경력','접근성','상담 분위기','사후 관리'],picks=>{
+    const txt=picks.join(' / ');addUser(txt);state.priority=txt;
+    scriptedReply(`${txt} 중심으로 찾아볼게요.`).then(()=>askRegion());
   },'예: 수술 전후 관리, 사후보증 같은 것도 입력 가능해요');
 }
 
