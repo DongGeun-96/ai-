@@ -283,6 +283,29 @@
     .oc-tip{padding:12px;border-radius:12px;background:rgba(255,255,255,0.8);border:1px dashed rgba(123,143,212,0.35);font-size:12.5px;line-height:1.65;color:var(--text-1);margin-bottom:10px;font-weight:600}
     .oc-tip span{display:block;font-weight:500;color:var(--text-1);margin-top:4px}
     .oc-foot{font-size:11px;color:var(--text-2);line-height:1.5;text-align:right}
+    /* ── 구조화 AI 카드 ── */
+    .struct-card{align-self:flex-start;max-width:94%;margin:8px 0;padding:16px 18px;border-radius:20px;background:#fff;border:1.5px solid var(--glass-border);box-shadow:0 2px 14px rgba(123,143,212,0.1);animation:msgSlide .32s both}
+    .struct-card.variant-trend{border-color:rgba(123,143,212,0.35);background:linear-gradient(180deg,#F6F8FE,#fff)}
+    .struct-card.variant-mood{border-color:rgba(255,200,170,0.6);background:linear-gradient(180deg,#FFF9F5,#fff)}
+    .struct-card.loading .sc-body{min-height:26px;padding:8px 0}
+    .sc-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .sc-emoji{font-size:22px}
+    .sc-head strong{font-size:15px;font-weight:800;color:var(--text-0);letter-spacing:.2px}
+    .sc-summary{font-size:13.5px;line-height:1.55;color:var(--text-1);margin-bottom:10px;padding:8px 10px;background:rgba(123,143,212,0.07);border-radius:10px}
+    .sc-items{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:7px}
+    .sc-items li{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,0.8);border:1px solid rgba(123,143,212,0.15);position:relative}
+    .sc-items li .sc-dot{color:var(--accent);margin-right:6px}
+    .sc-item-head{font-size:14px;font-weight:700;color:var(--text-0);margin-bottom:3px}
+    .sc-item-desc{font-size:12.5px;line-height:1.5;color:var(--text-1)}
+    .sc-tag{position:absolute;top:10px;right:12px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:12px;background:var(--accent);color:#fff;letter-spacing:.3px}
+    .sc-tip{padding:10px 12px;border-radius:12px;background:#FFFBE8;border:1px solid #FFE8A0;font-size:12.5px;line-height:1.55;color:#5C4A00;display:flex;gap:8px;align-items:flex-start}
+    .sc-tip-label{font-weight:800;color:#B38400;flex-shrink:0}
+    .sc-followup{margin-top:12px;padding-top:10px;border-top:1px dashed rgba(123,143,212,0.25)}
+    .sc-q{font-size:13px;font-weight:700;color:var(--text-0);margin-bottom:8px}
+    .sc-chips{display:flex;flex-wrap:wrap;gap:6px}
+    .sc-chip{padding:8px 12px;border-radius:14px;font-size:12px;font-weight:700;background:var(--accent);color:#fff;border:none;cursor:pointer;transition:all .2s}
+    .sc-chip:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(123,143,212,0.3)}
+    .sc-chip.disabled{opacity:.4;pointer-events:none}
 
     .ai-summary strong{display:block;font-size:15px;font-weight:700;color:var(--text-0);margin-bottom:6px;letter-spacing:-.2px}
     .ai-summary p{font-size:13px;line-height:1.7;color:var(--text-1);white-space:pre-line}
@@ -1100,44 +1123,85 @@ async function reactToCustomInput(key,text,opts){
   });
 }
 
-async function liveTrendCard({title,goal,prompt}){
+/* ── AI JSON 기반 구조화 트렌드 카드 ── */
+async function liveStructuredCard({title,emoji,variant,schema,context,instruction,followUpAsk}){
   ensureChatActive();
-  const id='live_'+Date.now();
-  const el=document.createElement('div');el.className='trend-card live';
-  el.innerHTML=`<strong>${title}</strong><div class="trend-live" id="${id}"><span class="trend-dot"></span><span class="trend-dot"></span><span class="trend-dot"></span></div>`;
+  const id='struct_'+Date.now();
+  const el=document.createElement('div');el.className=`struct-card loading variant-${variant||'info'}`;
+  el.innerHTML=`<div class="sc-head"><span class="sc-emoji">${emoji||'✨'}</span><strong>${esc(title)}</strong></div><div class="sc-body" id="${id}"><span class="trend-dot"></span><span class="trend-dot"></span><span class="trend-dot"></span></div>`;
   chatMessages.appendChild(el);scrollBottom();
   try{
+    const stepGoal=`${instruction}\n\n⚔️ 출력 형식 (중요!): 오직 아래 JSON 한 개만 반환. 다른 설명·인사·마크다운 금지. \n\n필드: ${schema}\n꼭 유효한 JSON으로만 반환.`;
     const payload={
-      step:state.step,stepGoal:goal,
-      context:{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,재수술여부:state.revisit,포인트:state.focus,스타일:state.mood,areaKey:state.areaKey},
-      messages:[{role:'user',content:prompt}]
+      step:state.step,stepGoal,
+      context:context||{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,재수술:state.revisit,포인트:state.focus,스타일:state.mood,areaKey:state.areaKey},
+      messages:[{role:'user',content:`위 스키마에 맞는 JSON만 반환해줘.`}]
     };
     const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     const j=await r.json();
-    const reply=(j.text||'').trim()||'관련 정보를 불러오지 못했어요.';
-    document.getElementById(id).innerHTML=esc(reply).replace(/\n/g,'<br>');
+    let raw=(j.text||'').trim();
+    raw=raw.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+    const m=raw.match(/\{[\s\S]*\}/);
+    const data=m?JSON.parse(m[0]):null;
+    el.classList.remove('loading');
+    const body=document.getElementById(id);
+    if(!data){body.textContent='정보를 불러오지 못했어요.';return}
+    body.innerHTML=renderStructuredBody(data,followUpAsk);
+    // 후속 질문 칩
+    if(data.followup && Array.isArray(data.followup.options)){
+      const qWrap=document.createElement('div');qWrap.className='sc-followup';
+      qWrap.innerHTML=`<div class="sc-q">${esc(data.followup.question||'혹시 어떤 남상 드세요?')}</div>`;
+      const chipWrap=document.createElement('div');chipWrap.className='sc-chips';
+      data.followup.options.forEach(o=>{
+        const b=document.createElement('button');b.className='sc-chip';b.textContent=o;
+        b.addEventListener('click',()=>{
+          chipWrap.querySelectorAll('.sc-chip').forEach(x=>x.classList.add('disabled'));
+          handleUserInput(o);
+        });
+        chipWrap.appendChild(b);
+      });
+      qWrap.appendChild(chipWrap);el.appendChild(qWrap);
+    }
     scrollBottom();
   }catch(e){
-    document.getElementById(id).textContent='트렌드 정보를 불러오지 못했어요.';
+    const body=document.getElementById(id);if(body)body.textContent='정보를 불러오지 못했어요.';
+    el.classList.remove('loading');
   }
-  await new Promise(r=>setTimeout(r,400));
+  await new Promise(r=>setTimeout(r,300));
+}
+
+function renderStructuredBody(d){
+  let html='';
+  if(d.summary){html+=`<div class="sc-summary">${esc(d.summary)}</div>`}
+  if(Array.isArray(d.items) && d.items.length){
+    html+='<ul class="sc-items">';
+    d.items.forEach(it=>{
+      if(typeof it==='string'){html+=`<li><span class="sc-dot">●</span><span>${esc(it)}</span></li>`}
+      else{html+=`<li><div class="sc-item-head">${esc(it.name||'')}</div>${it.desc?`<div class="sc-item-desc">${esc(it.desc)}</div>`:''}${it.tag?`<span class="sc-tag">${esc(it.tag)}</span>`:''}</li>`}
+    });
+    html+='</ul>';
+  }
+  if(d.tip){html+=`<div class="sc-tip"><span class="sc-tip-label">💡 체크</span>${esc(d.tip)}</div>`}
+  return html;
 }
 
 async function showFocusTrend(){
   const area=AREAS[state.areaKey].label;
-  await liveTrendCard({
-    title:`📊 ${area} · ${state.focus} 요즘 수술 트렌드`,
-    goal:`STEP 2 트렌드 안내 타이도 (코디 모드). ${area}의 "${state.focus}" 고민에 대해:\n① 요즘 많이 선택하는 방식 2~3개, 각 한 줄 특징+선호 이유\n② 이 고민 특유의 주의점 1개\n③ 고객이 더 이야기할 수 있는 잨은 질문 1개 (예: "혹시 주변에 이 부위 수술하신 분 이야기 들어보셔서 안심이 되세요, 아니면 부담에 가까울까요?")\n광고·수치·특정 병원 금지. 마크다운 줄바꾸고 괄호·이모지 구분. 6~8줄.`,
-    prompt:`${state.gender||''} ${state.age||''} 기준, ${area}의 ${state.focus} 고민에 요즘 한국 일반적으로 선호하는 수술 방식 알려줘. 방식 소개 후에 내 상황을 더 파악할 수 있는 질문도 하나 해줘.`
+  await liveStructuredCard({
+    title:`${area} · ${state.focus} 요즘 방식`,
+    emoji:'📊',variant:'trend',
+    schema:`{"summary":"공감 1줄 (감탄·미사여 금지, "~할 수 있어요" 수준)","items":[{"name":"방식명","desc":"한 줄 설명+선호 이유","tag":"선호도/특징"}],"tip":"이 고민 특유 주의점 한 줄","followup":{"question":"고객 상황 더 파악할 잨은 질문","options":["선택지 3개"]}}`,
+    instruction:`${area}의 "${state.focus}" 고민에 대해 요즘 한국에서 일반적으로 선호하는 수술/시술 방식 3개를 items로 담아줘. 각 item은 name(방식명), desc(짧은 한 줄 설명·24자 이하), tag(예: "자연스러움", "유지력", "빠른 회복"·8자 이하) 필드만. tip은 이 고민에서 놓치기 쉬운 중요 체크포인트 한 줄. followup.question은 고객 상태·경험·일정 파고드는 질문 한 문장(20자 이하). followup.options는 바로 눌러 이어갈 수 있는 선택지 3개(각 10자 내외). 광고·수치·특정 병원 금지.`
   });
 }
 
 async function showMoodLiveTrend(){
   const area=AREAS[state.areaKey].label;
-  await liveTrendCard({
-    title:`📊 ${state.mood} 스타일 · 요즘 세팅`,
-    goal:`STEP 2 스타일 트렌드 (코디 모드). ${area}에서 "${state.mood}" 분위기를 원할 때:\n① 요즘 한국에서 선호하는 구체 디자인·라인 특징 2~3개\n② "어떤 느낌·어떤 이미지" 수준의 설명\n③ 고객이 원하는 본어 있는지/참고하는 이미지 있는지 묻는 잨은 후속 질문 1개\n광고문구·수치 금지. 정보·중성. 6~8줄.`,
-    prompt:`${state.gender||''} ${state.age||''}, ${area}의 ${state.focus||''} 부위를 '${state.mood}' 스타일로 원할 때 요즘 세팅 알려줘. 마지막에 내 이대온 느낌을 더 잘 아는 데 도움되는 질문도 하나 해줘.`
+  await liveStructuredCard({
+    title:`${state.mood} 스타일 · 요즘 세팅`,
+    emoji:'✨',variant:'mood',
+    schema:`{"summary":"스타일 분위기 공감 1줄","items":[{"name":"디자인 특징","desc":"어떤 느낌 생기는지","tag":"키워드"}],"tip":"피해야할 과한 세팅 한 줄","followup":{"question":"고객 이상 파악 질문","options":["선택지 3개"]}}`,
+    instruction:`${area}에서 "${state.mood}" 분위기를 원할 때 요즘 구체적 디자인·라인 특징 3개. 각 item은 name(12자 이하 특징명), desc(어떤 느낌인지 한 줄 20자 이하), tag(예: "동안", "세련", "디름함"·8자). tip은 요즘 피하는 과한 세팅 한 줄. followup.question은 고객이 원하는 본어·참고 이미지 있는지 묻는 간결 질문(20자 이하). followup.options 3개(각 10자 내외).`
   });
 }
 
