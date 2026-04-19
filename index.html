@@ -672,7 +672,7 @@ async function askAI({stepGoal,userText,systemNote}){
   const payload={
     step:state.step,
     stepGoal:stepGoal||'',
-    context:{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,신경쓰이는포인트:state.focus,회복기간:state.recovery,원하는무드:state.mood,지역:state.region,areaKey:state.areaKey},
+    context:{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,재수술여부:state.revisit,이전부작용:state.sideEffect,신경쓰이는포인트:state.focus,회복기간:state.recovery,원하는무드:state.mood,중요조건:state.priority,지역:state.region,areaKey:state.areaKey},
     messages:[...state.history]
   };
   if(systemNote) payload.messages.unshift({role:'system',content:systemNote});
@@ -1033,7 +1033,7 @@ async function analyzeImage(dataUrl){
   try{
     const area=AREAS[state.areaKey]?.label||'';
     const res=await fetch('/api/vision',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age}})});
+      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect}})});
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
     if(res.ok && data.text){addAi(data.text)}

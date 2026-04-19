@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 4. 특정 인물 식별·연예인 이름 금지.
 5. 끝에 "실제 적용 가능 여부는 대면 상담에서 보세요" 안내.
 6. 존댓말, 3·4문장 이내.
-사용자 맥락: 성별=${ctx.성별||'-'}, 나이=${ctx.나이대||'-'}, 부위=${ctx.관심부위||'-'}, 원하는 스타일=${ctx.스타일||'-'}.${areaDoc?'\n지식요약:\n'+areaDoc:''}`;
+사용자 맥락: 성별=${ctx.성별||'-'}, 나이=${ctx.나이대||'-'}, 부위=${ctx.관심부위||'-'}, 원하는 스타일=${ctx.스타일||'-'}, 재수술여부=${ctx.재수술여부||'-'}, 이전부작용=${ctx.이전부작용||'-'}.${ctx.재수술여부&&ctx.재수술여부.includes('재수술')?'\n* 재수술 케이스니 구축·유착·흡착 가능성과 조직 손상 고려를 한 줄 더해 안내하세요.':''}${areaDoc?'\n지식요약:\n'+areaDoc:''}`;
   try {
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
