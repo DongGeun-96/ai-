@@ -560,7 +560,7 @@ const state={
   step:1,areaKey:'eye',concern:'',gender:'',age:'',
   focus:'',recovery:'',mood:'',region:'',
   hospitals:[],history:[],busy:false,
-  step2Pending:'focus'
+  step2Pending:'focus',revisit:'',sideEffect:''
 };
 
 /* ─── DOM ─── */
@@ -588,7 +588,7 @@ function openChat(initial){
 function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
-  Object.assign(state,{step:1,areaKey:'eye',concern:'',gender:'',age:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus'});
+  Object.assign(state,{step:1,areaKey:'eye',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus'});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
 }
 function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
@@ -715,7 +715,9 @@ async function handleUserInput(text){
 
   if(state.step===2){
     const key=state.step2Pending;
-    if(key==='focus')state.focus=text;
+    if(key==='revisit')state.revisit=text;
+    else if(key==='sideEffect')state.sideEffect=text;
+    else if(key==='focus')state.focus=text;
     else if(key==='recovery')state.recovery=text;
     else if(key==='mood')state.mood=text;
     nextStep2Question();
@@ -818,6 +820,22 @@ async function goStep2(){
 
 async function nextStep2Question(){
   const area=AREAS[state.areaKey];
+  if(!state.revisit){
+    state.step2Pending='revisit';
+    addAi(`${area.label} 수술을 한 적 있으세요?\n재수술 상담이면 고려할 점이 달라서요.`);
+    addQuickReply(['아니요, 처음이에요','네, 재수술이에요','고민 중이에요'],pick=>{
+      addUser(pick);state.revisit=pick;nextStep2Question();
+    },'수술 회수 등 자세한 건 알려주셔도 돼요');
+    return;
+  }
+  if(state.revisit && state.revisit.includes('재수술') && !state.sideEffect){
+    state.step2Pending='sideEffect';
+    addAi('이전 수술 후 부작용이나 불편했던 점이 있었을까요?\n알려주시면 재수술 상담 포인트를 더 잘 잡을 수 있어요.');
+    addQuickReply(['특별한 부작용 없었어요','모양이 마음에 안 들었어요','흉지·구축 같은 끊끊함','마취·회복이 힘들었어요','말씀드리기 어려워요'],pick=>{
+      addUser(pick);state.sideEffect=pick;nextStep2Question();
+    },'증상이나 시기, 경과를 자세히 적어주셔도 돼요');
+    return;
+  }
   if(!state.focus){
     state.step2Pending='focus';
     addAi('어떤 부분이 가장 신경 쓰이세요?\n아래에서 고르셔도 되고, 직접 입력하셔도 돼요.');
