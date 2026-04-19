@@ -866,10 +866,15 @@ async function handleUserInput(text){
     if(g) state.gender=g;
     if(a) state.age=a;
     if(g && a){
-      scriptedReply(`${g} / ${a} / ${AREAS[state.areaKey].label} 관련 고민이시군요. 몇 가지만 더 여쭤볼게요.`).then(()=>goStep2());
+      await scriptedReply(`${g} / ${a} / ${AREAS[state.areaKey].label} 관련 고민이시군요.`);
+      await reactToCustomInput('concern',text);
+      goStep2();
     }else if(g && !a){
-      scriptedReply(`${g} / ${AREAS[state.areaKey].label} 관련이시군요. 한 가지만 더요.`).then(()=>askAge());
+      await scriptedReply(`${g} / ${AREAS[state.areaKey].label} 관련이시군요.`);
+      await reactToCustomInput('concern',text);
+      askAge();
     }else{
+      await reactToCustomInput('concern',text);
       askGender();
     }
     return;
@@ -877,18 +882,18 @@ async function handleUserInput(text){
 
   if(state.step===2){
     const key=state.step2Pending;
-    if(key==='revisit'){state.revisit=text;nextStep2Question();return}
-    if(key==='sideEffect'){state.sideEffect=text;nextStep2Question();return}
-    if(key==='focus'){state.focus=text;await showFocusTrend();nextStep2Question();return}
-    if(key==='recovery'){state.recovery=text;nextStep2Question();return}
-    if(key==='mood'){state.mood=text;await showStyleTrend();await showMoodLiveTrend();nextStep2Question();return}
+    if(key==='revisit'){state.revisit=text;await reactToCustomInput('revisit',text);nextStep2Question();return}
+    if(key==='sideEffect'){state.sideEffect=text;await reactToCustomInput('sideEffect',text);nextStep2Question();return}
+    if(key==='focus'){state.focus=text;await reactToCustomInput('focus',text);await showFocusTrend();nextStep2Question();return}
+    if(key==='recovery'){state.recovery=text;await reactToCustomInput('recovery',text);nextStep2Question();return}
+    if(key==='mood'){state.mood=text;await reactToCustomInput('mood',text);await showStyleTrend();await showMoodLiveTrend();nextStep2Question();return}
     nextStep2Question();
     return;
   }
 
   if(state.step===3 && !state.priority){
     state.priority=text;
-    await scriptedReply(`${text} 중심으로 찾아볼게요.`);
+    await reactToCustomInput('priority',text);
     askRegion();
     return;
   }
@@ -1042,6 +1047,38 @@ async function showStyleTrend(){
 }
 
 /* ── 라이브 트렌드 카드 공통 ── */
+/* ── 직접 입력 시 짧은 공감+정보 한 마디 ── */
+async function reactToCustomInput(key,text){
+  // 척 선택에서 나온 값과 일치하면 공감 멘트만 간단히
+  const isPreset={
+    revisit:['아니요, 처음이에요','네, 재수술이에요','고민 중이에요'],
+    mood:['자연스럽게','또렷하게','세련되게','동안 느낌'],
+    recovery:['짧을수록 좋아요','1~2주 가능해요','상관없어요']
+  }[key];
+  if(isPreset && isPreset.includes(text)){
+    return; // 척 그대로 다음 스텍으로
+  }
+  const labelMap={
+    concern:'고민',
+    revisit:'수술 이력',sideEffect:'이전 부작용',
+    focus:'신경 쓰이는 포인트',recovery:'회복 조건',
+    mood:'원하는 스타일',priority:'중요 조건'
+  };
+  const goalMap={
+    concern:'고민 입력에 공감 + 그 부위 관련 일반적으로 알아두면 좋은 정보 1개만 짧게. 의학 단정 금지. 2~3문장.',
+    revisit:'이전 수술 경험을 이해하고, 재수술 상담 시 고려할 점 1개만 짧게 안내. 1~2문장.',
+    sideEffect:'조심스러운 공감 + 해당 부작용 특징·재수술에서 주의할 점 1개만 짧게. 의학 단정 금지. 1~2문장.',
+    focus:'고민 포인트에 공감 + 일반적으로 어떤 방향으로 접근하는지 간단히. 2문장.',
+    recovery:'조건에 공감 + 그 기간에 적합한 방식 힌트 한 줄. 1~2문장.',
+    mood:'원하는 분위기에 공감 + 그 느낌이 요즘 어떻게 표현되는지 짧게. 2문장.',
+    priority:'우선순위에 공감 + 그 관점으로 병원 고를 때 체크할 포인트 1개만 짧게. 2문장.'
+  };
+  await askAI({
+    stepGoal:`STEP ${state.step} 직접입력 공감·힌트 응답. 사용자 입력: "${text}". 안내 목표: ${goalMap[key]||'공감 + 고민에 맞는 정보 한 줄.'}`,
+    userText:`(${labelMap[key]||key}) ${text}`
+  });
+}
+
 async function liveTrendCard({title,goal,prompt}){
   ensureChatActive();
   const id='live_'+Date.now();
