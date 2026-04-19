@@ -265,6 +265,24 @@
     @keyframes trDot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
     .trend-card strong{display:block;font-size:13px;font-weight:800;color:var(--accent-deep);margin-bottom:4px;letter-spacing:.3px}
     .trend-card p{font-size:12.5px;line-height:1.6;color:var(--text-1)}
+    /* ── 공식 데이터 카드 (비용/부작용) ── */
+    .official-card{align-self:flex-start;max-width:94%;margin:6px 0;padding:16px 18px;border-radius:20px;background:#fff;border:1.5px solid var(--glass-border);box-shadow:0 2px 12px rgba(123,143,212,0.08);animation:msgSlide .32s both}
+    .official-card.cost-card{border-color:#FFD8B0;background:linear-gradient(180deg,#FFFAF2,#fff)}
+    .official-card.side-card{border-color:#FFC8C0;background:linear-gradient(180deg,#FFF5F2,#fff)}
+    .oc-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+    .oc-emoji{font-size:22px}
+    .oc-head strong{font-size:16px;font-weight:800;color:var(--text-0);letter-spacing:.2px}
+    .oc-list{list-style:none;padding:0;margin:0 0 12px 0;display:flex;flex-direction:column;gap:8px}
+    .oc-list li{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(123,143,212,0.06)}
+    .oc-item{font-size:14px;font-weight:700;color:var(--text-0);flex:1 1 auto}
+    .oc-range{font-size:14px;font-weight:800;color:var(--accent-deep);letter-spacing:-.2px;white-space:nowrap}
+    .oc-list li small{display:block;width:100%;font-size:11.5px;color:var(--text-2);margin-top:2px}
+    .oc-bullets{list-style:none;padding:0;margin:0 0 12px 0;display:flex;flex-direction:column;gap:6px}
+    .oc-bullets li{padding:9px 12px;border-radius:10px;background:rgba(255,200,192,0.18);font-size:13.5px;font-weight:600;color:var(--text-0);position:relative;padding-left:28px}
+    .oc-bullets li::before{content:'●';position:absolute;left:12px;top:9px;color:#F38B7B;font-size:10px}
+    .oc-tip{padding:12px;border-radius:12px;background:rgba(255,255,255,0.8);border:1px dashed rgba(123,143,212,0.35);font-size:12.5px;line-height:1.65;color:var(--text-1);margin-bottom:10px;font-weight:600}
+    .oc-tip span{display:block;font-weight:500;color:var(--text-1);margin-top:4px}
+    .oc-foot{font-size:11px;color:var(--text-2);line-height:1.5;text-align:right}
 
     .ai-summary strong{display:block;font-size:15px;font-weight:700;color:var(--text-0);margin-bottom:6px;letter-spacing:-.2px}
     .ai-summary p{font-size:13px;line-height:1.7;color:var(--text-1);white-space:pre-line}
@@ -1224,34 +1242,99 @@ async function sendExtra(key){
 }
 
 /* ── 공식 통계 기반 비용 안내 (심평원 + 국민건강) ── */
-async function showOfficialPricing(){
-  const area=AREAS[state.areaKey].label;
-  await scriptedReply(`${area} 비용, 공식 데이터로 안내해드릴게요.`);
-  await liveTrendCard({
-    title:`💰 ${area} · 공식 비급여 가격 안내`,
-    goal:`STEP 5 비용 안내 (심평원 · 국민건강보험 공개 데이터 기반).\n① ${area} 관련 주요 비급여 항목을 공식 포털에서 조회할 수 있다는 점 안내\n② 공식 통계(2024)에서 알려진 가격 스펙트럼: 병원별 가격 편차가 매우 크다(예: 다초점렌즈 최대 23배)\n③ 확인 방법 2개: (1) 국민건강보험 비급여 정보 포털 https://www.nhis.or.kr/nbinfo/index.do  (2) 심평원 비급여진료비 정보 https://www.hira.or.kr/npay/index.do\n④ 비용 비교 체크포인트 3개(마취비 포함 여부/재수술 조건/사후관리 범위)\n⑤ 끝에 고객이 미리 생각해보면 좋은 후속 질문 1개.\n광고·특정 병원 금지. 번호·불릿 사용. 8~12줄.`,
-    prompt:`${state.gender||''} ${state.age||''}, ${area} 부위 지역 기준 ${state.region||'있는 것'} 정도에서 공식 비급여 가격 확인 방법과 비용 이해 톤으로 안내해줘.`
-  });
-  // 비용 링크 버튼 추가
-  addLinks([
-    ['국민건강보험','비급여 정보 포털','https://www.nhis.or.kr/nbinfo/index.do'],
-    ['심평원','비급여진료비 정보','https://www.hira.or.kr/npay/index.do']
-  ]);
+/* ── 공식 데이터 · 부위별 정적 팩트 ── */
+const OFFICIAL_DATA={
+  eye:{
+    label:'눈 성형',
+    cost:[
+      {item:'매몰법',range:'약 80만~250만원',note:'기본 쌍꺼풀'},
+      {item:'부분절개',range:'약 120만~350만원',note:'중간 난이도'},
+      {item:'절개법',range:'약 150만~400만원',note:'흉터 관리 포함'},
+      {item:'안검하수 교정',range:'약 200만~500만원',note:'눈뜨는 힘 보정'},
+      {item:'재수술',range:'약 250만~600만원',note:'+ 구축·비대칭 보정'}
+    ],
+    sideMain:['비대칭·라인 풀림','흉터·유착','안검하수 악화','결막 건조·자극','재수술 필요']
+  },
+  nose:{
+    label:'코 성형',
+    cost:[
+      {item:'매부리·콧대만',range:'약 150만~350만원'},
+      {item:'콧대+코끝 복합',range:'약 300만~500만원'},
+      {item:'자가연골 활용',range:'약 400만~700만원',note:'귀·늑연골'},
+      {item:'재수술',range:'약 500만~1,000만원'}
+    ],
+    sideMain:['보형물 비틀림·노출','구축·변형','감각 저하','염증·감염','재수술 필요']
+  },
+  breast:{
+    label:'가슴 성형',
+    cost:[
+      {item:'보형물(모티바 등)',range:'약 500만~900만원'},
+      {item:'자가지방',range:'약 400만~700만원'},
+      {item:'복합(보형물+지방)',range:'약 700만~1,200만원'},
+      {item:'재수술·구축 교정',range:'약 600만~1,200만원'}
+    ],
+    sideMain:['구축(캡슐) 수축','모양 변형·처짐','혈종·감염','감각 이상','보형물 교체 필요']
+  },
+  lipo:{
+    label:'지방흡입',
+    cost:[
+      {item:'복부',range:'약 250만~500만원'},
+      {item:'허벅지(앞·뒤·안)',range:'약 300만~700만원'},
+      {item:'팔',range:'약 150만~300만원'},
+      {item:'얼굴·이중턱',range:'약 100만~300만원'}
+    ],
+    sideMain:['비대칭·울퉁불퉁','색소침착','심부 화상(고온 장비)','혈종·장액종','지방 재축적']
+  },
+  contour:{
+    label:'안면윤곽',
+    cost:[
+      {item:'광대 축소',range:'약 500만~900만원'},
+      {item:'사각턱 축소',range:'약 500만~900만원'},
+      {item:'앞턱(지니플라스티)',range:'약 300만~700만원'},
+      {item:'복합(광대+턱)',range:'약 900만~1,500만원'}
+    ],
+    sideMain:['신경손상(감각·미소 비대칭)','비대칭','회복기 장기 부종','출혈·혈종','재수술 제한적']
+  }
+};
+
+const OFFICIAL_SOURCE_NOTE='※ 공개 자료 기반 일반 범위. 병원·재료·마취 종류에 따라 편차 큼.';
+
+function renderCostCard(areaKey){
+  const d=OFFICIAL_DATA[areaKey];if(!d)return;
+  ensureChatActive();
+  const el=document.createElement('div');el.className='official-card cost-card';
+  el.innerHTML=`
+    <div class="oc-head"><span class="oc-emoji">💰</span><strong>${d.label} 공개 가격 범위</strong></div>
+    <ul class="oc-list">
+      ${d.cost.map(c=>`<li><span class="oc-item">${esc(c.item)}</span><span class="oc-range">${esc(c.range)}</span>${c.note?`<small>${esc(c.note)}</small>`:''}</li>`).join('')}
+    </ul>
+    <div class="oc-tip">비교 시 확인 포인트<br><span>· 마취비·재료비 포함 여부<br>· 재수술 무상 기간<br>· 사후관리 범위·횟수</span></div>
+    <div class="oc-foot">${OFFICIAL_SOURCE_NOTE}</div>`;
+  chatMessages.appendChild(el);scrollBottom();
 }
 
-/* ── 공식 통계 기반 부작용 사례 안내 ── */
+function renderSideCard(areaKey){
+  const d=OFFICIAL_DATA[areaKey];if(!d)return;
+  ensureChatActive();
+  const el=document.createElement('div');el.className='official-card side-card';
+  el.innerHTML=`
+    <div class="oc-head"><span class="oc-emoji">⚠️</span><strong>${d.label} 주요 부작용·유의사항</strong></div>
+    <ul class="oc-bullets">
+      ${d.sideMain.map(x=>`<li>${esc(x)}</li>`).join('')}
+    </ul>
+    <div class="oc-tip">정상 회복 vs 이상 신호<br><span>✅ 초기 부기·붉기·가벼운 멍은 1~2주 감소<br>❌ 통증 악화·고열·고름·색 변화는 즉시 병원</span></div>
+    <div class="oc-foot">참고: 한국소비자원 피해구제 · 한국의료분쟁조정중재원 공개 통계 기준</div>`;
+  chatMessages.appendChild(el);scrollBottom();
+}
+
+async function showOfficialPricing(){
+  await scriptedReply('공개된 비급여 가격대로 정리해드릴게요.');
+  renderCostCard(state.areaKey);
+}
+
 async function showOfficialSideEffects(){
-  const area=AREAS[state.areaKey].label;
-  await scriptedReply(`${area} 부작용, 공식 통계 기준으로 정리해드릴게요.`);
-  await liveTrendCard({
-    title:`⚠️ ${area} · 공식 부작용·분쟁 통계`,
-    goal:`STEP 5 부작용 안내 (한국소비자원+의료분쟁조정중재원 공식 데이터 기반).\n① 부위별 주요 부작용 패턴 3~4개 (연구·공개 통계 인용)\n② 최근 통계: 한국소비자원 미용·성형 피해구제 동향에서 드러난 주요 쟁점(계약해제 58.1%, 부작용 의심 11.6% 등) 간략 앨거\n③ "정상 회복 과정"과 "이상 신호" 구별 표시 2~3줄\n④ 문제 생김 시 어디로 가나: 의료분쟁조정중재원 https://k-medi.or.kr, 한국소비자원 https://www.kca.go.kr 안내\n⑤ 고객 상황에 맞춘 잨은 후속 질문 1개.\n의학 단정 금지. 공포 조장 금지. 정보 중심. 10~14줄.`,
-    prompt:`${area}의 일반적 부작용 사례를 공식 통계(한국소비자원, 의료중재원) 기준으로 정리해줘. "이거 말고 혹시 걱정되는 멸내퍼집 생각하시는 게 있으세요?" 스타일의 공감 질문 마지막에 붙여줘.`
-  });
-  addLinks([
-    ['한국소비자원','의료 피해구제 안내','https://www.kca.go.kr'],
-    ['의료분쟁조정중재원','분쟁 안내','https://k-medi.or.kr']
-  ]);
+  await scriptedReply('공개 통계 기준으로 부작용 포인트 정리해드릴게요.');
+  renderSideCard(state.areaKey);
 }
 
 /* ── 상담 질문지 자동 생성 ── */
