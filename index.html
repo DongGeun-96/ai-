@@ -935,7 +935,7 @@ async function handleUserInput(text){
     const key=state.step2Pending;
     if(key==='revisit'){state.revisit=text;await reactToCustomInput('revisit',text,{brief:true});nextStep2Question();return}
     if(key==='sideEffect'){state.sideEffect=text;await reactToCustomInput('sideEffect',text,{brief:true});nextStep2Question();return}
-    if(key==='focus'){state.focus=text;await reactToCustomInput('focus',text,{brief:true});nextStep2Question();return}
+    if(key==='focus'){state.focus=text;await reactToCustomInput('focus',text,{brief:true});await showFocusTrend();await offerFocusVideos();nextStep2Question();return}
     if(key==='recovery'){state.recovery=text;await reactToCustomInput('recovery',text,{brief:true});nextStep2Question();return}
     if(key==='mood'){state.mood=text;await reactToCustomInput('mood',text,{brief:true});nextStep2Question();return}
     nextStep2Question();
@@ -1056,6 +1056,8 @@ async function nextStep2Question(){
     addAi('신경 쓰이는 부분 골라주세요. 여러 개여도 괜찮아요.');
     addMultiQuickReply(area.focusOptions,async picks=>{
       const txt=picks.join(' / ');addUser(txt);state.focus=txt;
+      await showFocusTrend();
+      await offerFocusVideos();
       nextStep2Question();
     },'직접 입력하셔도 돼요');
     return;
@@ -1186,9 +1188,46 @@ async function showFocusTrend(){
   await liveStructuredCard({
     title:`${area} · ${state.focus} 요즘 방식`,
     emoji:'',variant:'trend',
-    schema:`{"summary":"공감 1줄 (감탄·미사여 금지, "~할 수 있어요" 수준)","items":[{"name":"방식명","desc":"한 줄 설명+선호 이유","tag":"선호도/특징"}],"tip":"이 고민 특유 주의점 한 줄","followup":{"question":"고객 상황 더 파악할 잨은 질문","options":["선택지 3개"]}}`,
-    instruction:`${area}의 "${state.focus}" 고민에 대해 요즘 한국에서 일반적으로 선호하는 수술/시술 방식 3개를 items로 담아줘. 각 item은 name(방식명), desc(짧은 한 줄 설명·24자 이하), tag(예: "자연스러움", "유지력", "빠른 회복"·8자 이하) 필드만. tip은 이 고민에서 놓치기 쉬운 중요 체크포인트 한 줄. followup.question은 고객 상태·경험·일정 파고드는 질문 한 문장(20자 이하). followup.options는 바로 눌러 이어갈 수 있는 선택지 3개(각 10자 내외). 광고·수치·특정 병원 금지.`
+    schema:`{"summary":"상담사 톤 짧은 멘트 1줄","items":[{"name":"방식명","desc":"많이 하는 이유 한 줄","tag":"키워드"}],"tip":"주의점 한 줄"}`,
+    instruction:`${area}의 "${state.focus}" 고민에 요즘 어떤 방식이 유행하는지, 그리고 왜 많이 하는지 이유 중심으로 3가지를 items로. 각 item의 name은 방식명(12자 이하), desc는 "요즘 왜 선호되는지/어떤 효과 때문에 많이 하는지" 한 줄(30자 이하), tag는 키워드 8자 이하. summary는 상담사처럼 짧게(예: "${state.focus}는 요즘 방식이 다양해서 주요한 것 위주로 알려드릴게요"). tip은 이 고민에서 놓치기 쉬운 주의점 한 줄. followup 필드는 쓰지 않는다. 광고·수치·특정 병원 금지.`
   });
+}
+
+/* ── focus 이후 영상 제안 ── */
+async function offerFocusVideos(){
+  return new Promise(resolve=>{
+    addAi('관련 영상도 몇 개 보여드릴까요?');
+    addQuickReply(['네, 봐볼게요','아니요, 다음으로'],async pick=>{
+      addUser(pick);
+      if(pick.startsWith('네')){
+        await playFocusVideos();
+      }
+      resolve();
+    },'그냥 넘어가도 돼요');
+  });
+}
+
+async function playFocusVideos(){
+  const area=AREAS[state.areaKey];
+  await scriptedReply('네, 몇 개 뽑아볼게요.',260);
+  const q=`${state.gender||''} ${state.age||''} ${area.label} ${state.focus||''}`.replace(/\s+/g,' ').trim();
+  const tp=addTyping();
+  try{
+    const res=await fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=3');
+    const data=await res.json();
+    tp.remove();chatOrb.setThinking(false);
+    if(res.ok && Array.isArray(data.items) && data.items.length){
+      addYtCards(data.items.map(v=>({id:v.id,title:v.title||area.label,channel:v.channel||'YouTube',tag:state.age||'영상'})));
+    }else{
+      const clips=(YT_CLIPS[state.areaKey]||{})[state.age]||YT_CLIPS[state.areaKey]?.default||[];
+      if(clips.length)addYtCards(clips);
+    }
+  }catch(e){
+    tp.remove();chatOrb.setThinking(false);
+    const clips=(YT_CLIPS[state.areaKey]||{})[state.age]||YT_CLIPS[state.areaKey]?.default||[];
+    if(clips.length)addYtCards(clips);
+  }
+  await new Promise(r=>setTimeout(r,300));
 }
 
 async function showMoodLiveTrend(){
@@ -1202,22 +1241,9 @@ async function showMoodLiveTrend(){
 }
 
 async function showInfoAndVideos(){
-  const area=AREAS[state.areaKey];
-  await scriptedReply(`${state.focus} / ${state.mood} 기준으로 정리해볼게요.`);
-  // 참고 영상 2~3개만 (카드 덩어리 없이)
-  await scriptedReply('참고 영상 몇 개 골라봤어요.',320);
-  const q=`${state.gender||''} ${state.age||''} ${area.label} ${state.focus||''} ${state.mood||''}`.replace(/\s+/g,' ').trim();
-  const tp=addTyping();
-  try{
-    const res=await fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=3');
-    const data=await res.json();
-    tp.remove();chatOrb.setThinking(false);
-    if(res.ok && Array.isArray(data.items) && data.items.length){
-      addYtCards(data.items.map(v=>({id:v.id,title:v.title||area.label,channel:v.channel||'YouTube',tag:state.age||'영상'})));
-    }
-  }catch(e){tp.remove();chatOrb.setThinking(false)}
-  await new Promise(r=>setTimeout(r,300));
-  await scriptedReply('조건 정리해서 병원까지 같이 찾아볼게요.',300);
+  // focus에서 이미 방식·영상 안내 끝남. STEP 3로 넘기기 전 간결 전환문구만.
+  await scriptedReply(`${state.focus} / ${state.mood} 기준으로 병원까지 같이 찾아볼게요.`);
+  await new Promise(r=>setTimeout(r,250));
 }
 
 async function goStep3(){
