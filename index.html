@@ -91,6 +91,16 @@
     .yt-side.variant-rank .yt-side-title .big em{color:#5F73BA}
     .yt-side.variant-rank .yt-side-tag{background:#3B3B5C}
     .yt-side.variant-rank .yt-side-arrow{background:#3B3B5C}
+    .yt-side.variant-timeline{background:linear-gradient(110deg,#FFF6EC 0%,#FFE9D2 55%,#FFD8B5 100%);margin-top:14px}
+    .yt-side.variant-timeline::before{background:radial-gradient(circle at 70% 40%,rgba(255,200,150,0.6),rgba(255,180,120,0.15) 65%,transparent 75%)}
+    .yt-side.variant-timeline .yt-side-title .big em{color:#C4762A}
+    .yt-side.variant-timeline .yt-side-tag{background:#7A4A1F}
+    .yt-side.variant-timeline .yt-side-arrow{background:#7A4A1F}
+    .yt-side.variant-glossary{background:linear-gradient(110deg,#EEF8EE 0%,#DBEFE0 55%,#C8E6D2 100%);margin-top:14px}
+    .yt-side.variant-glossary::before{background:radial-gradient(circle at 70% 40%,rgba(150,210,170,0.55),rgba(120,200,150,0.15) 65%,transparent 75%)}
+    .yt-side.variant-glossary .yt-side-title .big em{color:#3F8554}
+    .yt-side.variant-glossary .yt-side-tag{background:#2D5A3D}
+    .yt-side.variant-glossary .yt-side-arrow{background:#2D5A3D}
 
     /* ── Ranking modal (separate screen) ── */
     .rank-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:220;display:flex;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
@@ -99,6 +109,28 @@
     .rank-back{position:absolute;left:12px;top:calc(var(--safe-top)+44px);width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:10px;color:var(--text-2)}
     .rank-back:active{background:rgba(0,0,0,0.04)}
     .rank-back svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+    .timeline-form{padding:0 18px 18px;display:flex;flex-direction:column;gap:8px}
+    .timeline-form label{font-size:12px;color:var(--text-2);font-weight:700;margin-top:8px}
+    .timeline-form select,.timeline-form input{padding:12px 14px;border:1px solid var(--divider);border-radius:14px;font-size:14px;font-family:inherit;background:#fff}
+    .timeline-calc{margin-top:14px;padding:14px;border:none;border-radius:16px;background:linear-gradient(135deg,#7A4A1F,#C4762A);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+    .timeline-result{padding:0 18px 18px}
+    .timeline-result:empty{display:none}
+    .tl-card{background:#fff;border:1px solid var(--divider);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 6px 20px rgba(124,143,154,0.06)}
+    .tl-card h4{font-size:15px;font-weight:800;color:var(--text-0);margin-bottom:8px}
+    .tl-stage{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--divider)}
+    .tl-stage:last-child{border-bottom:none}
+    .tl-stage-day{flex-shrink:0;font-size:11px;font-weight:800;color:var(--accent-deep);background:rgba(123,143,212,0.1);padding:5px 10px;border-radius:10px;min-width:64px;text-align:center}
+    .tl-stage-text{font-size:12.5px;line-height:1.55;color:var(--text-1)}
+    .tl-verdict{padding:14px;border-radius:14px;font-size:13px;font-weight:700;line-height:1.6;text-align:center}
+    .tl-verdict.ok{background:rgba(80,170,120,0.12);color:#2D7A4A}
+    .tl-verdict.warn{background:rgba(220,140,60,0.12);color:#A45A1F}
+    .tl-verdict.no{background:rgba(220,80,80,0.12);color:#A03333}
+    .glossary-search{margin:0 18px 12px;padding:12px 16px;border:1px solid var(--divider);border-radius:14px;font-size:14px;font-family:inherit;background:#fff;width:calc(100% - 36px)}
+    .glossary-list{padding:0 18px 18px;display:flex;flex-direction:column;gap:8px}
+    .gl-item{background:#fff;border:1px solid var(--divider);border-radius:14px;padding:14px 16px}
+    .gl-item h5{font-size:14px;font-weight:800;color:var(--text-0);margin-bottom:4px}
+    .gl-item .gl-tag{display:inline-block;font-size:10px;font-weight:700;color:#3F8554;background:rgba(80,170,120,0.12);padding:2px 8px;border-radius:8px;margin-bottom:6px}
+    .gl-item p{font-size:12.5px;color:var(--text-1);line-height:1.6}
     .rank-title{font-size:15px;font-weight:700;color:var(--text-0);letter-spacing:-.2px}
     .rank-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 20px 40px;scrollbar-width:none;background:var(--bg-soft)}
     .rank-body::-webkit-scrollbar{display:none}
@@ -243,6 +275,28 @@
     </div>
     <span class="yt-side-arrow">→</span>
   </a>
+  <a class="yt-side variant-timeline" id="timelineBanner" href="#">
+    <div class="yt-side-body">
+      <span class="yt-side-tag">TIMELINE</span>
+      <div class="yt-side-title">
+        <span class="big"><em>Timeline</em></span>
+        <span class="ko">회복 시뮬레이터</span>
+      </div>
+      <p class="yt-side-desc">일정 대비 수술 일정 계산하기</p>
+    </div>
+    <span class="yt-side-arrow">→</span>
+  </a>
+  <a class="yt-side variant-glossary" id="glossaryBanner" href="#">
+    <div class="yt-side-body">
+      <span class="yt-side-tag">GLOSSARY</span>
+      <div class="yt-side-title">
+        <span class="big"><em>Glossary</em></span>
+        <span class="ko">성형 용어 사전</span>
+      </div>
+      <p class="yt-side-desc">매몰·절개·구축 같은 용어 하나씩</p>
+    </div>
+    <span class="yt-side-arrow">→</span>
+  </a>
 </div>
 
 <div class="app">
@@ -324,6 +378,59 @@
       </div>
     </div>
     <p class="rank-note">※ 수치는 공개 리포트/내부 데이터 기반의 참고 수치입니다. 실제 시술 결정은 전문의 상담이 필요해요.</p>
+  </div>
+</div>
+
+<!-- 타임라인 시뮬레이터 화면 -->
+<div class="rank-screen" id="timelineScreen">
+  <div class="rank-header">
+    <button class="rank-back" id="timelineClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+    <div class="rank-title">회복 시뮬레이터</div>
+  </div>
+  <div class="rank-body">
+    <div class="rank-hero" style="background:linear-gradient(135deg,#FFF6EC,#FFE9D2)">
+      <h2>일정 있는 수술, 시기 조절이 중요해요</h2>
+      <p>수술 종류·회복 경과를 입력하면 주요 일정 전·후 가능 여부를 알려드려요.</p>
+    </div>
+    <div class="timeline-form">
+      <label>수술 종류</label>
+      <select id="tlType">
+        <option value="eye_buried">쌍꺼풀 (매몰)</option>
+        <option value="eye_cut">쌍꺼풀 (절개)</option>
+        <option value="nose">코 성형</option>
+        <option value="breast">가슴 보형물</option>
+        <option value="lipo">지방흡입</option>
+        <option value="contour">안면윤곽</option>
+        <option value="botox">보톡스</option>
+        <option value="filler">필러</option>
+      </select>
+      <label>주요 일정 (예: 결혼식, 면접, 여행)</label>
+      <input type="text" id="tlEvent" placeholder="일정 이름 입력">
+      <label>일정 날짜</label>
+      <input type="date" id="tlEventDate">
+      <label>수술 희망 날짜</label>
+      <input type="date" id="tlSurgeryDate">
+      <button class="timeline-calc" id="tlCalc">일정 계산하기</button>
+    </div>
+    <div class="timeline-result" id="tlResult"></div>
+    <p class="rank-note">※ 회복 기간은 일반적 평균이며 개인·수술 방식에 따라 달라질 수 있어요. 정확한 일정은 담당 의사와 상의하세요.</p>
+  </div>
+</div>
+
+<!-- 용어 사전 화면 -->
+<div class="rank-screen" id="glossaryScreen">
+  <div class="rank-header">
+    <button class="rank-back" id="glossaryClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+    <div class="rank-title">성형 용어 사전</div>
+  </div>
+  <div class="rank-body">
+    <div class="rank-hero" style="background:linear-gradient(135deg,#EEF8EE,#DBEFE0)">
+      <h2>의사가 쓰는 용어, 차분히 알고 가세요</h2>
+      <p>상담실에서 자주 들을 수 있는 용어를 한그름에 정리했어요.</p>
+    </div>
+    <input type="text" id="glossarySearch" class="glossary-search" placeholder="용어 검색 (예: 구축, 매몰)">
+    <div class="glossary-list" id="glossaryList"></div>
+    <p class="rank-note">※ 주요 용어의 일반적 설명이며, 의학적 판단은 전문의와 상의하세요.</p>
   </div>
 </div>
 
@@ -1002,6 +1109,127 @@ function openRank(){rankScreen.classList.add('open')}
 function closeRank(){rankScreen.classList.remove('open')}
 document.getElementById('rankBanner').addEventListener('click',e=>{e.preventDefault();openRank()});
 document.getElementById('rankClose').addEventListener('click',closeRank);
+
+/* ── 타임라인 시뮬레이터 ── */
+const RECOVERY_TABLE={
+  eye_buried:{name:'쌍꺼풀 매몰',stages:[
+    {day:0,text:'수술 당일. 올와서 마취 풌 때까지 휴식'},
+    {day:3,text:'초기 부기 최고조. 올이슨 찜질하면 감소'},
+    {day:7,text:'실밥 제거. 눈 뜨고 내리는 마침이 자연스러워짐'},
+    {day:14,text:'자연스러운 외출 가능. 메이크업 조심해서'},
+    {day:30,text:'라인 80% 안정. 와전 자연스러움은 2·3개월'},
+    {day:90,text:'최종 라인 완성'}
+  ],minOk:14,fullOk:90},
+  eye_cut:{name:'쌍꺼풀 절개',stages:[
+    {day:0,text:'수술 당일. 당일 휴식 필수'},
+    {day:3,text:'매몰보다 부기 강. 찜질 집중적'},
+    {day:7,text:'실밥 제거. 이때까지 흥이 너무 그레이닝'},
+    {day:21,text:'외출은 가능하지만 되는 수준'},
+    {day:60,text:'흥·라인 80% 안정'},
+    {day:180,text:'최종 형태 완성'}
+  ],minOk:21,fullOk:180},
+  nose:{name:'코 성형',stages:[
+    {day:0,text:'수술 당일. 임터 다움으로 고정'},
+    {day:5,text:'부기 감소. 임터 제거 시점'},
+    {day:14,text:'외관상 자연스러움. 알레르기 쿨리스 제거'},
+    {day:30,text:'코끝 부기 80% 빠짐'},
+    {day:90,text:'라인 견고해짐'},
+    {day:180,text:'최종 라인 완성'}
+  ],minOk:14,fullOk:180},
+  breast:{name:'가슴 보형물',stages:[
+    {day:0,text:'수술 당일. 입원 1~2일 권장'},
+    {day:7,text:'일상 돌아올 수 있음. 팔 올림 금지'},
+    {day:30,text:'가볍운 운동 가능. 소프도 알넘 아직'},
+    {day:90,text:'조광·📄 안정. 보형물 자연 자리 잡음'},
+    {day:180,text:'대부분의 활동 자유롭음'}
+  ],minOk:30,fullOk:180},
+  lipo:{name:'지방흡입',stages:[
+    {day:0,text:'수술 당일. 압박복 착용'},
+    {day:5,text:'출근 가능한 수준. 임파·마사지 시작'},
+    {day:30,text:'부기 70% 자리 잡음. 라인 관찰 가능'},
+    {day:90,text:'최종 라인 80~90% 완성'},
+    {day:180,text:'최종 라인 완성'}
+  ],minOk:7,fullOk:90},
+  contour:{name:'안면윤곽',stages:[
+    {day:0,text:'수술 당일. 입원 1일 권장'},
+    {day:7,text:'부기 최고조. 안면타공이 주의 필요'},
+    {day:21,text:'외출 가능하지만 조심'},
+    {day:60,text:'라인 자리 잡는 조종'},
+    {day:180,text:'최종 라인 완성'}
+  ],minOk:30,fullOk:180},
+  botox:{name:'보톡스',stages:[
+    {day:0,text:'시술 당일. 메이크업 OK, 떨매부릹이 몇 시간 있음'},
+    {day:3,text:'효과 나타나기 시작'},
+    {day:14,text:'완전한 효과 자리 잡음'}
+  ],minOk:1,fullOk:14},
+  filler:{name:'필러',stages:[
+    {day:0,text:'시술 당일. 부종·떨매부릹 가능'},
+    {day:3,text:'부기 많이 감소'},
+    {day:14,text:'자연스러워짐. 최종 형태'}
+  ],minOk:3,fullOk:14}
+};
+
+function openTimeline(){document.getElementById('timelineScreen').classList.add('open')}
+function closeTimeline(){document.getElementById('timelineScreen').classList.remove('open')}
+document.getElementById('timelineBanner').addEventListener('click',e=>{e.preventDefault();openTimeline()});
+document.getElementById('timelineClose').addEventListener('click',closeTimeline);
+
+document.getElementById('tlCalc').addEventListener('click',()=>{
+  const type=document.getElementById('tlType').value;
+  const event=document.getElementById('tlEvent').value.trim()||'주요 일정';
+  const eventDateStr=document.getElementById('tlEventDate').value;
+  const surgeryDateStr=document.getElementById('tlSurgeryDate').value;
+  if(!eventDateStr||!surgeryDateStr){
+    document.getElementById('tlResult').innerHTML='<div class="tl-verdict warn">일정 날짜를 모두 입력해주세요.</div>';return;
+  }
+  const info=RECOVERY_TABLE[type];
+  const evDate=new Date(eventDateStr);
+  const surDate=new Date(surgeryDateStr);
+  const diffDays=Math.round((evDate-surDate)/(1000*60*60*24));
+  let verdict='';
+  if(diffDays<0)verdict=`<div class="tl-verdict no">${event}이(가) 수술보다 먼저예요. 수술 날짜를 조정해주세요.</div>`;
+  else if(diffDays>=info.fullOk)verdict=`<div class="tl-verdict ok">✅ ${diffDays}일 후 일정이라 최종 형태 안정 후에요. 충분하게 괜찮아요.</div>`;
+  else if(diffDays>=info.minOk)verdict=`<div class="tl-verdict warn">⚠️ ${diffDays}일 후. 일상은 가능하지만 완전 회복은 아니에요. 조심해서 마주하세요.</div>`;
+  else verdict=`<div class="tl-verdict no">❌ ${diffDays}일 후. ${info.name} 최소 회복(${info.minOk}일)에 미츠어요. 일정 조정을 권해드려요.</div>`;
+  let stagesHtml='';
+  info.stages.forEach(st=>{
+    const dt=new Date(surDate);dt.setDate(dt.getDate()+st.day);
+    const dateStr=`${dt.getMonth()+1}/${dt.getDate()}`;
+    stagesHtml+=`<div class="tl-stage"><div class="tl-stage-day">D+${st.day}<br>${dateStr}</div><div class="tl-stage-text">${st.text}</div></div>`;
+  });
+  document.getElementById('tlResult').innerHTML=`${verdict}<div class="tl-card"><h4>${info.name} 회복 타임라인</h4>${stagesHtml}</div>`;
+});
+
+/* ── 용어 사전 ── */
+const GLOSSARY=[
+  {term:'매몰법',cat:'수술',def:'절개 없이 실로 쌍꺼풀 라인을 만드는 방식. 회복이 빠르지만 높은 눈꿙·지방 많은 눈은 풀릴 가능성 있음.'},
+  {term:'절개법',cat:'수술',def:'피부를 절개해 재조직한 후 라인을 만드는 방식. 회복은 느리지만 라인이 풍리고 지속이 깔.'},
+  {term:'안권이완해',cat:'수술',def:'안검근이 느슨해서 눈 뜨기 힘들어 지는 증상. 수술로 근육을 단축시켜 교정.'},
+  {term:'구축',cat:'부작용',def:'가슴 보형물 주변 캡시이 수축되는 현상. 가슴이 단단해지고 형태 이상. 재수술 권장.'},
+  {term:'구굕을구',cat:'부작용',def:'코 성형 후 피부가 보형물을 조여 코가 올라가거나 모양이 변한 상태.'},
+  {term:'원주점·면적',cat:'해부',def:'눈 내쪽 모서리·바깥쪽 모서리. 이곳을 절개해 눈을 크게 만드는 수술 있음.'},
+  {term:'철골절골촜',cat:'수술',def:'안면윤곽에서 사각턱 뻔·광대뻔를 철거하는 수술. V라인 조정에 사용.'},
+  {term:'앞턱',cat:'해부',def:'턱끝 부위. 술이 고이는 곳 끊니김 숨 있으면 장심하게 보일 수 있음.'},
+  {term:'필러',cat:'시술',def:'히알루론산 등을 주입해 부피·주름 교정. 6~12개월 지속·흥수.'},
+  {term:'보톡스',cat:'시술',def:'근육을 일시적으로 이완시켜 주름과 특정 라인 교정. 4~6개월 지속.'},
+  {term:'티주익스팬더',cat:'시술',def:'피부 속 실을 넣어 처짐 손입·탄력 개선. PDO·PCL 소재 사용.'},
+  {term:'초음파 (HIFU)',cat:'시술',def:'고강도 초음파로 피부 속층을 자극해 리프팅·단력 개선. 울세라·슐슌이 대표적.'},
+  {term:'재수술',cat:'수술',def:'이전 수술 후 모양·부작용 교정을 위해 다시 하는 수술. 조직 손상·유착 때문에 난이도 높음.'},
+  {term:'당일 수술',cat:'이용',def:'상담을 받고 해당날 바로 수술까지 진행하는 경우. 충분한 고민 시간을 권장.'}
+];
+
+function renderGlossary(filter=''){
+  const list=document.getElementById('glossaryList');
+  const f=filter.toLowerCase().trim();
+  const filtered=GLOSSARY.filter(g=>!f||g.term.toLowerCase().includes(f)||g.def.toLowerCase().includes(f));
+  list.innerHTML=filtered.map(g=>`<div class="gl-item"><span class="gl-tag">${esc(g.cat)}</span><h5>${esc(g.term)}</h5><p>${esc(g.def)}</p></div>`).join('')||'<div class="tl-verdict warn" style="margin:0 18px">일치하는 용어가 없어요.</div>';
+}
+
+function openGlossary(){document.getElementById('glossaryScreen').classList.add('open');renderGlossary()}
+function closeGlossary(){document.getElementById('glossaryScreen').classList.remove('open')}
+document.getElementById('glossaryBanner').addEventListener('click',e=>{e.preventDefault();openGlossary()});
+document.getElementById('glossaryClose').addEventListener('click',closeGlossary);
+document.getElementById('glossarySearch').addEventListener('input',e=>renderGlossary(e.target.value));
 document.querySelectorAll('.rank-tab').forEach(t=>{t.addEventListener('click',()=>{
   document.querySelectorAll('.rank-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
   const g=t.dataset.gender;
