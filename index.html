@@ -108,7 +108,8 @@ window._mpVision={FaceLandmarker,FilesetResolver};
 
 
     /* ── Ranking modal (separate screen) ── */
-    .rank-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:220;display:flex;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
+    .rank-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:220;display:none;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
+    .rank-screen.visible{display:flex}
     .rank-screen.open{transform:translateY(0);pointer-events:all}
     .rank-header{padding:calc(var(--safe-top)+48px) 20px 16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-bottom:1px solid var(--divider);position:relative;background:#fff}
     .rank-back{position:absolute;left:12px;top:calc(var(--safe-top)+44px);width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:10px;color:var(--text-2)}
@@ -368,7 +369,8 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .category-card-desc{font-size:11.5px;color:var(--text-2);line-height:1.4}
 
     /* ── 카테고리 상세 스크린 ── */
-    .cat-detail-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:210;display:flex;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
+    .cat-detail-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:210;display:none;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
+    .cat-detail-screen.visible{display:flex}
     .cat-detail-screen.open{transform:translateY(0);pointer-events:all}
     .cat-tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;padding:0 16px;border-bottom:1px solid var(--divider);background:#fff;flex-shrink:0}
     .cat-tabs::-webkit-scrollbar{display:none}
@@ -986,8 +988,7 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 
 function openChat(initial){
   closeAllScreens();
-  chatScreen.classList.add('visible');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>chatScreen.classList.add('open')));
+  _openScreen(chatScreen);
   chatOrb.start();resetChat();
   if(initial&&initial.trim()){setTimeout(()=>handleUserInput(initial.trim()),300)}
   else {setTimeout(()=>greetAndAsk(),350)}
@@ -999,7 +1000,7 @@ async function greetAndAsk(){
   await scriptedReply('요즘 특별히 고민이시거나 어떤 변화 원하시는 부분이 있으세요 ?',460);
   addAi('편하게 말씀해주세요 ! "코 높이고 싶어", "잠자는 거 같은 눈", "친구 추천으로 알아보는 중" 같이 자유롭게도 돼요 ~');
 }
-function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{chatScreen.classList.remove('visible');resetChat();chatOrb.stop()},480)}
+function closeChat(){_closeScreen(chatScreen);setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
   Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false});
@@ -2463,9 +2464,9 @@ function openCatDetail(areaKey){
   document.getElementById('catDetailTitle').textContent=data.label+' 상세 정보';
   renderCatTabs(areaKey);
   renderCatPanel(areaKey,'methods');
-  catDetailScreen.classList.add('open');
+  _openScreen(catDetailScreen);
 }
-function closeCatDetail(){catDetailScreen.classList.remove('open')}
+function closeCatDetail(){_closeScreen(catDetailScreen)}
 
 function renderCatTabs(areaKey){
   const tabs=document.getElementById('catDetailTabs');
@@ -2541,14 +2542,16 @@ function renderCheckPanel(el,data){
 /* ─── bindings ─── */
 const rankScreen=document.getElementById('rankScreen');
 function closeAllScreens(){
-  document.getElementById('rankScreen')?.classList.remove('open');
-  document.getElementById('timelineScreen')?.classList.remove('open');
-  document.getElementById('glossaryScreen')?.classList.remove('open');
-  document.getElementById('catDetailScreen')?.classList.remove('open');
+  document.getElementById('rankScreen')?.classList.remove('open','visible');
+  document.getElementById('timelineScreen')?.classList.remove('open','visible');
+  document.getElementById('glossaryScreen')?.classList.remove('open','visible');
+  document.getElementById('catDetailScreen')?.classList.remove('open','visible');
   chatScreen?.classList.remove('open','visible');
 }
-function openRank(){closeAllScreens();rankScreen.classList.add('open')}
-function closeRank(){rankScreen.classList.remove('open')}
+function _openScreen(el){el.classList.add('visible');requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('open')))}
+function _closeScreen(el){el.classList.remove('open');setTimeout(()=>el.classList.remove('visible'),480)}
+function openRank(){closeAllScreens();_openScreen(rankScreen)}
+function closeRank(){_closeScreen(rankScreen)}
 document.getElementById('rankBanner').addEventListener('click',e=>{e.preventDefault();openRank()});
 document.getElementById('rankClose').addEventListener('click',closeRank);
 
@@ -2611,8 +2614,8 @@ const RECOVERY_TABLE={
   ],minOk:3,fullOk:14}
 };
 
-function openTimeline(){closeAllScreens();document.getElementById('timelineScreen').classList.add('open')}
-function closeTimeline(){document.getElementById('timelineScreen').classList.remove('open')}
+function openTimeline(){closeAllScreens();_openScreen(document.getElementById('timelineScreen'))}
+function closeTimeline(){_closeScreen(document.getElementById('timelineScreen'))}
 document.getElementById('timelineBanner').addEventListener('click',e=>{e.preventDefault();openTimeline()});
 document.getElementById('timelineClose').addEventListener('click',closeTimeline);
 
@@ -2667,8 +2670,8 @@ function renderGlossary(filter=''){
   list.innerHTML=filtered.map(g=>`<div class="gl-item"><span class="gl-tag">${esc(g.cat)}</span><h5>${esc(g.term)}</h5><p>${esc(g.def)}</p></div>`).join('')||'<div class="tl-verdict warn" style="margin:0 18px">일치하는 용어가 없어요.</div>';
 }
 
-function openGlossary(){closeAllScreens();document.getElementById('glossaryScreen').classList.add('open');renderGlossary()}
-function closeGlossary(){document.getElementById('glossaryScreen').classList.remove('open')}
+function openGlossary(){closeAllScreens();const el=document.getElementById('glossaryScreen');_openScreen(el);renderGlossary()}
+function closeGlossary(){_closeScreen(document.getElementById('glossaryScreen'))}
 document.getElementById('glossaryBanner').addEventListener('click',e=>{e.preventDefault();openGlossary()});
 document.getElementById('glossaryClose').addEventListener('click',closeGlossary);
 document.getElementById('glossarySearch').addEventListener('input',e=>renderGlossary(e.target.value));
