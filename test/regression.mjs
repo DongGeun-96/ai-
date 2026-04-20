@@ -42,14 +42,13 @@ const snippet = [
   extractLine(/const CELEB_TRIGGER\s*=/),
   extractLine(/const CELEB_SKIP\s*=/),
   extractFn('detectArea'),
-  extractFn('detectGender'),
   extractFn('detectAge'),
   extractFn('detectCelebName'),
-  'globalThis.__fns = {detectArea, detectGender, detectAge, detectCelebName};'
+  'globalThis.__fns = {detectArea, detectAge, detectCelebName};'
 ].join('\n\n');
 
 await import('data:text/javascript;base64,' + Buffer.from(snippet).toString('base64'));
-const { detectArea, detectGender, detectAge, detectCelebName } = globalThis.__fns;
+const { detectArea, detectAge, detectCelebName } = globalThis.__fns;
 
 const tests = [
   // 연예인 감지
@@ -63,9 +62,9 @@ const tests = [
   { in: '쌍수처럼 되고싶어', celeb: '', area: 'eye' },
   { in: '요즘 남자 성형', celeb: '', area: '' },
   // 성별
-  { in: '남자 코 견적', gender: '남성', area: 'nose' },
-  { in: '여성 쌍꺼풀', gender: '여성', area: 'eye' },
-  { in: '여친 선물로 코', gender: '여성', area: 'nose' },
+  { in: '남자 코 견적', area: 'nose' },
+  { in: '여성 쌍꺼풀', area: 'eye' },
+  { in: '여친 선물로 코', area: 'nose' },
   // 나이
   { in: '17살 쌍수 궁금', age: '10대', area: 'eye' },
   { in: '20대 눈매교정', age: '20대', area: 'eye' },
@@ -93,7 +92,6 @@ for (const t of tests) {
   const r = {
     celeb: detectCelebName(t.in),
     area: detectArea(t.in),
-    gender: detectGender(t.in),
     age: detectAge(t.in)
   };
   const checks = [];

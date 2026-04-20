@@ -1016,9 +1016,16 @@ function pushUndo(){
 }
 function addUser(text){ensureChatActive();const el=document.createElement('div');el.className='msg user';el.textContent=text;
   chatMessages.appendChild(el);scrollBottom();
+  state._lastUserMsg={el,text};
   showRetryBtn();
+  // 대화 히스토리에 추가
+  state.history.push({role:'user',content:text});
 }
-function addAi(text){ensureChatActive();const el=document.createElement('div');el.className='msg ai';el.textContent=text;chatMessages.appendChild(el);scrollBottom();return el}
+function addAi(text){ensureChatActive();const el=document.createElement('div');el.className='msg ai';el.textContent=text;chatMessages.appendChild(el);scrollBottom();
+  // 대화 히스토리에 추가 (최대 30턴 유지)
+  state.history.push({role:'assistant',content:text});
+  if(state.history.length>60)state.history=state.history.slice(-40);
+  return el}
 function addError(text){ensureChatActive();const el=document.createElement('div');el.className='error-msg';el.textContent=text;chatMessages.appendChild(el);scrollBottom()}
 function addTyping(){ensureChatActive();chatOrb.setThinking(true);const el=document.createElement('div');el.className='typing-bubble';el.innerHTML='<div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>';chatMessages.appendChild(el);scrollBottom();return el}
 
@@ -1135,7 +1142,7 @@ async function askAI({stepGoal,userText,systemNote}){
     tp.remove();chatOrb.setThinking(false);
     if(!res.ok){addError(`AI 호출 실패: ${data.error||res.status}`);return null}
     const text=(data.text||'').trim();
-    if(text){addAi(text);if(userText)state.history.push({role:'user',content:userText});state.history.push({role:'assistant',content:text})}
+    if(text){addAi(text)}
     return text;
   }catch(err){tp.remove();chatOrb.setThinking(false);addError(`네트워크 오류: ${err.message||err}`);return null;
   }finally{state.busy=false;setInputEnabled(true);chatInputEl.focus()}
