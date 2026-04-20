@@ -1656,25 +1656,13 @@ tip: "실제 비용은 병원·재료·의료진에 따라 달라요. 비용만 
 
   await new Promise(r=>setTimeout(r,800));
 
-  // 2단계: 참고 정보 링크 제안
+  // 2단계: 참고 정보 제안
   await new Promise(resolve=>{
-    addAi('도움 될 만한 참고 정보도 찾아볼까요?');
-    addQuickReply(['네, 알려주세요','괜찮아요'],async pick=>{
+    addAi('참고 정보도 추가로 알려드릴 테니 같이 참고해서 보시면 좋을 것 같아요 ! 제가 제공해드려도 될까요?');
+    addQuickReply(['네, 부탁드릴게요','괜찮아요'],async pick=>{
       addUser(pick);
       if(pick.includes('네')){
-        // 구글 검색 링크 제공
-        const queries=state.lastTrendItems
-          ?state.lastTrendItems.slice(0,3).map(it=>it.name)
-          :[area+' 수술'];
-        const links=queries.map(q=>{
-          const encoded=encodeURIComponent(q+' 후기 비용 회복기간');
-          return {name:q,url:'https://www.google.com/search?q='+encoded};
-        });
-        await scriptedReply('참고하시면 좋을 링크 정리해드릴게요 ~',400);
-        const linkHtml=links.map(l=>`<a href="${l.url}" target="_blank" rel="noopener" style="display:block;padding:8px 12px;margin:4px 0;border-radius:10px;background:rgba(123,143,212,0.08);color:var(--accent-deep);text-decoration:none;font-size:13px;line-height:1.4">${l.name} 후기/비용/회복기간</a>`).join('');
-        const wrap=document.createElement('div');wrap.className='msg ai';
-        wrap.innerHTML='<div class="msg-bubble" style="padding:12px 14px">'+linkHtml+'</div>';
-        chatMessages.appendChild(wrap);scrollBottom();
+        await showYoutubeRecommendation();
       }
       resolve();
     });
