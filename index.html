@@ -47,12 +47,13 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .tab-btn{flex-shrink:0;padding:9px 18px;border-radius:24px;border:none;font-size:13.5px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .25s;color:var(--text-2);background:rgba(0,0,0,0.03)}
     .tab-btn.active{background:var(--text-0);color:var(--bg)}
 
-    .panel{flex:1;display:none;flex-direction:column;overflow:hidden}
+    .panel{flex:1;display:none;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .panel::-webkit-scrollbar{display:none}
     .panel.active{display:flex}
     .scroll-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
     .scroll-panel::-webkit-scrollbar{display:none}
 
-    .ai-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px}
+    .ai-main{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;min-height:60vh}
     .greeting{text-align:center;margin-bottom:32px}
     .greeting-label{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-family:'DM Sans',sans-serif;padding:5px 14px;border:1px solid rgba(123,143,212,0.2);border-radius:20px;background:rgba(123,143,212,0.06);margin-bottom:16px;opacity:0;transform:translateY(-6px);animation:fadeDown .7s .1s forwards}
     .greeting-title{font-size:26px;font-weight:300;line-height:1.4;letter-spacing:-0.3px;min-height:72px}
@@ -355,6 +356,66 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .chat-input-inner:focus-within{border-color:var(--accent-light);box-shadow:0 4px 24px rgba(123,143,212,0.12)}
 
     .error-msg{align-self:flex-start;max-width:82%;padding:10px 14px;border-radius:14px;background:rgba(239,100,100,0.08);color:#c33;font-size:12px;line-height:1.5}
+
+    /* ── 부위별 카테고리 그리드 ── */
+    .category-section{padding:24px 24px 0;margin-top:8px}
+    .category-section-title{font-size:14px;font-weight:800;color:var(--text-0);letter-spacing:-.2px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .category-section-title::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--accent)}
+    .category-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .category-card{padding:16px 14px;border-radius:18px;background:#fff;border:1.5px solid var(--glass-border);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s;display:flex;flex-direction:column;gap:6px}
+    .category-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(123,143,212,0.12);border-color:var(--accent-light)}
+    .category-card:active{transform:scale(0.97)}
+    .category-card-icon{font-size:24px;line-height:1}
+    .category-card-name{font-size:14px;font-weight:700;color:var(--text-0);letter-spacing:-.2px}
+    .category-card-desc{font-size:11.5px;color:var(--text-2);line-height:1.4}
+
+    /* ── 카테고리 상세 스크린 ── */
+    .cat-detail-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:210;display:flex;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
+    .cat-detail-screen.open{transform:translateY(0);pointer-events:all}
+    .cat-tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;padding:0 16px;border-bottom:1px solid var(--divider);background:#fff;flex-shrink:0}
+    .cat-tabs::-webkit-scrollbar{display:none}
+    .cat-tab{flex-shrink:0;padding:12px 14px;border:none;background:transparent;font-size:12.5px;font-weight:700;font-family:'Noto Sans KR',sans-serif;color:var(--text-3);cursor:pointer;transition:all .2s;border-bottom:2.5px solid transparent;white-space:nowrap}
+    .cat-tab.active{color:var(--accent-deep);border-bottom-color:var(--accent)}
+    .cat-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 18px 40px;scrollbar-width:none;background:var(--bg-soft)}
+    .cat-content::-webkit-scrollbar{display:none}
+    .cat-panel{display:none}
+    .cat-panel.active{display:block}
+
+    /* 수술법 비교 카드 */
+    .method-card{background:#fff;border:1px solid var(--divider);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 14px rgba(124,143,154,0.06)}
+    .method-card h4{font-size:15px;font-weight:800;color:var(--text-0);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .method-card h4 em{font-style:normal;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--accent);color:#fff}
+    .method-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--divider);font-size:12.5px;line-height:1.5;color:var(--text-1)}
+    .method-row:last-child{border-bottom:none}
+    .method-label{flex-shrink:0;min-width:52px;font-size:11px;font-weight:700;color:var(--accent-deep)}
+
+    /* 회복 타임라인 */
+    .recovery-stage{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--divider)}
+    .recovery-stage:last-child{border-bottom:none}
+    .recovery-day{flex-shrink:0;font-size:11px;font-weight:800;color:var(--accent-deep);background:rgba(123,143,212,0.1);padding:6px 10px;border-radius:10px;min-width:60px;text-align:center}
+    .recovery-text{font-size:12.5px;line-height:1.55;color:var(--text-1)}
+
+    /* 가격 범위 */
+    .price-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px;border-radius:12px;background:rgba(123,143,212,0.06);margin-bottom:8px}
+    .price-name{font-size:13.5px;font-weight:700;color:var(--text-0)}
+    .price-range{font-size:13.5px;font-weight:800;color:var(--accent-deep);white-space:nowrap}
+    .price-note{font-size:11px;color:var(--text-2);margin-top:4px;width:100%}
+    .price-factors{margin-top:14px;padding:12px;border-radius:12px;background:#FFFBE8;border:1px solid #FFE8A0;font-size:12px;line-height:1.6;color:#5C4A00}
+
+    /* 부작용 */
+    .side-item{padding:12px;border-radius:12px;background:rgba(255,200,192,0.12);margin-bottom:8px;font-size:13px;color:var(--text-0);position:relative;padding-left:28px}
+    .side-item::before{content:'●';position:absolute;left:12px;top:12px;color:#F38B7B;font-size:9px}
+    .side-freq{font-size:11px;color:var(--text-2);margin-top:4px}
+
+    /* 체크포인트 */
+    .check-item{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:14px;background:#fff;border:1px solid var(--divider);margin-bottom:8px}
+    .check-num{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+    .check-text{font-size:13px;line-height:1.55;color:var(--text-1)}
+
+    /* 하단 상담 버튼 */
+    .cat-cta{padding:14px 18px;padding-bottom:calc(16px + var(--safe-bottom));border-top:1px solid var(--divider);background:#fff;flex-shrink:0}
+    .cat-cta-btn{width:100%;padding:14px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--accent-light),var(--accent));color:#fff;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(123,143,212,0.25);transition:transform .15s}
+    .cat-cta-btn:active{transform:scale(0.97)}
   </style>
 </head>
 <body>
@@ -425,6 +486,19 @@ window._mpVision={FaceLandmarker,FilesetResolver};
         <div class="orb-hint"><div class="orb-hint-dot"></div>터치해서 상담 시작하기</div>
       </div>
     </div>
+    <div class="category-section">
+      <div class="category-section-title">부위별로 알아보기</div>
+      <div class="category-grid">
+        <div class="category-card" data-area="eye"><div class="category-card-icon">👁️</div><div class="category-card-name">눈 (Eye)</div><div class="category-card-desc">쌍꺼풀·눈매교정·트임</div></div>
+        <div class="category-card" data-area="nose"><div class="category-card-icon">👃</div><div class="category-card-name">코 (Nose)</div><div class="category-card-desc">콧대·코끝·재수술</div></div>
+        <div class="category-card" data-area="breast"><div class="category-card-icon">🩺</div><div class="category-card-name">가슴 (Breast)</div><div class="category-card-desc">보형물·자가지방·거상</div></div>
+        <div class="category-card" data-area="contour"><div class="category-card-icon">💎</div><div class="category-card-name">안면윤곽 (Contour)</div><div class="category-card-desc">사각턱·광대·턱끝·양악</div></div>
+        <div class="category-card" data-area="lipo"><div class="category-card-icon">✨</div><div class="category-card-name">지방흡입 (Lipo)</div><div class="category-card-desc">복부·허벅지·팔·턱밑</div></div>
+        <div class="category-card" data-area="skin"><div class="category-card-icon">🌿</div><div class="category-card-name">피부·시술 (Skin)</div><div class="category-card-desc">보톡스·필러·레이저·리프팅</div></div>
+        <div class="category-card" data-area="hair"><div class="category-card-icon">💇</div><div class="category-card-name">모발이식 (Hair)</div><div class="category-card-desc">FUE·FUT·DHI·약물치료</div></div>
+      </div>
+    </div>
+    <div class="bottom-pad"></div>
   </div>
 
 
@@ -534,6 +608,19 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     <input type="text" id="glossarySearch" class="glossary-search" placeholder="용어 검색 (예: 구축, 매몰)">
     <div class="glossary-list" id="glossaryList"></div>
     <p class="rank-note">※ 주요 용어의 일반적 설명이며, 의학적 판단은 전문의와 상의하세요.</p>
+  </div>
+</div>
+
+<!-- 부위별 카테고리 상세 화면 -->
+<div class="cat-detail-screen" id="catDetailScreen">
+  <div class="rank-header">
+    <button class="rank-back" id="catDetailClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+    <div class="rank-title" id="catDetailTitle"></div>
+  </div>
+  <div class="cat-tabs" id="catDetailTabs"></div>
+  <div class="cat-content" id="catDetailContent"></div>
+  <div class="cat-cta">
+    <button class="cat-cta-btn" id="catDetailCta">AI 상담사에게 물어보기</button>
   </div>
 </div>
 
@@ -1479,7 +1566,7 @@ async function showFocusTrend(){
 
 1) summary: 2줄. 첫줄 "${ageTxt||'이 연령대'}는 보통 이런 방식을 많이 하세요 ~" + 둘째줄 "주요한 3가지 알려드릴게요 !"
 2) items: 3개. 각각의:
-   - name: 실제 수술법/방식명 (예: 매몰법, 부분절개, 눈매교정, 아티로 코무보형, 자가연골 코끝성형 등)
+   - name: 실제 수술법/방식명 (예: 매몰법, 부분절개, 눈매교정, 무보형물 코성형, 자가연골 코끝성형 등)
    - desc: 이 방식이 ${ageTxt||'이 연령대'}에 왜 좋은지 한줄 (30자 이내)
    - detail: 실제 진행방식 + 특징 + 회복감 2~3줄. 공개 의료정보 기반 (예: "눈꺼풀 안쪽 조직을 실로 고정해서 매듭 라인을 만드는 방식이에요. 흉터가 거의 없고 붓기도 적어 회복이 빠른 편이에요 ! 다만 오래 지나면 풀릴 수도 있고 조직 조건에 따라 맞지 않기도 해요")
    - tag: 특징 키워드 (빠른회복, 자연스러움 등)
@@ -2032,9 +2119,369 @@ async function goStep6(){
   addHospitalList();
   await new Promise(r=>setTimeout(r,300));
   await askAI({
-    stepGoal:'STEP 6 마무리: 오늘 상담 핵심 요약 2문장 + 고객이 다음으로 관리해야 할 것 1문장 (예: "2~3곳 직접 상담 후 비교해 보세요, 원하시면 제가 상담 다녀온 후 정리 도와드릴게요") + 따뜻한 인사 마무리. 총 4~5문장.',
+    stepGoal:'STEP 6 마무리: 오늘 상담 핵심 요약 2문장 + 고객이 다음으로 관리해야 할 것 1문장 (예: "2~3곳 직접 상담 후 비교해 보세요, 원하시면 제가 상담 다녀오신 후 정리 도와드릴게요") + 따뜻한 인사 마무리. 총 4~5문장.',
     userText:'오늘 상담 짧게 마무리해줘.'
   });
+}
+
+/* ─── 부위별 카테고리 데이터 ─── */
+const CATEGORY_DATA={
+  eye:{
+    label:'눈 성형',
+    methods:[
+      {name:'매몰법',tag:'비절개',principle:'미세한 구멍을 통해 실로 검판과 피부를 연결하여 쌍꺼풀 라인 형성',pros:'회복 빠름(3~7일), 흉터 거의 없음, 되돌릴 수 있음',cons:'풀림 가능성(5~15%), 두꺼운 눈꺼풀에는 부적합',recovery:'7~10일 일상복귀',fit:'피부 처짐 적고 지방 적은 얇은 눈꺼풀'},
+      {name:'절개법',tag:'절개',principle:'쌍꺼풀 라인을 따라 절개 후 피부·근육·지방 정밀 조절',pros:'유지력 높음, 정밀한 디자인 가능',cons:'회복 2~4주, 흉터(6개월~1년에 걸쳐 희미해짐)',recovery:'2~3주 일상복귀',fit:'피부 처짐·지방 과다·두꺼운 눈꺼풀, 재수술'},
+      {name:'눈매교정 (안검하수)',tag:'기능+미용',principle:'눈뜨는 근육(거근)의 기능을 강화하여 눈을 또렷하게',pros:'쌍꺼풀과 병행 시 만족도 높은 편',cons:'과교정(건조감), 저교정, 좌우 비대칭 가능',recovery:'1~2주 부기, 3~6개월 최종',fit:'눈이 졸려 보이거나 답답해 보이는 경우'},
+      {name:'트임 수술 (앞·뒤·밑)',tag:'보조',principle:'눈 앞·뒤·아래 부위를 절개하여 눈 크기·모양 조절',pros:'눈이 시원하게 보이는 효과',cons:'흉터, 재유착, 과교정 가능',recovery:'1~2주',fit:'몽고주름·눈 사이 넓은 경우'}
+    ],
+    recovery:[
+      {day:'D+0',text:'수술 당일. 마취 풀릴 때까지 안정'},
+      {day:'D+3~5',text:'초기 부기 최고조. 냉찜질로 관리'},
+      {day:'D+7',text:'실밥 제거. 가벼운 외출 가능'},
+      {day:'D+14',text:'자연스러운 외출 가능. 메이크업 주의'},
+      {day:'D+30',text:'라인 80% 안정. 자연스러워지는 중'},
+      {day:'D+90',text:'최종 라인 완성 (절개법은 6개월까지)'}
+    ],
+    pricing:[
+      {name:'매몰법 쌍꺼풀',range:'60~150만원대',note:'병원 등급, 매몰 방식(2점/3점)'},
+      {name:'절개법 쌍꺼풀',range:'100~250만원대',note:'피부 절제량, 지방 제거 여부'},
+      {name:'눈매교정',range:'80~200만원대',note:'단독/쌍꺼풀 병행 여부'},
+      {name:'앞트임',range:'50~120만원대',note:'범위, 복합 시 할인'},
+      {name:'뒤트임·밑트임',range:'50~130만원대',note:'방식, 결막/외측'}
+    ],
+    sideEffects:[
+      {name:'좌우 비대칭',freq:'수술 종류에 따라 다양',desc:'부기 속도 차이로 초기에 더 크게 느껴질 수 있어요'},
+      {name:'라인 풀림 (매몰법)',freq:'5~15%',desc:'두꺼운 눈꺼풀이나 시간이 지나면서 발생할 수 있어요'},
+      {name:'흉터 (절개법)',freq:'자연 경과',desc:'6개월~1년에 걸쳐 희미해지는 편이에요'},
+      {name:'눈 건조·자극',freq:'일시적',desc:'대부분 1~3개월 내 호전되는 경향이에요'},
+      {name:'삼중 라인',freq:'드문 편',desc:'절개법 후 나타날 수 있고 시간이 지나면 안정되는 편이에요'}
+    ],
+    checkpoints:[
+      '집도의가 제 눈 상태에서 매몰/절개 중 무엇을 권하는지, 이유는?',
+      '눈매교정이 필요한지, 필요하다면 어느 정도인지?',
+      '비대칭 보정은 어디까지 가능한지?',
+      '수술 후 재수술 보증 범위와 조건은?',
+      '회복 기간 중 주의사항과 점검 일정은?',
+      '마취 방법과 수술 소요 시간은?'
+    ]
+  },
+  nose:{
+    label:'코 성형',
+    methods:[
+      {name:'실리콘 보형물',tag:'보형물',principle:'고체 실리콘(I자형)으로 콧대 높이 확보',pros:'높이 조절 용이, 제거·교체 가능, 비용 합리적',cons:'이물감, 피막 구축(3~5%) 가능, 장기 변형',recovery:'2~3주 일상복귀',fit:'콧대 높이를 원하는 경우'},
+      {name:'고어텍스',tag:'보형물',principle:'다공성 소재로 조직과 통합되는 보형물',pros:'자연스러운 촉감, 이물감 적음',cons:'제거 어려움, 감염 시 대처 복잡, 비용 높음',recovery:'2~3주',fit:'자연스러운 촉감을 원하는 경우'},
+      {name:'자가연골 (비중격·귀·늑)',tag:'자가조직',principle:'본인 연골을 채취하여 코끝·콧대에 이식',pros:'이물 반응 없음, 자연스러운 결과',cons:'채취 부위 흉터·통증, 흡수 가능성',recovery:'2~3주 + 채취부 회복',fit:'재수술·피부 얇은 경우, 코끝 성형'},
+      {name:'코 필러 (비수술)',tag:'비수술',principle:'히알루론산 필러 주입으로 콧대 높이기',pros:'즉각 효과, 회복기 없음, 되돌릴 수 있음',cons:'6~18개월 유지, 혈관 압박 위험(드묾)',recovery:'당일 가능',fit:'가벼운 높이 보정, 수술 전 테스트'}
+    ],
+    recovery:[
+      {day:'D+0',text:'수술 당일. 코 안 거즈·부목 고정'},
+      {day:'D+5~7',text:'부목 제거, 실밥 제거. 부기 감소 시작'},
+      {day:'D+14',text:'외관상 자연스러움. 일상복귀'},
+      {day:'D+30',text:'코끝 부기 80% 감소'},
+      {day:'D+90',text:'라인 견고해짐'},
+      {day:'D+180~365',text:'최종 결과. 코끝 피부 두꺼우면 더 걸리는 편'}
+    ],
+    pricing:[
+      {name:'콧대 성형 (실리콘)',range:'150~300만원대',note:'보형물 종류, 병원'},
+      {name:'콧대+코끝 복합',range:'250~500만원대',note:'범위, 재료 조합'},
+      {name:'코끝 성형 (자가연골)',range:'200~400만원대',note:'연골 채취 부위'},
+      {name:'코 재수술',range:'300~700만원대',note:'기존 보형물 제거, 난이도'},
+      {name:'코 필러',range:'20~60만원대',note:'필러 종류, 주입량'}
+    ],
+    sideEffects:[
+      {name:'구축 (피막 수축)',freq:'3~8%',desc:'보형물 주위 피막이 수축하여 코가 올라가거나 변형될 수 있어요'},
+      {name:'비대칭',freq:'5~10%',desc:'부기 빠진 후 6개월 관찰이 필요해요'},
+      {name:'감염',freq:'1~3%',desc:'항생제 치료, 심하면 보형물 제거가 필요할 수 있어요'},
+      {name:'보형물 비틀림',freq:'2~4%',desc:'외부 충격이나 구축에 의해 발생하는 편이에요'},
+      {name:'감각 저하',freq:'일시적',desc:'대부분 3~6개월 내 회복되는 경향이에요'}
+    ],
+    checkpoints:[
+      '제 코 피부·연골 상태에서 구축 가능성은?',
+      '보형물과 자가조직 중 제게 적합한 건?',
+      '코끝 자가조직은 어디서 채취하나요?',
+      'I자 보형물 + 자가연골 코끝 방식인지?',
+      '재수술 보증 범위와 응급 대응 프로세스는?',
+      '수술 후 코 부목 착용 기간과 주의사항은?'
+    ]
+  },
+  breast:{
+    label:'가슴 성형',
+    methods:[
+      {name:'실리콘 젤 보형물 (라운드)',tag:'보형물',principle:'라운드형 실리콘 젤 보형물 삽입으로 볼륨 확보',pros:'자연스러운 볼륨, 방향 무관 모양 유지',cons:'구형구축(5~15%), 정기 검진 필요',recovery:'2~4주',fit:'자연스러운 볼륨을 원하는 경우'},
+      {name:'실리콘 젤 보형물 (물방울)',tag:'보형물',principle:'아래쪽이 풍성한 형태의 보형물',pros:'자연스러운 처짐 모방',cons:'회전 시 비대칭, 텍스처드 표면 필요',recovery:'2~4주',fit:'자연스러운 형태를 원하는 경우'},
+      {name:'자가지방 이식',tag:'자가조직',principle:'복부·허벅지 지방 채취 후 정제하여 가슴에 주입',pros:'자연스러운 촉감, 이물질 없음',cons:'생착률 40~70%, 1컵 이상 어려움',recovery:'1~2주 + 흡입부',fit:'소폭 증대·자연스러운 촉감 선호'}
+    ],
+    recovery:[
+      {day:'D+0',text:'수술 당일. 압박밴드 착용, 입원 1~2일 권장'},
+      {day:'D+7',text:'실밥 제거, 일상 경활동 가능. 팔 거상 주의'},
+      {day:'D+14~30',text:'부기 감소, 가벼운 운동 시작'},
+      {day:'D+90',text:'보형물 자리잡음 (drop & fluff)'},
+      {day:'D+180~365',text:'최종 형태. 부드러워짐'}
+    ],
+    pricing:[
+      {name:'가슴 확대 (라운드)',range:'400~800만원대',note:'보형물 종류, 접근법, 병원'},
+      {name:'가슴 확대 (물방울)',range:'500~900만원대',note:'보형물, 듀얼플랜/근막하'},
+      {name:'가슴 축소',range:'400~800만원대',note:'절제량, 흉터 관리'},
+      {name:'자가지방 가슴',range:'300~600만원대',note:'지방 채취량, 생착률'}
+    ],
+    sideEffects:[
+      {name:'구형구축 (캡슐 수축)',freq:'5~15% (장기)',desc:'보형물 주위 피막 수축으로 딱딱해지는 현상이에요'},
+      {name:'모양 비대칭',freq:'다양',desc:'부기 차이나 보형물 위치 차이로 발생할 수 있어요'},
+      {name:'감각 저하',freq:'일시적~영구적',desc:'유두 감각 변화가 있을 수 있어요'},
+      {name:'BIA-ALCL 위험',freq:'1/3,000~1/30,000',desc:'텍스처드 보형물 관련. 정기 검진으로 조기 발견 중요해요'},
+      {name:'혈종·감염',freq:'드문 편',desc:'초기 이상 신호 시 즉시 병원 방문이 필요해요'}
+    ],
+    checkpoints:[
+      '제 체형·조직에 맞는 보형물 종류와 사이즈는?',
+      '삽입 위치(근막하/이중평면)의 이유는?',
+      '접근법(겨드랑이/유륜/유방밑) 중 권하는 것은?',
+      'BIA-ALCL 관련 보형물 안전성과 검사 주기는?',
+      '구축 의심 시 대응 프로토콜은?',
+      'MRI 정기 검진 일정은?'
+    ]
+  },
+  contour:{
+    label:'안면윤곽',
+    methods:[
+      {name:'사각턱 축소',tag:'절골',principle:'하악각 뼈를 절골하여 제거. Long curve 방식이 자연스러운 편',pros:'V라인 효과, 변화 체감 큰 편',cons:'하치조신경 손상(5~10%, 대부분 일시적), 긴 회복',recovery:'2~3주 외출, 6개월 최종',fit:'사각턱이 넓거나 각진 경우'},
+      {name:'광대 축소',tag:'절골',principle:'광대체·광대궁을 L자 절골하여 안쪽으로 밀어넣기',pros:'얼굴 중간부 폭 감소',cons:'안면신경 손상(일시적), 함몰 위험',recovery:'2~3주 외출, 6개월 최종',fit:'광대가 넓어 보이는 경우'},
+      {name:'턱끝 성형',tag:'절골/보형물',principle:'턱끝 뼈 전진·축소 또는 보형물 삽입',pros:'측면 라인 개선, 무턱 교정',cons:'이신경 손상, 비대칭',recovery:'2주',fit:'무턱·긴 턱 등 턱끝 교정'},
+      {name:'양악 수술',tag:'교합교정',principle:'상악(Le Fort I) + 하악(BSSO) 동시 절골 이동',pros:'교합 + 얼굴형 동시 교정',cons:'전신마취 6~8시간, 입원, 교정 병행',recovery:'4~6주, 6개월 최종',fit:'부정교합·돌출입·안면비대칭'}
+    ],
+    recovery:[
+      {day:'D+0',text:'수술 당일. 입원 1~2일 권장'},
+      {day:'D+7',text:'부기 최고조. 안면 타박 주의'},
+      {day:'D+21',text:'외출 가능. 부기 서서히 감소 중'},
+      {day:'D+60',text:'라인 자리 잡는 중. 단단한 음식 주의'},
+      {day:'D+180',text:'최종 라인 완성'}
+    ],
+    pricing:[
+      {name:'사각턱 축소',range:'300~600만원대',note:'절골 범위, 근육 포함 여부'},
+      {name:'광대 축소',range:'300~600만원대',note:'절골 방식, 고정 방법'},
+      {name:'턱끝 성형',range:'200~400만원대',note:'전진/축소 방식'},
+      {name:'양악 수술',range:'800~1,500만원대',note:'교정 병행, 입원'},
+      {name:'안면윤곽 3종',range:'600~1,200만원대',note:'사각턱+광대+턱끝 패키지'}
+    ],
+    sideEffects:[
+      {name:'하치조신경 손상',freq:'5~10%',desc:'아랫입술·잇몸 감각 저하. 대부분 3~12개월 내 회복되는 편이에요'},
+      {name:'좌우 비대칭',freq:'5~8%',desc:'절골량 차이, 부기 비대칭으로 느껴질 수 있어요'},
+      {name:'안면신경 손상',freq:'일시적 1~3%',desc:'눈 주위 움직임 약화. 대부분 회복되는 편이에요'},
+      {name:'부기·멍',freq:'정상 반응',desc:'2~3주 내 감소, 6개월까지 서서히 빠지는 편이에요'},
+      {name:'출혈/혈종',freq:'1~3%',desc:'드레인 설치로 예방하는 경우가 많아요'}
+    ],
+    checkpoints:[
+      '제 얼굴 너비·대칭에 맞는 절골 범위는?',
+      '안면신경과의 안전 거리 확보 방법은?',
+      '양악 수술 필요 여부는?',
+      '적합도를 신중히 판단해주시는지?',
+      '수술 외 대안(보톡스 등)도 설명해주시는지?',
+      '회복 로드맵과 점검 일정은?'
+    ]
+  },
+  lipo:{
+    label:'지방흡입',
+    methods:[
+      {name:'일반 흡입 (SAL)',tag:'기본',principle:'캐뉼러 + 음압으로 지방 흡입',pros:'비용 합리적, 대량 흡입에 적합',cons:'의사 피로도, 불균일 가능',recovery:'1~2주',fit:'광범위 부위'},
+      {name:'초음파 흡입 (VASER)',tag:'정밀',principle:'초음파로 지방세포만 선택적 유화 후 흡입',pros:'혈관·신경 보존, 피부 수축 효과, 정밀 조각 가능',cons:'열 손상 주의, 숙련도 필요',recovery:'1~2주',fit:'디테일한 라인, 피부 탄력 동시 개선'},
+      {name:'레이저 흡입 (LAL)',tag:'타이트닝',principle:'레이저로 지방 용해 + 피부 수축',pros:'피부 타이트닝 효과',cons:'열 화상 위험',recovery:'1주',fit:'소량·섬세 부위'},
+      {name:'워터젯 (Body-Jet)',tag:'지방이식용',principle:'물줄기로 지방 분리 후 흡입',pros:'지방세포 생존율 높아 이식용으로 적합',cons:'대량 흡입 시 시간 소요',recovery:'1~2주',fit:'자가지방 이식 병행 시'}
+    ],
+    recovery:[
+      {day:'D+0',text:'수술 당일. 압박복 착용 시작'},
+      {day:'D+5~7',text:'출근 가능. 림프 마사지 시작'},
+      {day:'D+14~21',text:'부기 50% 감소. 가벼운 운동'},
+      {day:'D+30',text:'운동 가능. 라인 관찰 가능'},
+      {day:'D+90',text:'윤곽 형태 안정화'},
+      {day:'D+180',text:'최종 결과'}
+    ],
+    pricing:[
+      {name:'복부 지방흡입',range:'200~500만원대',note:'범위(상/하/전체), 장비'},
+      {name:'허벅지 지방흡입',range:'200~500만원대',note:'안/바깥/전체'},
+      {name:'팔 지방흡입',range:'150~300만원대',note:'범위, 장비'},
+      {name:'턱밑 지방흡입',range:'100~250만원대',note:'소량, 리프팅 병행'},
+      {name:'자가지방 이식(얼굴)',range:'150~400만원대',note:'채취+이식 부위 수'}
+    ],
+    sideEffects:[
+      {name:'불균일 (울퉁불퉁)',freq:'5~20%',desc:'가장 흔한 미용적 합병증. 마사지로 개선되기도 해요'},
+      {name:'부기·멍',freq:'정상 반응',desc:'2~6주에 걸쳐 소실되는 편이에요'},
+      {name:'감각 저하',freq:'일시적',desc:'피부 감각 둔화. 3~6개월 회복 경향이에요'},
+      {name:'장액종',freq:'2~5%',desc:'체액 고임. 흡인이 필요할 수 있어요'},
+      {name:'피부 처짐',freq:'피부 탄력에 따라',desc:'탄력 부족 시 발생할 수 있어요'}
+    ],
+    checkpoints:[
+      '1회에 흡입 가능한 부위와 추천 부위는?',
+      '흡입량 기준과 안전 가이드라인은?',
+      '압박복 착용 기간과 사후 관리 일정은?',
+      '피부 수축이 안 되면 어떤 대안이 있는지?',
+      '마취 방식과 입원 여부는?',
+      '불균일 발생 시 보정 가능 여부는?'
+    ]
+  },
+  skin:{
+    label:'피부·시술',
+    methods:[
+      {name:'보톡스',tag:'주름·축소',principle:'보툴리눔 독소를 근육에 주입하여 일시적 이완',pros:'빠른 시술(10~20분), 일상 즉시 복귀',cons:'3~6개월 유지, 반복 필요',recovery:'당일',fit:'주름·사각턱·다한증'},
+      {name:'필러 (히알루론산)',tag:'볼륨·윤곽',principle:'히알루론산을 피부 아래 주입하여 볼륨 보강',pros:'즉각 효과, 녹일 수 있음(HA)',cons:'6~18개월 유지, 혈관 폐색 위험(매우 드묾)',recovery:'당일~3일',fit:'볼륨 부족·팔자·눈밑·코'},
+      {name:'울쎄라 (HIFU)',tag:'리프팅',principle:'고강도 초음파로 SMAS층 열 응고 → 리프팅',pros:'비수술, 효과 1~3개월 걸쳐 발현',cons:'통증 높은 편, 6~12개월 유지',recovery:'1~3일',fit:'턱선·볼·이마 처짐'},
+      {name:'레이저 토닝',tag:'색소·톤',principle:'낮은 에너지 반복 조사로 멜라닌 점진 파괴',pros:'다운타임 적음, 톤 균일화',cons:'5~10회 반복, 과다 시술 시 색소 악화',recovery:'당일',fit:'기미·색소침착·피부톤'},
+      {name:'스킨부스터',tag:'보습·재생',principle:'히알루론산·PDRN·엑소좀 등 직접 주입',pros:'보습·재생·톤 개선',cons:'3~4회 반복 필요',recovery:'1~3일',fit:'모공·피부결·수분·탄력'}
+    ],
+    recovery:[
+      {day:'D+0',text:'시술 당일. 보톡스·필러는 메이크업 가능'},
+      {day:'D+1~3',text:'울쎄라·스킨부스터 부기 감소'},
+      {day:'D+7',text:'레이저 토닝 후 각질 탈락 마무리'},
+      {day:'D+14',text:'효과 자리잡음. 다음 세션 스케줄'},
+      {day:'D+30',text:'리프팅 효과 본격 발현'},
+      {day:'D+90',text:'스킨부스터 세트 완료 후 최종 효과'}
+    ],
+    pricing:[
+      {name:'보톡스 (이마/미간)',range:'5~15만원대',note:'부위, 용량, 제품'},
+      {name:'보톡스 (사각턱)',range:'10~30만원대',note:'용량, 양쪽'},
+      {name:'필러 (코/팔자/볼)',range:'20~80만원대',note:'제품, 주입량'},
+      {name:'울쎄라 (HIFU)',range:'50~200만원대',note:'샷수, 부위'},
+      {name:'레이저토닝',range:'5~15만원대',note:'기기, 횟수 패키지'},
+      {name:'스킨부스터 (쥬베룩)',range:'15~40만원대',note:'용량, 범위'}
+    ],
+    sideEffects:[
+      {name:'멍·부기 (필러·보톡스)',freq:'흔함',desc:'1~7일 내 소실되는 편이에요'},
+      {name:'혈관 폐색 (필러)',freq:'매우 드묾',desc:'코·이마 부위 주의. 응급 대응 가능한 병원 확인 필수'},
+      {name:'표정 어색함 (보톡스)',freq:'과주입 시',desc:'용량 조절이 핵심이에요'},
+      {name:'홍조·일시적 색소 (레이저)',freq:'시술 직후',desc:'대부분 1~3일 내 호전되는 편이에요'},
+      {name:'신경 자극 (울쎄라)',freq:'드묾',desc:'일시적 저림. 회복되는 편이에요'}
+    ],
+    checkpoints:[
+      '제 피부 타입에 맞는 시술 조합은?',
+      '시술 간격과 횟수는 어떻게 되나요?',
+      '필러 혈관 폐색 시 응급 대응 프로세스가 있나요?',
+      '다운타임과 일상 복귀 시점은?',
+      '효과 지속 기간과 유지 관리는?',
+      '복합 시술 시 할인이나 패키지가 있나요?'
+    ]
+  },
+  hair:{
+    label:'모발이식',
+    methods:[
+      {name:'FUE (비절개)',tag:'비절개',principle:'후두부에서 모낭 하나하나 펀치로 채취 후 이식',pros:'선형 흉터 없음, 회복 빠름, 짧은 머리 가능',cons:'대량 이식 시 시간 오래, 모낭 절손 가능',recovery:'10~14일',fit:'소량~중량, 흉터 거부감'},
+      {name:'FUT (절개)',tag:'절개',principle:'후두부 두피를 띠로 절개 채취 후 모낭 분리 이식',pros:'대량 이식 유리, 채취 효율 높음',cons:'후두부 선형 흉터, 봉합 회복 2주',recovery:'2주',fit:'넓은 탈모 영역, 대량 모수 필요'},
+      {name:'DHI (직접이식)',tag:'정밀',principle:'FUE 채취 + 초이 임플란터로 직접 이식',pros:'각도·방향 정밀, 밀도 높은 이식',cons:'의료진 숙련도 의존, 비용 높은 편',recovery:'10~14일',fit:'밀도 높은 이식, 비삭발 원하는 경우'}
+    ],
+    recovery:[
+      {day:'D+0',text:'수술 당일. 붕대·두건 착용'},
+      {day:'D+3~5',text:'이식 부위 딱지. 공여부 관리'},
+      {day:'D+10~14',text:'딱지 탈락. 일상 복귀'},
+      {day:'D+14~30',text:'쇼크로스 — 이식 모발 일시적 탈락 (정상)'},
+      {day:'D+90~180',text:'새 모발 자라기 시작. 가늘고 곱슬'},
+      {day:'D+270~365',text:'최종 결과. 굵기·밀도 정착'}
+    ],
+    pricing:[
+      {name:'FUE 모발이식 (2,000모)',range:'300~600만원대',note:'모수, 의료진'},
+      {name:'FUE 모발이식 (3,000모)',range:'400~800만원대',note:'모수, 비절개 범위'},
+      {name:'FUT 모발이식 (3,000모)',range:'250~500만원대',note:'절개 방식, 모수'},
+      {name:'DHI 모발이식',range:'400~900만원대',note:'모수, 직접이식 방식'},
+      {name:'SMP (두피문신)',range:'50~200만원대',note:'범위, 세션 수'},
+      {name:'약물치료 (월)',range:'3~10만원대',note:'피나스테리드/미녹시딜'}
+    ],
+    sideEffects:[
+      {name:'쇼크로스',freq:'대부분 발생',desc:'이식 2~4주 후 기존 모발 일시적 탈락. 정상 과정이에요'},
+      {name:'생착 실패',freq:'기술 의존',desc:'의료진 기술·모낭 보관 상태가 핵심이에요'},
+      {name:'흉터',freq:'FUT 선형 / FUE 점',desc:'FUT는 머리 짧으면 보일 수 있어요'},
+      {name:'감각 저하',freq:'일시적',desc:'후두부·이식부위 저림. 대부분 회복되는 편이에요'},
+      {name:'부자연스러운 헤어라인',freq:'디자인 의존',desc:'자연스러운 불규칙성 디자인이 중요해요'}
+    ],
+    checkpoints:[
+      '제 탈모 단계에서 필요한 모수는?',
+      'FUE vs FUT vs DHI 중 제게 적합한 것은?',
+      '공여부 상태와 재이식 가능 여부는?',
+      '생착률 관리 방법과 의료진 경력은?',
+      '약물 치료 병행 계획은?',
+      '쇼크로스 기간과 최종 결과까지의 일정은?'
+    ]
+  }
+};
+
+/* ─── 카테고리 상세 화면 렌더링 ─── */
+const catDetailScreen=document.getElementById('catDetailScreen');
+let currentCatKey='';
+
+function openCatDetail(areaKey){
+  currentCatKey=areaKey;
+  const data=CATEGORY_DATA[areaKey];if(!data)return;
+  document.getElementById('catDetailTitle').textContent=data.label+' 상세 정보';
+  renderCatTabs(areaKey);
+  renderCatPanel(areaKey,'methods');
+  catDetailScreen.classList.add('open');
+}
+function closeCatDetail(){catDetailScreen.classList.remove('open')}
+
+function renderCatTabs(areaKey){
+  const tabs=document.getElementById('catDetailTabs');
+  const names=[['methods','수술법 비교'],['recovery','회복 타임라인'],['pricing','가격 범위'],['sideEffects','부작용·합병증'],['checkpoints','체크포인트']];
+  tabs.innerHTML=names.map(([k,l])=>`<button class="cat-tab${k==='methods'?' active':''}" data-panel="${k}">${l}</button>`).join('');
+  tabs.querySelectorAll('.cat-tab').forEach(t=>t.addEventListener('click',()=>{
+    tabs.querySelectorAll('.cat-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+    renderCatPanel(areaKey,t.dataset.panel);
+  }));
+}
+
+function renderCatPanel(areaKey,panel){
+  const data=CATEGORY_DATA[areaKey];if(!data)return;
+  const el=document.getElementById('catDetailContent');
+  if(panel==='methods') renderMethodsPanel(el,data);
+  else if(panel==='recovery') renderRecoveryPanel(el,data);
+  else if(panel==='pricing') renderPricingPanel(el,data);
+  else if(panel==='sideEffects') renderSidePanel(el,data);
+  else if(panel==='checkpoints') renderCheckPanel(el,data);
+}
+
+function renderMethodsPanel(el,data){
+  el.innerHTML=data.methods.map(m=>`
+    <div class="method-card">
+      <h4>${esc(m.name)} <em>${esc(m.tag)}</em></h4>
+      <div class="method-row"><span class="method-label">원리</span><span>${esc(m.principle)}</span></div>
+      <div class="method-row"><span class="method-label">장점</span><span>${esc(m.pros)}</span></div>
+      <div class="method-row"><span class="method-label">단점</span><span>${esc(m.cons)}</span></div>
+      <div class="method-row"><span class="method-label">회복</span><span>${esc(m.recovery)}</span></div>
+      <div class="method-row"><span class="method-label">적합</span><span>${esc(m.fit)}</span></div>
+    </div>
+  `).join('');
+}
+
+function renderRecoveryPanel(el,data){
+  el.innerHTML='<div class="tl-card"><h4>회복 타임라인</h4>'+data.recovery.map(s=>`
+    <div class="recovery-stage">
+      <div class="recovery-day">${esc(s.day)}</div>
+      <div class="recovery-text">${esc(s.text)}</div>
+    </div>
+  `).join('')+'</div><p class="rank-note" style="margin-top:14px">※ 회복 기간은 일반적 평균이며 개인·수술 방식에 따라 달라질 수 있어요.</p>';
+}
+
+function renderPricingPanel(el,data){
+  el.innerHTML=data.pricing.map(p=>`
+    <div class="price-row">
+      <span class="price-name">${esc(p.name)}</span>
+      <span class="price-range">${esc(p.range)}</span>
+      ${p.note?`<span class="price-note">${esc(p.note)}</span>`:''}
+    </div>
+  `).join('')+'<div class="price-factors">가격 영향 요소: 병원·의료진·재료·지역에 따라 차이가 커요. 정확한 비용은 대면 상담 시 확인하세요.</div><p class="rank-note" style="margin-top:14px">※ 건강보험심사평가원 비급여진료비 + 공개 시세 종합 참고</p>';
+}
+
+function renderSidePanel(el,data){
+  el.innerHTML=data.sideEffects.map(s=>`
+    <div class="side-item">
+      <strong>${esc(s.name)}</strong>
+      <div class="side-freq">빈도: ${esc(s.freq)}</div>
+      <div style="margin-top:4px;font-size:12.5px;color:var(--text-1)">${esc(s.desc)}</div>
+    </div>
+  `).join('')+'<div class="price-factors" style="background:rgba(255,200,192,0.12);border-color:#FFC8C0">정상 반응 vs 이상 신호: 초기 부기·멍은 1~2주 내 감소하는 게 보통이에요. 통증 악화·고열·고름·색 변화가 있으면 즉시 병원에 연락하세요.</div><p class="rank-note" style="margin-top:14px">※ 한국소비자원 피해구제·한국의료분쟁조정중재원 공개 통계 기준</p>';
+}
+
+function renderCheckPanel(el,data){
+  el.innerHTML=data.checkpoints.map((c,i)=>`
+    <div class="check-item">
+      <div class="check-num">${i+1}</div>
+      <div class="check-text">${esc(c)}</div>
+    </div>
+  `).join('');
 }
 
 /* ─── bindings ─── */
@@ -2124,7 +2571,7 @@ document.getElementById('tlCalc').addEventListener('click',()=>{
   if(diffDays<0)verdict=`<div class="tl-verdict no">${event}이(가) 수술보다 먼저예요. 수술 날짜를 조정해주세요.</div>`;
   else if(diffDays>=info.fullOk)verdict=`<div class="tl-verdict ok">✅ ${diffDays}일 후 일정이라 최종 형태 안정 후에요. 충분하게 괜찮아요.</div>`;
   else if(diffDays>=info.minOk)verdict=`<div class="tl-verdict warn">⚠️ ${diffDays}일 후. 일상은 가능하지만 완전 회복은 아니에요. 조심해서 마주하세요.</div>`;
-  else verdict=`<div class="tl-verdict no">❌ ${diffDays}일 후. ${info.name} 최소 회복(${info.minOk}일)에 미츠어요. 일정 조정을 권해드려요.</div>`;
+  else verdict=`<div class="tl-verdict no">❌ ${diffDays}일 후. ${info.name} 최소 회복(${info.minOk}일)에 못 미쳐요. 일정 조정을 권해드려요.</div>`;
   let stagesHtml='';
   info.stages.forEach(st=>{
     const dt=new Date(surDate);dt.setDate(dt.getDate()+st.day);
@@ -2136,18 +2583,18 @@ document.getElementById('tlCalc').addEventListener('click',()=>{
 
 /* ── 용어 사전 ── */
 const GLOSSARY=[
-  {term:'매몰법',cat:'수술',def:'절개 없이 실로 쌍꺼풀 라인을 만드는 방식. 회복이 빠르지만 높은 눈꿙·지방 많은 눈은 풀릴 가능성 있음.'},
-  {term:'절개법',cat:'수술',def:'피부를 절개해 재조직한 후 라인을 만드는 방식. 회복은 느리지만 라인이 풍리고 지속이 깔.'},
-  {term:'안검하수',cat:'수술',def:'안검근이 느슨해서 눈 뜨기 힘들어 지는 증상. 수술로 근육을 단축시켜 교정.'},
+  {term:'매몰법',cat:'수술',def:'절개 없이 실로 쌍꺼풀 라인을 만드는 방식. 회복이 빠르지만 두꺼운 눈꺼풀·지방 많은 눈은 풀릴 가능성 있음.'},
+  {term:'절개법',cat:'수술',def:'피부를 절개해 재조직한 후 라인을 만드는 방식. 회복은 느리지만 라인이 선명하고 지속력이 좋은 편.'},
+  {term:'안검하수',cat:'수술',def:'안검근이 느슨해서 눈 뜨기 힘들어지는 증상. 수술로 근육을 단축시켜 교정.'},
   {term:'구축',cat:'부작용',def:'가슴 보형물 주변 캡슐이 수축되는 현상. 가슴이 단단해지고 형태 이상. 재수술 권장.'},
-  {term:'구굕을구',cat:'부작용',def:'코 성형 후 피부가 보형물을 조여 코가 올라가거나 모양이 변한 상태.'},
-  {term:'내안각·외안각',cat:'해부',def:'눈 내쪽 모서리·바깥쪽 모서리. 이 부위를 절개해 눈을 크게 만드는 수술이 있음.'},
-  {term:'광대·턱뼈 절골술',cat:'수술',def:'안면윤곽에서 사각턱 뼈·광대 뼈를 철거하는 수술. V라인 조정에 사용.'},
-  {term:'앞턱',cat:'해부',def:'턱끝 부위. 술이 고이는 곳 끊니김 숨 있으면 정돈된 인상으로 보일 수 있음.'},
-  {term:'필러',cat:'시술',def:'히알루론산 등을 주입해 부피·주름 교정. 6~12개월 지속·흥수.'},
+  {term:'구축 (코)',cat:'부작용',def:'코 성형 후 피부가 보형물을 조여 코가 올라가거나 모양이 변한 상태.'},
+  {term:'내안각·외안각',cat:'해부',def:'눈 안쪽 모서리·바깥쪽 모서리. 이 부위를 절개해 눈을 크게 만드는 수술이 있음.'},
+  {term:'광대·턱뼈 절골술',cat:'수술',def:'안면윤곽에서 사각턱 뼈·광대 뼈를 절골하는 수술. V라인 조정에 사용.'},
+  {term:'앞턱',cat:'해부',def:'턱끝 부위. 앞턱 보형물이나 절골로 정돈된 인상을 만들 수 있음.'},
+  {term:'필러',cat:'시술',def:'히알루론산 등을 주입해 부피·주름 교정. 6~12개월 지속·흡수.'},
   {term:'보톡스',cat:'시술',def:'근육을 일시적으로 이완시켜 주름과 특정 라인 교정. 4~6개월 지속.'},
-  {term:'티주익스팬더',cat:'시술',def:'피부 속 실을 넣어 처짐 손입·탄력 개선. PDO·PCL 소재 사용.'},
-  {term:'초음파 (HIFU)',cat:'시술',def:'고강도 초음파로 피부 속층을 자극해 리프팅·단력 개선. 울쎄라·슐슌이 대표적.'},
+  {term:'실 리프팅',cat:'시술',def:'피부 속에 실을 넣어 처짐 개선·탄력 보강. PDO·PCL 소재 사용.'},
+  {term:'초음파 (HIFU)',cat:'시술',def:'고강도 초음파로 피부 속층을 자극해 리프팅·탄력 개선. 울쎄라·슈링크가 대표적.'},
   {term:'재수술',cat:'수술',def:'이전 수술 후 모양·부작용 교정을 위해 다시 하는 수술. 조직 손상·유착 때문에 난이도 높음.'},
   {term:'당일 수술',cat:'이용',def:'상담을 받고 해당날 바로 수술까지 진행하는 경우. 충분한 고민 시간을 권장.'}
 ];
@@ -2164,6 +2611,19 @@ function closeGlossary(){document.getElementById('glossaryScreen').classList.rem
 document.getElementById('glossaryBanner').addEventListener('click',e=>{e.preventDefault();openGlossary()});
 document.getElementById('glossaryClose').addEventListener('click',closeGlossary);
 document.getElementById('glossarySearch').addEventListener('input',e=>renderGlossary(e.target.value));
+
+/* ── 부위별 카테고리 카드 바인딩 ── */
+document.querySelectorAll('.category-card').forEach(card=>{
+  card.addEventListener('click',()=>openCatDetail(card.dataset.area));
+});
+document.getElementById('catDetailClose').addEventListener('click',closeCatDetail);
+let _currentCatArea='';
+const _origOpenCatDetail=openCatDetail;
+openCatDetail=function(k){_currentCatArea=k;_origOpenCatDetail(k)};
+document.getElementById('catDetailCta').addEventListener('click',()=>{
+  closeCatDetail();openChat(_currentCatArea);
+});
+
 document.querySelectorAll('.rank-tab').forEach(t=>{t.addEventListener('click',()=>{
   document.querySelectorAll('.rank-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
   const g=t.dataset.gender;
