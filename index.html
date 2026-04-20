@@ -635,7 +635,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
   </div>
   <div class="chat-messages hidden" id="chatMessages"></div>
   <div class="chat-input-area">
-    <div class="retry-bar" id="retryBar" style="display:none"><button class="retry-btn" id="retryBtn">다시입력</button></div>
+    <div class="retry-bar" id="retryBar" style="display:none"><button class="retry-btn" id="retryBtn">이전으로</button></div>
     <div class="chat-input-inner">
       <button class="upload-btn" id="uploadBtn" title="사진 첨부" style="display:none"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
       <input type="file" id="fileInput" accept="image/*" style="display:none">
@@ -992,6 +992,7 @@ function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
   Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
+  state._undoStack=[];
 }
 function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
 function scrollBottom(){requestAnimationFrame(()=>{chatMessages.scrollTop=chatMessages.scrollHeight})}
@@ -1005,9 +1006,17 @@ function _snapshotState(){
   }
   return snap;
 }
+/* 질문 시작 전에 호출 — "이전" 누르면 여기로 되돌아감 */
+function pushUndo(redoFn){
+  if(!state._undoStack) state._undoStack=[];
+  state._undoStack.push({
+    mark: chatMessages.lastElementChild,
+    snap: _snapshotState(),
+    redo: redoFn
+  });
+}
 function addUser(text){ensureChatActive();const el=document.createElement('div');el.className='msg user';el.textContent=text;
   chatMessages.appendChild(el);scrollBottom();
-  state._lastUserMsg={el,text,snap:_snapshotState()};
   showRetryBtn();
 }
 function addAi(text){ensureChatActive();const el=document.createElement('div');el.className='msg ai';el.textContent=text;chatMessages.appendChild(el);scrollBottom();return el}
@@ -1258,6 +1267,7 @@ async function handleUserInput(text){
 
 /* ── 부위 되물기 (트렌드 가이드 포함) ── */
 async function askArea(){
+  pushUndo(askArea);
   state.step='area';
   const g=state.gender;
   let guide='';
@@ -1293,6 +1303,7 @@ async function startConsultWithEmpathy(text, detectedAreaKey){
 }
 
 async function askGender(){
+  pushUndo(askGender);
   addAi('성별이 어떻게 되실까요?');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
     addUser(pick);state.gender=pick;
@@ -1301,6 +1312,7 @@ async function askGender(){
 }
 
 async function askAge(){
+  pushUndo(askAge);
   addAi('나이대도 알려주세요 ~ 연령대마다 많이 하시는 방식이 조금씩 달라서요 !');
   addQuickReply(['10대','20대','30대','40대','50대 이상','선택 안 함'],pick=>{
     addUser(pick);state.age=pick;
@@ -1337,6 +1349,7 @@ async function goStep2(){
 async function nextStep2Question(){
   const area=AREAS[state.areaKey];
   if(!state.revisit){
+    pushUndo(nextStep2Question);
     state.step2Pending='revisit';
     addAi(`${area.label} 수술 이력 여부 알려주세요. 재수술이면 체크 포인트가 달라져요.`);
     addQuickReply(['아니요, 처음이에요','네, 재수술이에요'],pick=>{
@@ -1345,6 +1358,7 @@ async function nextStep2Question(){
     return;
   }
   if(state.revisit && state.revisit.includes('재수술') && !state.sideEffect){
+    pushUndo(nextStep2Question);
     state.step2Pending='sideEffect';
     addAi('이전 수술 후 부작용이나 불편하셨던 점 있으셨을까요? ~\n여러 개여도 편하게 다 골라주세요 !');
     addMultiQuickReply(['특별한 부작용 없었어요','모양이 마음에 안 들었어요','흉·구축 같은 끈끈함','마취·회복이 힘들었어요','비대칭이 생겼어요','말씀드리기 어려워요'],picks=>{
@@ -1353,6 +1367,7 @@ async function nextStep2Question(){
     return;
   }
   if(!state.focus){
+    pushUndo(nextStep2Question);
     state.step2Pending='focus';
     addAi('요즘 특별히 신경 쓰이시는 부분 골라주세요 ~\n여러 개 골라주셔도 돼요 !');
     addMultiQuickReply(area.focusOptions,async picks=>{
@@ -1371,6 +1386,7 @@ async function nextStep2Question(){
     return nextStep2Question();
   }
   if(!state.mood){
+    pushUndo(nextStep2Question);
     state.step2Pending='mood';
     addAi('원하시는 스타일 살짝 알려주세요 ! 직접 표현해주셔도 돼요 ~');
     addQuickReply(['자연스럽게','또렷하게','세련되게','동안 느낌'],async pick=>{
@@ -1802,6 +1818,7 @@ async function goStep3(){
 }
 
 async function askHospitalPriority(){
+  pushUndo(askHospitalPriority);
   addAi('병원 찾을 때 어떤 걸 제일 중요하게 보세요? ~\n여러 개여도 돼요 !');
   addMultiQuickReply(['비용','안전','좋은 후기','의료진 경력','접근성','상담 분위기','사후 관리'],picks=>{
     const txt=picks.join(' / ');addUser(txt);state.priority=txt;
@@ -1810,6 +1827,7 @@ async function askHospitalPriority(){
 }
 
 async function askRegion(){
+  pushUndo(askRegion);
   addAi('어느 지역으로 찾아드릴까요 ? 직접 입력하셔도 돼요 !');
   addQuickReply(Object.keys(REGIONS),r=>{addUser(r);pickRegion(r)},'원하는 지역을 입력해도 돼요');
 }
@@ -2647,26 +2665,29 @@ const retryBtnEl=document.getElementById('retryBtn');
 function showRetryBtn(){retryBar.style.display='flex'}
 function hideRetryBtn(){retryBar.style.display='none'}
 retryBtnEl.addEventListener('click',()=>{
-  const last=state._lastUserMsg;
-  if(!last)return;
-  // 유저 메시지 + 이후 전부 삭제
-  let next=last.el.nextSibling;
-  while(next){const tmp=next.nextSibling;next.remove();next=tmp;}
-  last.el.remove();
+  if(!state._undoStack||!state._undoStack.length)return;
+  const undo=state._undoStack.pop();
+  // undo.mark 이후 요소 전부 삭제 (AI 질문 + 칩 + 유저 답변 + 그 뒤 전부)
+  if(undo.mark){
+    let cur=undo.mark.nextSibling;
+    while(cur){const tmp=cur.nextSibling;cur.remove();cur=tmp;}
+  } else {
+    // mark가 null이면 채팅 전체가 질문 이후였다는 뜻
+    chatMessages.innerHTML='';
+  }
   // 스냅샷으로 state 복원
-  if(last.snap){
-    for(const k of Object.keys(last.snap)){
-      state[k]=Array.isArray(last.snap[k])?[...last.snap[k]]:last.snap[k];
+  if(undo.snap){
+    for(const k of Object.keys(undo.snap)){
+      state[k]=Array.isArray(undo.snap[k])?[...undo.snap[k]]:undo.snap[k];
     }
   }
   state.busy=false;
-  state._lastUserMsg=null;
-  state._lastRetryInfo=null;
   hideRetryBtn();
-  // 이전 입력값을 input에 넣어서 바로 수정 가능
-  chatInputEl.value=last.text;
-  chatInputEl.focus();
   setInputEnabled(true);
+  chatInputEl.value='';
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
+  // 같은 질문 다시 표시 (새 칩 포함)
+  if(undo.redo) undo.redo();
 });
 function showUploadBtn(){
   uploadBtn.style.display='flex';
