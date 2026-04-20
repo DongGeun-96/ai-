@@ -205,7 +205,9 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .msg{max-width:82%;padding:12px 16px;font-size:14px;line-height:1.7;border-radius:20px;animation:msgSlide .3s cubic-bezier(.34,1.56,.64,1) both;letter-spacing:-.2px}
     @keyframes msgSlide{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
     .msg.ai{background:var(--bg-sub);color:var(--text-1);border-bottom-left-radius:6px;align-self:flex-start;white-space:pre-line}
-    .msg.user{background:linear-gradient(135deg,var(--accent-light),var(--accent));color:white;border-bottom-right-radius:6px;align-self:flex-end;box-shadow:0 3px 12px rgba(123,143,212,0.2)}
+    .msg.user{background:linear-gradient(135deg,var(--accent-light),var(--accent));color:white;border-bottom-right-radius:6px;align-self:flex-end;box-shadow:0 3px 12px rgba(123,143,212,0.2);display:flex;align-items:center;gap:6px}
+    .retry-btn{flex-shrink:0;width:22px;height:22px;border:none;background:rgba(255,255,255,0.25);color:#fff;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;padding:0;line-height:1}
+    .retry-btn:active{background:rgba(255,255,255,0.45)}
     .msg + .quick-reply{margin-top:2px}
 
     .quick-reply{align-self:flex-start;max-width:88%;display:flex;flex-wrap:wrap;gap:6px;padding:2px 2px 6px 2px;animation:msgSlide .32s both}
@@ -1086,7 +1088,21 @@ function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
 function scrollBottom(){requestAnimationFrame(()=>{chatMessages.scrollTop=chatMessages.scrollHeight})}
 function ensureChatActive(){chatWelcome.style.display='none';chatMessages.classList.remove('hidden')}
 
-function addUser(text){ensureChatActive();const el=document.createElement('div');el.className='msg user';el.textContent=text;chatMessages.appendChild(el);scrollBottom()}
+function addUser(text){ensureChatActive();const el=document.createElement('div');el.className='msg user';
+  const bubble=document.createElement('span');bubble.textContent=text;
+  const retryBtn=document.createElement('button');retryBtn.className='retry-btn';retryBtn.innerHTML='\u21BA';retryBtn.title='\uB2E4\uC2DC \uC785\uB825';
+  retryBtn.onclick=()=>{
+    // 이 메시지 이후 모든 메시지 삭제
+    let next=el.nextSibling;
+    while(next){const tmp=next.nextSibling;next.remove();next=tmp;}
+    el.remove();
+    // 입력창에 포커스 + 이전 값 넣기
+    chatInputEl.value=text;
+    chatInputEl.focus();
+  };
+  el.appendChild(bubble);el.appendChild(retryBtn);
+  chatMessages.appendChild(el);scrollBottom();
+}
 function addAi(text){ensureChatActive();const el=document.createElement('div');el.className='msg ai';el.textContent=text;chatMessages.appendChild(el);scrollBottom();return el}
 function addError(text){ensureChatActive();const el=document.createElement('div');el.className='error-msg';el.textContent=text;chatMessages.appendChild(el);scrollBottom()}
 function addTyping(){ensureChatActive();chatOrb.setThinking(true);const el=document.createElement('div');el.className='typing-bubble';el.innerHTML='<div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>';chatMessages.appendChild(el);scrollBottom();return el}
