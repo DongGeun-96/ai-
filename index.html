@@ -1089,10 +1089,17 @@ function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
 function scrollBottom(){requestAnimationFrame(()=>{chatMessages.scrollTop=chatMessages.scrollHeight})}
 function ensureChatActive(){chatWelcome.style.display='none';chatMessages.classList.remove('hidden')}
 
+function _snapshotState(){
+  const snap={};
+  for(const k of Object.keys(state)){
+    if(k.startsWith('_'))continue;
+    snap[k]=Array.isArray(state[k])?[...state[k]]:state[k];
+  }
+  return snap;
+}
 function addUser(text){ensureChatActive();const el=document.createElement('div');el.className='msg user';el.textContent=text;
   chatMessages.appendChild(el);scrollBottom();
-  // 마지막 사용자 입력 기억
-  state._lastUserMsg={el,text};
+  state._lastUserMsg={el,text,snap:_snapshotState()};
   showRetryBtn();
 }
 function addAi(text){ensureChatActive();const el=document.createElement('div');el.className='msg ai';el.textContent=text;chatMessages.appendChild(el);scrollBottom();return el}
@@ -2833,21 +2840,24 @@ function hideRetryBtn(){retryBar.style.display='none'}
 retryBtnEl.addEventListener('click',()=>{
   const last=state._lastUserMsg;
   if(!last)return;
-  // 이 메시지 + 이후 전부 삭제
+  // 유저 메시지 + 이후 전부 삭제
   let next=last.el.nextSibling;
   while(next){const tmp=next.nextSibling;next.remove();next=tmp;}
   last.el.remove();
-  state.busy=false;
-  hideRetryBtn();
-  // 해당 step의 state값 리셋 + 질문 함수 재호출
-  const s=state._lastRetryInfo;
-  if(s){
-    if(s.key)state[s.key]='';
-    if(s.fn)s.fn();
-  } else {
-    chatInputEl.value=last.text;
-    chatInputEl.focus();
+  // 스냅샷으로 state 복원
+  if(last.snap){
+    for(const k of Object.keys(last.snap)){
+      state[k]=Array.isArray(last.snap[k])?[...last.snap[k]]:last.snap[k];
+    }
   }
+  state.busy=false;
+  state._lastUserMsg=null;
+  state._lastRetryInfo=null;
+  hideRetryBtn();
+  // 이전 입력값을 input에 넣어서 바로 수정 가능
+  chatInputEl.value=last.text;
+  chatInputEl.focus();
+  setInputEnabled(true);
 });
 function showUploadBtn(){
   uploadBtn.style.display='flex';
