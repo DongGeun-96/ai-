@@ -114,6 +114,16 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .yt-side.variant-timeline .yt-side-title .big em{color:#C4762A}
     .yt-side.variant-timeline .yt-side-tag{background:#7A4A1F}
     .yt-side.variant-timeline .yt-side-arrow{background:#7A4A1F}
+    .yt-side.variant-glossary{background:linear-gradient(110deg,#EEF8EE 0%,#DBEFE0 55%,#C8E6D2 100%);margin-top:14px}
+    .yt-side.variant-glossary::before{background:radial-gradient(circle at 70% 40%,rgba(150,210,170,0.55),rgba(120,200,150,0.15) 65%,transparent 75%)}
+    .yt-side.variant-glossary .yt-side-title .big em{color:#3F8554}
+    .yt-side.variant-glossary .yt-side-tag{background:#2D5A3D}
+    .yt-side.variant-glossary .yt-side-arrow{background:#2D5A3D}
+    /* ── 부위별 카테고리 그리드 ── */
+    .category-section{padding:24px 24px 0;margin-top:8px}
+    .category-section-title{font-size:14px;font-weight:800;color:var(--text-0);letter-spacing:-.2px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .category-section-title::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--accent)}
+    .category-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 
     /* ── Ranking modal (separate screen) ── */
@@ -445,7 +455,17 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     </div>
     <span class="yt-side-arrow">→</span>
   </a>
-
+  <a class="yt-side variant-glossary" id="glossaryBanner" href="#">
+    <div class="yt-side-body">
+      <span class="yt-side-tag">GUIDE</span>
+      <div class="yt-side-title">
+        <span class="big"><em>Guide</em></span>
+        <span class="ko">부위별 성형 가이드</span>
+      </div>
+      <p class="yt-side-desc">눈·코·윤곽·지방 · 수술법과 회복부터 용어까지</p>
+    </div>
+    <span class="yt-side-arrow">→</span>
+  </a>
 </div>
 
 <div class="app">
@@ -2581,7 +2601,7 @@ function renderGlossary(filter=''){
 
 function openGlossary(){document.getElementById('glossaryScreen').classList.add('open');renderGlossary()}
 function closeGlossary(){document.getElementById('glossaryScreen').classList.remove('open')}
-document.getElementById('glossaryBanner')?.addEventListener('click',e=>{e.preventDefault();openGlossary()});
+document.getElementById('glossaryBanner').addEventListener('click',e=>{e.preventDefault();openGlossary()});
 document.getElementById('glossaryClose').addEventListener('click',closeGlossary);
 document.getElementById('glossarySearch').addEventListener('input',e=>renderGlossary(e.target.value));
 
