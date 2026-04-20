@@ -981,7 +981,7 @@ async function startConsultWithEmpathy(text){
     if(msg && !/[.!\?요다]$/.test(msg))msg+='.';
     addAi(msg);
     await new Promise(r=>setTimeout(r,300));
-    addAi('대신 상담 시작해볼게요.');
+    addAi('그럼 상담 시작해볼게요.');
     await new Promise(r=>setTimeout(r,250));
   }catch(e){
     tp.remove();chatOrb.setThinking(false);
@@ -994,7 +994,7 @@ async function startConsultWithEmpathy(text){
 }
 
 async function askGender(){
-  addAi('먼저 상담받으시는 분부터 알려주세요.');
+  addAi('성별이 어떻게 되세요?');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
     addUser(pick);state.gender=pick;
     askAge();
