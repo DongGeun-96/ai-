@@ -1566,12 +1566,7 @@ async function showFocusTrend(){
   });
 }
 
-/* ── focus 이후 사진 요청 (영상 제안 대체) ── */
-async function offerFocusVideos(){
-  const area=AREAS[state.areaKey]?.label||'고민 부위';
-  await scriptedReply(`고객님의 ${area} 조건을 기반으로 더 꼼꼼하게 추천드릴게요 ~`,460);
-  await new Promise(r=>setTimeout(r,400));
-}
+async function offerFocusVideos(){}
 
 async function showRecoDetail(){
   const area=AREAS[state.areaKey]?.label||'';
