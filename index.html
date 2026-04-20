@@ -163,8 +163,8 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .rank-note{margin-top:14px;font-size:11px;color:var(--text-3);line-height:1.5;text-align:center;padding:0 10px}
 
 
-    .chat-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:200;display:flex;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF;visibility:hidden}
-    .chat-screen.open{visibility:visible}
+    .chat-screen{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:200;display:none;flex-direction:column;pointer-events:none;transform:translateY(100%);transition:transform .5s cubic-bezier(.16,1,.3,1);background:#FFF}
+    .chat-screen.visible{display:flex}
     .chat-screen.open{transform:translateY(0);pointer-events:all}
     .chat-header{padding:calc(var(--safe-top)+48px) 20px 18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-bottom:1px solid var(--divider);position:relative}
     .chat-back{position:absolute;left:12px;top:calc(var(--safe-top)+44px);width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:10px;color:var(--text-2)}
@@ -985,7 +985,10 @@ function getCelebSurgeryGuide(areaKey, vibe){
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 function openChat(initial){
-  closeAllScreens();chatScreen.classList.add('open');chatOrb.start();resetChat();
+  closeAllScreens();
+  chatScreen.classList.add('visible');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>chatScreen.classList.add('open')));
+  chatOrb.start();resetChat();
   if(initial&&initial.trim()){setTimeout(()=>handleUserInput(initial.trim()),300)}
   else {setTimeout(()=>greetAndAsk(),350)}
 }
@@ -996,7 +999,7 @@ async function greetAndAsk(){
   await scriptedReply('요즘 특별히 고민이시거나 어떤 변화 원하시는 부분이 있으세요 ?',460);
   addAi('편하게 말씀해주세요 ! "코 높이고 싶어", "잠자는 거 같은 눈", "친구 추천으로 알아보는 중" 같이 자유롭게도 돼요 ~');
 }
-function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{resetChat();chatOrb.stop()},480)}
+function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{chatScreen.classList.remove('visible');resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
   Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false});
@@ -2542,7 +2545,7 @@ function closeAllScreens(){
   document.getElementById('timelineScreen')?.classList.remove('open');
   document.getElementById('glossaryScreen')?.classList.remove('open');
   document.getElementById('catDetailScreen')?.classList.remove('open');
-  chatScreen?.classList.remove('open');
+  chatScreen?.classList.remove('open','visible');
 }
 function openRank(){closeAllScreens();rankScreen.classList.add('open')}
 function closeRank(){rankScreen.classList.remove('open')}
