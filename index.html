@@ -6,6 +6,10 @@
   <title>AI 성형상담</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script type="module">
+import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs";
+window._mpVision={FaceLandmarker,FilesetResolver};
+</script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&family=Nanum+Pen+Script&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -2162,13 +2166,100 @@ fileInput.addEventListener('change',async e=>{
   reader.readAsDataURL(f);
 });
 
+
+// MediaPipe Face Mesh 분석
+let _faceLandmarker=null;
+async function initFaceLandmarker(){
+  if(_faceLandmarker)return _faceLandmarker;
+  try{
+    const mp=window._mpVision;
+    if(!mp)return null;
+    const vision=await mp.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm");
+    _faceLandmarker=await mp.FaceLandmarker.createFromOptions(vision,{
+      baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"GPU"},
+      runningMode:"IMAGE",numFaces:1
+    });
+    return _faceLandmarker;
+  }catch(e){console.warn("FaceLandmarker init failed",e);return null}
+}
+
+function dist(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2+(a.z-b.z)**2)}
+
+async function analyzeFaceMesh(imgEl){
+  const fl=await initFaceLandmarker();
+  if(!fl)return null;
+  try{
+    const result=fl.detect(imgEl);
+    if(!result.faceLandmarks||!result.faceLandmarks.length)return null;
+    const lm=result.faceLandmarks[0];
+    // 주요 랜드마크 인덱스
+    // 코: 1(코끝), 6(콧대 상단), 4(코 중간), 168(미간)
+    // 눈: 33(왼눈 안쪽), 263(오른눈 안쪽), 133(왼눈 바깥), 362(오른눈 바깥), 159(왼눈 위), 145(왼눈 아래), 386(오른눈 위), 374(오른눈 아래)
+    // 턱: 152(턱끝), 10(이마 상단), 234(왼턱), 454(오른턱)
+    // 입: 0(윗입술 중앙), 17(아랫입술 중앙), 61(왼입꼬리), 291(오른입꼬리)
+    const noseTip=lm[1], noseBridge=lm[6], noseMid=lm[4], glabella=lm[168];
+    const chin=lm[152], forehead=lm[10];
+    const eyeInL=lm[33], eyeOutL=lm[133], eyeInR=lm[263], eyeOutR=lm[362];
+    const eyeTopL=lm[159], eyeBotL=lm[145], eyeTopR=lm[386], eyeBotR=lm[374];
+    const jawL=lm[234], jawR=lm[454];
+    const lipTop=lm[0], lipBot=lm[17], lipL=lm[61], lipR=lm[291];
+
+    const faceH=dist(forehead,chin);
+    const faceW=dist(jawL,jawR);
+    const noseLen=dist(noseBridge,noseTip);
+    const noseBridgeH=dist(glabella,noseBridge);
+    const eyeWL=dist(eyeInL,eyeOutL);
+    const eyeHL=dist(eyeTopL,eyeBotL);
+    const eyeWR=dist(eyeInR,eyeOutR);
+    const eyeHR=dist(eyeTopR,eyeBotR);
+    const eyeDist=dist(eyeInL,eyeInR);
+    const jawW=dist(jawL,jawR);
+    const lipW=dist(lipL,lipR);
+    const lipH=dist(lipTop,lipBot);
+
+    // 비율 계산
+    const noseToFace=((noseLen/faceH)*100).toFixed(1);
+    const noseBridgeRatio=((noseBridgeH/faceH)*100).toFixed(1);
+    const eyeRatioL=((eyeHL/eyeWL)*100).toFixed(1);
+    const eyeRatioR=((eyeHR/eyeWR)*100).toFixed(1);
+    const faceRatio=((faceW/faceH)*100).toFixed(1);
+    const eyeDistRatio=((eyeDist/faceW)*100).toFixed(1);
+    const lipRatio=((lipH/lipW)*100).toFixed(1);
+
+    // 코끝 돌출도 (z축)
+    const noseTipZ=(noseTip.z*1000).toFixed(1);
+    const noseBridgeZ=(noseBridge.z*1000).toFixed(1);
+
+    return {
+      얼굴세로대비가로: faceRatio+'%',
+      코길이대비얼굴: noseToFace+'%',
+      콧대높이비율: noseBridgeRatio+'%',
+      코끝돌출도: noseTipZ,
+      콧대돌출도: noseBridgeZ,
+      왼눈세로대비가로: eyeRatioL+'%',
+      오른눈세로대비가로: eyeRatioR+'%',
+      눈사이거리비율: eyeDistRatio+'%',
+      턱너비: (jawW*100).toFixed(1),
+      입술비율: lipRatio+'%',
+      얼굴대칭도: (Math.abs(eyeWL-eyeWR)/Math.max(eyeWL,eyeWR)*100).toFixed(1)+'%'
+    };
+  }catch(e){console.warn("Face mesh error",e);return null}
+}
+
 async function analyzeImage(dataUrl){
   if(state.busy)return;state.busy=true;
   const tp=addTyping();chatOrb.setThinking(true);
+  // Face Mesh 분석
+  let faceMeshData=null;
+  try{
+    const img=new Image();
+    await new Promise((ok,fail)=>{img.onload=ok;img.onerror=fail;img.src=dataUrl});
+    faceMeshData=await analyzeFaceMesh(img);
+  }catch(e){console.warn("Face mesh skip",e)}
   try{
     const area=AREAS[state.areaKey]?.label||'';
     const res=await fetch('/api/vision',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect,연예인:state.celebName||'',연예인스타일:state.celebVibe||'',사진모드:state.celebName?'본인':'단독',추천수술법:state.lastTrendItems?state.lastTrendItems.map(it=>it.name).join(', '):''}})});
+      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect,연예인:state.celebName||'',연예인스타일:state.celebVibe||'',사진모드:state.celebName?'본인':'단독',추천수술법:state.lastTrendItems?state.lastTrendItems.map(it=>it.name).join(', '):'',얼굴분석:faceMeshData?JSON.stringify(faceMeshData):''}})});
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
     if(res.ok && data.text){state.photoAnalysis=data.text;addAi(data.text)}
