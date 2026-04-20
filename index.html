@@ -786,7 +786,7 @@ const state={
   focus:'',recovery:'',mood:'',region:'',
   hospitals:[],history:[],busy:false,
   step2Pending:'focus',revisit:'',sideEffect:'',
-  celebName:'',celebVibe:''
+  celebName:'',celebVibe:'',greeted:false
 };
 
 /* ─── DOM ─── */
@@ -891,14 +891,15 @@ function openChat(initial){
 }
 async function greetAndAsk(){
   ensureChatActive();
+  state.greeted=true;
   await scriptedReply('안녕하세요 ! 제가 편하게 상담 도와드릴게요 ~',520);
   await scriptedReply('요즘 특별히 고민이시거나 어떤 변화 원하시는 부분이 있으세요 ?',460);
-  addAi('편하게 말씀해주세요 ! "코 높이고 싶어", "잠자는 거 같은 눈", "친구 추천로 알아보는 중" 같이 자유롭게도 돼요 ~');
+  addAi('편하게 말씀해주세요 ! "코 높이고 싶어", "잠자는 거 같은 눈", "친구 추천으로 알아보는 중" 같이 자유롭게도 돼요 ~');
 }
 function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
-  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:''});
+  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
 }
 function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
@@ -1140,6 +1141,12 @@ function addUserAck(key){
 async function startConsultWithEmpathy(text, detectedAreaKey){
   // 명시적으로 넘어온 key가 있을 때만 부위명 인사. 아니면 일반 인사.
   const area=detectedAreaKey?AREAS[detectedAreaKey]?.label:'';
+  // 이미 그리팅한 상태면 '안녕하세요' 중복 안땘고 리액션만.
+  if(state.greeted){
+    if(area) await scriptedReply(`${area} 고민이시구나요 ! 제가 꼼꼼하게 도와드릴게요 ~`,420);
+    else await scriptedReply('네 ~ 제가 꼼꼼하게 도와드릴게요 !',420);
+    return;
+  }
   const intro=area
     ? `안녕하세요 ! ${area} 상담 제가 편하게 도와드릴게요`
     : '안녕하세요 ! 제가 편하게 잘 도와드릴게요';
