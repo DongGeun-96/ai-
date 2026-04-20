@@ -760,6 +760,50 @@ const mainInputEl=document.getElementById('mainInput');
 function setStep(n){state.step=n}
 
 function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return''}
+
+/* ── 연예인 이름 감지 + 스타일 매핑 ── */
+const CELEB_PATTERN=/([가-힣]{2,4})\s*(?:처럼|같이|같은|느낌|스타일|분위기)/;
+function detectCelebName(t){
+  if(!t) return '';
+  const m=t.match(CELEB_PATTERN);
+  if(!m) return '';
+  const name=m[1];
+  const SKIP=/^(어제|오늘|내일|다음|이번|지금|현재|진짜|조금|많이|약간|너무|그냥|원래|대개|대충|상담|예약|비슷|동일|이런|저런|그런|요런|요즘|최근|기존|보통|이전|수술|시술|병원|의사|느낌)$/;
+  if(SKIP.test(name)) return '';
+  return name;
+}
+
+/* ── 연예인 스타일 캐시 (localStorage, 30일) ── */
+const CELEB_CACHE_KEY='celebStyleCache_v1';
+const CELEB_CACHE_TTL=30*24*60*60*1000;
+const CELEB_CACHE_MAX=100;
+function loadCelebCache(){try{return JSON.parse(localStorage.getItem(CELEB_CACHE_KEY)||'{}')}catch{return {}}}
+function saveCelebCache(obj){try{localStorage.setItem(CELEB_CACHE_KEY,JSON.stringify(obj))}catch{}}
+function getCelebFromCache(name){
+  const c=loadCelebCache();const e=c[name];
+  if(!e) return null;
+  if(Date.now()-e.ts>CELEB_CACHE_TTL){delete c[name];saveCelebCache(c);return null}
+  return e.data;
+}
+function putCelebCache(name,data){
+  const c=loadCelebCache();c[name]={ts:Date.now(),data};
+  const keys=Object.keys(c);
+  if(keys.length>CELEB_CACHE_MAX){
+    keys.sort((a,b)=>c[a].ts-c[b].ts);
+    keys.slice(0,keys.length-CELEB_CACHE_MAX).forEach(k=>delete c[k]);
+  }
+  saveCelebCache(c);
+}
+async function fetchCelebStyle(name,areaKey){
+  const cached=getCelebFromCache(name);if(cached) return cached;
+  try{
+    const r=await fetch('/api/celeb-style',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name,areaKey})});
+    if(!r.ok) return null;
+    const data=await r.json();
+    if(data && data.found){putCelebCache(name,data);return data}
+    return null;
+  }catch{return null}
+}
 function detectGender(t){
   t=t||'';
   // 단어 중간에 끊는 수류(훈남자 같은 프리픽스 한자만) 제외하고, 한글은 단순 포함여부로 판단
@@ -918,7 +962,17 @@ async function handleUserInput(text){
     const a=detectAge(text);
     if(g) state.gender=g;
     if(a) state.age=a;
+    // 연예인 이름 감지 → 스타일 자동 설정 시도
+    const celebName=detectCelebName(text);
     await startConsultWithEmpathy(text, detected);
+    if(celebName){
+      const celebData=await fetchCelebStyle(celebName, detected);
+      if(celebData && celebData.mood){
+        state.mood=celebData.mood;
+        addAi(`“${celebName}” 느낌을 ${celebData.vibe||celebData.mood} 방향으로 정리해둡게요.`);
+        addAi('참고로, 연예인을 그대로 닮는 목표보다 느낌·분위기만 참고해요.');
+      }
+    }
     if(!detected){
       askArea();
       return;
