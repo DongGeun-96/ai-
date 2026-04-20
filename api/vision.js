@@ -1,4 +1,4 @@
-import { loadAreaKnowledge, MODEL, getApiKey, readJson, send } from './_lib.js';
+import { loadAreaKnowledge, PRICING_MD, MODEL, getApiKey, readJson, send } from './_lib.js';
 
 export const config = { api: { bodyParser: { sizeLimit: '10mb' } } };
 
