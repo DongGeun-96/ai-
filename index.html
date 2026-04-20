@@ -199,7 +199,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .qchip{padding:9px 14px;border-radius:16px;font-size:12.5px;font-weight:600;background:#fff;border:1.5px solid var(--glass-border);color:var(--accent-deep);cursor:pointer;transition:all .2s}
     .qchip.multi.on{background:var(--accent);color:#fff;border-color:var(--accent)}
     .qchip.submit{background:var(--accent-deep);color:#fff;border-color:var(--accent-deep);font-weight:800;flex-basis:100%;margin-top:4px}
-    .qchip.submit:disabled{background:#E5E7EE;color:#A0A6BF;border-color:#E5E7EE;cursor:not-allowed}
+    .qchip.submit:disabled{background:rgba(123,143,212,0.08);color:var(--accent-deep);border-color:rgba(123,143,212,0.25);cursor:default;font-weight:600;font-size:12px;opacity:.85}
     .qchip:hover{background:var(--bg-soft);border-color:var(--accent-light)}
     .qchip:active{transform:scale(0.97)}
     .qchip.disabled{opacity:.4;pointer-events:none}
@@ -352,7 +352,8 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .ai-summary p{font-size:13px;line-height:1.7;color:var(--text-1);white-space:pre-line}
 
     .chat-input-area{flex-shrink:0;padding:10px 20px;padding-bottom:calc(14px + var(--safe-bottom));border-top:1px solid var(--divider);background:#fff}
-    .chat-input-inner{display:flex;align-items:center;gap:10px;background:var(--bg-sub);border:1.5px solid var(--divider);border-radius:22px;padding:7px 7px 7px 18px;transition:border-color .3s,box-shadow .3s}
+    .chat-input-inner{display:flex;align-items:center;gap:10px;background:var(--bg-sub);border:1.5px solid rgba(123,143,212,0.35);border-radius:22px;padding:7px 7px 7px 18px;transition:border-color .3s,box-shadow .3s;box-shadow:0 0 12px rgba(123,143,212,0.15);animation:inputGlow 2.5s ease-in-out infinite}
+    @keyframes inputGlow{0%,100%{box-shadow:0 0 12px rgba(123,143,212,0.15);border-color:rgba(123,143,212,0.35)}50%{box-shadow:0 0 20px rgba(123,143,212,0.3);border-color:rgba(123,143,212,0.55)}}
     .chat-input-inner input{flex:1;border:none;outline:none;font-size:14px;font-family:'Noto Sans KR',sans-serif;color:var(--text-0);background:transparent}
     .chat-input-inner input::placeholder{color:var(--text-3)}
     .chat-input-inner input:disabled{color:var(--text-3)}
