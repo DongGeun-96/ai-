@@ -620,7 +620,7 @@ const AREAS={
   eye:{label:'눈',focusOptions:['쌍꺼풀이 없어요','눈이 답답해 보여요','눈매가 흐려 보여요','자연스럽게 또렷했으면 해요'],
     info:'눈 수술은 크게 매몰법과 절개법, 눈매교정으로 나뉘어요.\n방식마다 유지력과 회복 부담이 달라요.\n\n부작용 사례로는 풀림, 비대칭, 흉터 등이 있고, 초기 붓기와 실제 문제는 구분해서 봐야 해요.\n\n요즘은 과교정보다 자연스러운 라인이 만족도가 높다는 평가가 많아요.',
     links:[['YouTube','쌍꺼풀 상담 전 체크 질문','https://www.youtube.com/results?search_query=쌍꺼풀+상담+질문'],['Instagram','자연스러운 눈매 사례','https://www.instagram.com/explore/tags/자연스러운눈성형/'],['Google','눈 수술 회복기간','https://www.google.com/search?q=눈+수술+회복기간']]},
-  nose:{label:'코',focusOptions:['콧대가 낮아요','코끝이 뭉툭해요','전체적으로 퍼져 보여요','자연스럽게만 정리하고 싶어요'],
+  nose:{label:'코',focusOptions:['콧대가 낮아요','코끝이 뭉툭해요','전체적으로 퍼져 보여요','인중이 길어요','콧볼이 넓어요','자연스럽게만 정리하고 싶어요'],
     info:'코 수술은 재료(실리콘, 자가연골 등)와 부위(코끝, 콧대)에 따라 난이도가 달라요.\n\n부작용으로는 염증, 구축, 비침이 알려져 있어, 응급 대응 프로세스가 있는 병원인지가 중요해요.\n\n코는 이벤트보다 집도의 전문성이 더 중요하다는 후기가 많아요.',
     links:[['YouTube','코 성형 재료 차이','https://www.youtube.com/results?search_query=코+성형+재료'],['Instagram','코끝 자연스럽게 정리한 사례','https://www.instagram.com/explore/tags/코끝성형/'],['Google','코 수술 구축','https://www.google.com/search?q=코+수술+구축']]},
   lipo:{label:'지방흡입',focusOptions:['복부','허벅지','팔','전체적으로 라인 정리'],
@@ -697,7 +697,7 @@ const POPULAR_METHODS={
   eye:{
     '20대':[
       {name:'매몰법 (자연유착)',desc:'절개 없이 실로 라인 고정. 회복 빠르고 20대 선호도 높음.',tags:['빠른 회복','자연스러운'],img:'https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=400&q=70'},
-      {name:'눈매교정 + 쌍꺼풀',desc:'눈이 답답해 보일 때. 앞머리 라인를 더 올려 시원함 연출.',tags:['인상 개선'],img:'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=400&q=70'}
+      {name:'눈매교정 + 쌍꺼풀',desc:'눈이 답답해 보일 때. 눈매 라인을 더 올려 시원함 연출.',tags:['인상 개선'],img:'https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=400&q=70'}
     ],
     '30대':[
       {name:'일부절개 / 전절개',desc:'피부 탄력 감안한 라인 고정. 유지력 강점.',tags:['유지력'],img:'https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=400&q=70'},
@@ -741,8 +741,8 @@ const STYLE_TRENDS={
     '동안 느낌':'어린 눈매 + 애교살 부각·애교 필러 조합이 많아요. 눈매교정은 과하지 않게.'
   },
   nose:{
-    '자연스럽게':'높은 코보다 자가연과 사용한 절제된 코끝, 얼굴선과 조화된 라인이 요즘 트렌드예요.',
-    '또렷하게':'부드럽지 않은 또렷한 콧대 + 동그랗거나 살짝 뻗은 코끝 선호.',
+    '자연스럽게':'높은 코보다 자가연골 사용한 절제된 코끝, 얼굴선과 조화된 라인이 요즘 트렌드예요.',
+    '또렷하게':'뚜렷한 콧대 + 동그랗거나 살짝 뻗은 코끝 선호.',
     '세련되게':'배우·모델 스타일로 길어보이는 세로 라인이 인기. 측면 라인은 부드럽게.',
     '동안 느낌':'콧대를 높이기보단 코끝을 살짝 올려주는 방향이 많아요.'
   },
@@ -819,7 +819,7 @@ const chatSendEl=document.getElementById('chatSend');
 const mainInputEl=document.getElementById('mainInput'); // legacy, may be null
 function setStep(n){state.step=n}
 
-function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/모발|탈모|이식|M자|정수리|숨감소|두피|헤어라인|발모/.test(t))return'hair';if(/피부|보톡스|필러|레이저|토닝|리프팅|스킨부스터|여드름|흉터|주름|탄력|써마지|울쎄라|쥬베룩|리쥬란|프락셀|피코|기미|색소|실리프팅|물광|케어/.test(t))return'skin';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return''}
+function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/모발|탈모|이식|M자|정수리|숨감소|두피|헤어라인|발모/.test(t))return'hair';if(/피부|보톡스|필러|레이저|토닝|리프팅|스킨부스터|여드름|흉터|주름|탄력|써마지|울쎄라|쥬베룩|리쥬란|프락셀|피코|기미|색소|실리프팅|물광|케어/.test(t))return'skin';if(/코|콧대|코끝|인중|콧볼|콧구멍|매부리|들창|휜코|비중격/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱|양악|이마|관자놀이|볼꺼짐|팔자주름/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매|눈밑|다크서클|눈꺼풀|안검/.test(t))return'eye';return''}
 
 /* ── 연예인 이름 감지 + 스타일 매핑 ── */
 const CELEB_TRIGGER=/처럼|같이|같은|느낌|스타일|분위기/;
@@ -878,15 +878,19 @@ function inferFocusFromConcern(text, areaKey){
   const t=text;
   // 구체적 단서가 하나라도 있어야 focus 추론 (단순히 '눈 고민'만으로는 아님)
   const eyeMap=[
-    {kw:/쌍꺼풀|쌍꺼플|쌍수|쌍껏|올쌍|홍길동/, label:'쌍꺼풀이 없어요'},
-    {kw:/작(은|은눈|은눈매)|답답|조골|눈이 작/, label:'눈이 답답해 보여요'},
-    {kw:/잠자는|졸린|흐릿|흐릿|쌈만한|안겨|삼백안|눈매.*흐/, label:'눈매가 흐려 보여요'},
+    {kw:/쌍꺼풀|쌍꺼플|쌍수|쌍껏|올쌍/, label:'쌍꺼풀이 없어요'},
+    {kw:/작(은|은눈|은눈매)|답답|눈이 작/, label:'눈이 답답해 보여요'},
+    {kw:/잠자는|졸린|흐릿|삼백안|눈매.*흐/, label:'눈매가 흐려 보여요'},
     {kw:/자연|또렷|부드럽/, label:'자연스럽게 또렷했으면 해요'}
   ];
   const noseMap=[
-    {kw:/낮(은|은코)|낮은코|콧대.*낮|고무|낮죠/, label:'콧대가 낮아요'},
-    {kw:/코끝|뭉툭|둥근|뱔|퍼진|퍼져/, label:'코끝이 뭉툭해요'},
+    {kw:/낮(은|은코)|낮은코|콧대.*낮|낮아요/, label:'콧대가 낮아요'},
+    {kw:/코끝|뭉툭|둥근|별로|퍼진|퍼져/, label:'코끝이 뭉툭해요'},
     {kw:/퍼져|전체적.*퍼|넓(어|은)|넓은/, label:'전체적으로 퍼져 보여요'},
+    {kw:/인중|필트럼/, label:'인중이 길어요'},
+    {kw:/콧볼|코날개/, label:'콧볼이 넓어요'},
+    {kw:/들창|매부리|휜코/, label:'코가 들려 보여요'},
+    {kw:/비중격|코막히/, label:'비중격이 휘어져 있어요'},
     {kw:/자연|정리/, label:'자연스럽게만 정리하고 싶어요'}
   ];
   const breastMap=[
@@ -895,7 +899,7 @@ function inferFocusFromConcern(text, areaKey){
     {kw:/모양|비대칭/, label:'모양이 신경쓰여요'}
   ];
   const lipoMap=[
-    {kw:/복부|배|뜿살/, label:'복부'},
+    {kw:/복부|배|뱃살/, label:'복부'},
     {kw:/허벅지|다리/, label:'허벅지'},
     {kw:/팔/, label:'팔'}
   ];
@@ -927,20 +931,20 @@ function inferFocusFromConcern(text, areaKey){
 function getCelebSurgeryGuide(areaKey, vibe){
   const guides={
     eye:{
-      '또렷':'이런 느낌은 보통 쌍꺼풀라인을 조금 원알·애교세로 해서 눈을 때렯해 보이게 하고, 안검거상술(눈매교정)을 같이 해서 눈매를 좀 더 크고 임팩트 있게 만드는 흐름이에요 ! 경우에 따라 앞트임·뒷트임·밑트임을 조금 섭어서 공간감을 더 주기도 해요 ~',
+      '또렷':'이런 느낌은 보통 쌍꺼풀라인을 조금 넓히고 애교살을 살려서 눈을 또렷하게 보이게 하고, 안검거상술(눈매교정)을 같이 해서 눈매를 좀 더 크고 임팩트 있게 만드는 흐름이에요 ! 경우에 따라 앞트임·뒷트임·밑트임을 조금 섞어서 공간감을 더 주기도 해요 ~',
       '자연스럽게':'이런 느낌은 보통 내축쌍꺼풀·매몰법으로 은은한 입체감만 주고, 과교정 없이 눈매 원래 느낌을 살린 흐름이에요 ~',
       '세련되게':'이런 느낌은 샤프한 눈꼬리 라인·모델 눈 쪽으로 안검거상과 뒷트임을 조합해서 흐름을 잡아주고요 ~',
-      '동안 느낌':'이런 느낌은 보통 녨은 쌍꺼풀라인 + 애교살 필러·재배치로 둘근하고 어린 눈매로 만드는 흐름이에요 !'
+      '동안 느낌':'이런 느낌은 보통 낮은 쌍꺼풀라인 + 애교살 필러·재배치로 둥글고 어린 눈매로 만드는 흐름이에요 !'
     },
     nose:{
-      '또렷':'콧대는 실리콘·고어텍스로 높이고 코끝은 자가연골로 따롭하게 세워주는 방식이 많아요 !',
+      '또렷':'콧대는 실리콘·고어텍스로 높이고 코끝은 자가연골로 또렷하게 세워주는 방식이 많아요 !',
       '자연스럽게':'콧대는 조금만 높이고 코끝 모양을 자가연골로 다듬는 무보형물 흐름이 요즘 많아요 ~',
-      '세련되게':'콧대를 절제됩게 세우고 코끝을 살짝 내려서 세련된 라인을 만드는 방식으로 가요 !',
+      '세련되게':'콧대를 절제되게 세우고 코끝을 살짝 내려서 세련된 라인을 만드는 방식으로 가요 !',
       '동안 느낌':'콧대보다는 코끝을 살짝 올려주어서 부드러운 인상을 주는 방식이에요 ~'
     },
     contour:{
-      '또렷':'사각턱·광대·애큐섬 섭제로 얼굴선을 또렷하게 잡아주는 방향이 많아요 !',
-      '자연스럽게':'사각턱 라인만 조금 다듬고 애큐섬·마이어프로 겹겹이 자연스럽게 수정하는 흐름이에요 ~'
+      '또렷':'사각턱·광대·앞턱 절제로 얼굴선을 또렷하게 잡아주는 방향이 많아요 !',
+      '자연스럽게':'사각턱 라인만 조금 다듬고 앞턱을 자연스럽게 정리하는 흐름이에요 ~'
     }
   };
   if(!areaKey || !guides[areaKey]) return '';
@@ -1188,7 +1192,7 @@ async function handleUserInput(text){
 
   if(state.step>=3){
     await askAI({
-      stepGoal:`STEP ${state.step} 짧은 실무 답변. 상담실장 톤으로 1~3문장만. 조건에 직접 답하고, 물어보지 않은 건 설명하지 않는다. 공감 과잉 금지. 되물음은 꿁 필요할 때만.`,
+      stepGoal:`STEP ${state.step} 짧은 실무 답변. 상담실장 톤으로 1~3문장만. 조건에 직접 답하고, 물어보지 않은 건 설명하지 않는다. 공감 과잉 금지. 되물음은 꼭 필요할 때만.`,
       userText:text
     });
   }
@@ -1200,17 +1204,17 @@ async function askArea(){
   const g=state.gender;
   let guide='';
   if(g==='남성') guide='참고로 요즘 남성은 눈(쌍꺼풀·눈밑지방)·코·턱라인 순으로 많이 찾아요.';
-  else if(g==='여성') guide='참고로 요즘은 눈·코·지방·윤꽉 순으로 관심 많아요.';
-  else guide='참고로 이용자들이 가장 많이 물어보는 건 눈·코·윤꽉이에요.';
+  else if(g==='여성') guide='참고로 요즘은 눈·코·지방·윤곽 순으로 관심 많아요.';
+  else guide='참고로 이용자들이 가장 많이 물어보는 건 눈·코·윤곽이에요.';
   addAi(`어느 부위가 지금 제일 고민이세요?\n${guide}`);
-  addQuickReply(['눈','코','가슴','지방','윤꽉'],async pick=>{
+  addQuickReply(['눈','코','가슴','지방','윤곽'],async pick=>{
     addUser(pick);
     const d=detectArea(pick);
     if(d){state.areaKey=d;state.step=1;if(state.gender&&state.age)goStep2();else if(state.gender)askAge();else askGender();}
   },'직접 입력하셔도 돼요 (예: 코끝, 쌍꺼풀, 눈밑)');
 }
 function addUserAck(key){
-  const label={eye:'눈',nose:'코',breast:'가슴',lipo:'지방',contour:'윤꽉'}[key]||'';
+  const label={eye:'눈',nose:'코',breast:'가슴',lipo:'지방',contour:'윤곽'}[key]||'';
   if(label) addAi(`아 ${label} 관련으로 볼게요.`);
 }
 
@@ -1366,7 +1370,7 @@ async function showStyleTrend(){
 /* ── 짧은 리액션 (실제 상담사 후기 기반: "아 그러세요", "네~" 수준) ── */
 const REACT_POOL={
   revisit:['네 ~ 확인했어요 !','네 알겠습니다 ~'],
-  sideEffect:['네 ~ 그 부분 꿁 챙겨볼게요 !','조심스러운 부분이시겠어요 ~ 꼭 체크해둠게요 !'],
+  sideEffect:['네 ~ 그 부분 꼭 챙겨볼게요 !','조심스러운 부분이시겠어요 ~ 꼭 체크해둘게요 !'],
   focus:['네 ~ 그 부분 기준으로 볼게요 !','오~ 알겠습니다 ~'],
   recovery:['네 ~ 그 조건으로 잘 맞춰볼게요 !','알겠습니다 ~'],
   mood:['네 ~ 그 방향으로 예쁜게 정리해드릴게요 !','오 좋아요 ~ 그 느낌 반영해서 볼게요 !'],
@@ -1487,6 +1491,7 @@ async function showFocusTrend(){
 - 의학 단정 금지 ("경향", "많아요", "편이에요" 형식)
 - 이모지·하트 금지
 - 부드러운 존댓말, 끝어미: ~에요/~죠/~드릴게요/~같아요
+- 수술법명은 실제 의학 용어 사용 (예: 무보형물 코성형, 자가연골 코끝성형 등)
 - JSON만 반환.`
   });
 }
@@ -1529,7 +1534,7 @@ async function showMoodLiveTrend(){
     title:`${state.mood} 스타일 · 요즘 세팅`,
     emoji:'',variant:'mood',
     schema:`{"summary":"스타일 분위기 공감 1줄","items":[{"name":"디자인 특징","desc":"어떤 느낌 생기는지","tag":"키워드"}],"tip":"피해야할 과한 세팅 한 줄","followup":{"question":"고객 이상 파악 질문","options":["선택지 3개"]}}`,
-    instruction:`${area}에서 "${state.mood}" 분위기를 원할 때 요즘 구체적 디자인·라인 특징 3개. 각 item은 name(12자 이하 특징명), desc(어떤 느낌인지 한 줄 20자 이하), tag(예: "동안", "세련", "디름함"·8자). tip은 요즘 피하는 과한 세팅 한 줄. followup.question은 고객이 원하는 본어·참고 이미지 있는지 묻는 간결 질문(20자 이하). followup.options 3개(각 10자 내외).`
+    instruction:`${area}에서 "${state.mood}" 분위기를 원할 때 요즘 구체적 디자인·라인 특징 3개. 각 item은 name(12자 이하 특징명), desc(어떤 느낌인지 한 줄 20자 이하), tag(예: "동안", "세련", "단정함"·8자). tip은 요즘 피하는 과한 세팅 한 줄. followup.question은 고객이 원하는 분위기·참고 이미지 있는지 묻는 간결 질문(20자 이하). followup.options 3개(각 10자 내외).`
   });
 }
 
@@ -1891,18 +1896,18 @@ async function showOfficialSideEffects(){
 /* ── 상담 질문지 자동 생성 ── */
 const QUESTION_BANK={
   common:[
-    '제 상태(눈·코·도) 기준으로 가장 권하는 수술 방식은?',
+    '제 상태 기준으로 가장 권하는 수술 방식은?',
     '그 방식을 선택하신 이유와 다른 선택지는 뭐가 있을까요?',
-    '이 병원에서 해당 수술을 서둘 담당하신 의사님의 경력은 어떻게 될지요?',
-    '수술 일자·마취 방법·소요 시간은 어떻게 잘 되나요?',
-    '종 한 수술의 부작용 확률과 대처 프로토콜은?',
-    '수술 비용은 좀 다 포함되나요? 추가 비용 가능성은?',
+    '이 병원에서 해당 수술을 주로 담당하신 의사님의 경력은 어떻게 되나요?',
+    '수술 일자·마취 방법·소요 시간은 어떻게 되나요?',
+    '이 수술의 부작용 확률과 대처 프로토콜은?',
+    '수술 비용은 전부 포함되나요? 추가 비용 가능성은?',
     '재수술 보증이 있나요? 어떤 조건으로 적용되나요?',
     '수술 후 점검·사후 관리는 몇 차례까지 도와주시나요?'
   ],
   eye:[
-    '제 눈꿙·지방·안면근 상태에서 매몰·절개 중 무엇이 더 적합한가요?',
-    '안면교정이 필요한지, 필요하다면 어느 정도인가요?',
+    '제 눈꺼풀·지방·안면근육 상태에서 매몰·절개 중 무엇이 더 적합한가요?',
+    '눈매교정이 필요한지, 필요하다면 어느 정도인가요?',
     '제 다른 한쪽 눈과의 비대칭·편차는 어느 레벨까지 맞출 수 있나요?'
   ],
   nose:[
@@ -1912,18 +1917,18 @@ const QUESTION_BANK={
   ],
   breast:[
     '제 체형·조직 상태에 맞는 보형물 종류·사이즈는?',
-    '대흐·소흐 중 이 경우에 적합한 방식은? 이유는?',
+    '대흉근 아래·위 중 이 경우에 적합한 방식은? 이유는?',
     'BIA-ALCL 관련 보형물 안전성과 정기 검사 주기는?',
     '향후 구축 의심 증상이 생기면 언제 찾아와야 하나요?'
   ],
   lipo:[
-    '일세에 흡입 가능한 부위와 추천 부위는?',
+    '1회에 흡입 가능한 부위와 추천 부위는?',
     '흡입량 기준과 피부 수축·울투불투 관리 방안은?',
     '마취 방식과 입원 여부, 아프터 케어 일정은?'
   ],
   contour:[
     '제 얼굴·너비·대칭에 맞는 절골 범위는?',
-    '안면신경·필수자·동·정맥과 일정 거리 확보 방법은?',
+    '안면신경·동맥·정맥과의 안전 거리 확보 방법은?',
     '양악 수술 필요 여부·교정을 겸한다면 어디에서 진행하나요?'
   ]
 };
@@ -1932,7 +1937,7 @@ async function showQuestionList(){
   const area=AREAS[state.areaKey];
   const list=[...QUESTION_BANK.common,...(QUESTION_BANK[state.areaKey]||[])];
   if(state.revisit&&state.revisit.includes('재수술')){
-    list.push('이전 수술 자료를 가져가야 하나요? 재수술 시 척수 포인트는?');
+    list.push('이전 수술 자료를 가져가야 하나요? 재수술 시 체크 포인트는?');
     list.push('이전 조직 손상·유착 정도와 재도전 이용 가능성은?');
   }
   if(state.sideEffect&&!state.sideEffect.includes('없었어요')){
@@ -1943,7 +1948,7 @@ async function showQuestionList(){
   const wrap=document.createElement('div');wrap.className='question-card';
   wrap.innerHTML=`<div class="question-card-head"><strong>✨ 상담실 질문지</strong><span>${area.label}</span></div>
     <ol class="question-list">${list.map(q=>`<li>${esc(q)}</li>`).join('')}</ol>
-    <button class="question-copy" onclick="copyQuestions(this)">함께 복사하기</button>`;
+    <button class="question-copy" onclick="copyQuestions(this)">질문지 복사</button>`;
   wrap.dataset.text=list.map((q,i)=>`${i+1}. ${q}`).join('\n');
   chatMessages.appendChild(wrap);scrollBottom();
   await new Promise(r=>setTimeout(r,400));
@@ -1955,37 +1960,37 @@ function copyQuestions(btn){
   const text=btn.parentElement.dataset.text;
   navigator.clipboard?.writeText(text).then(()=>{
     btn.textContent='복사 완료 ✓';
-    setTimeout(()=>btn.textContent='함께 복사하기',2000);
+    setTimeout(()=>btn.textContent='질문지 복사',2000);
   });
 }
 
 /* ── 수술 방식 비교표 ── */
 const SURGERY_COMPARE={
   eye:{title:'쌍꺼풀 방식 비교',rows:[
-    {name:'매몰법',recover:'7~10일',scar:'거의 없음',duration:'5~10년 (풀릴 수 있음)',fit:'얖은 눈꿙·동안 세대'},
-    {name:'부분절개',recover:'10~14일',scar:'적음',duration:'반영구 (둘낅·지방 제거)',fit:'척며조직 일부 있는 경우'},
-    {name:'완전절개',recover:'2~3주',scar:'주름으로 자리잡음',duration:'반영구',fit:'눈꿙·지방 많은 졸 눈'}
+    {name:'매몰법',recover:'7~10일',scar:'거의 없음',duration:'5~10년 (풀릴 수 있음)',fit:'얇은 눈꺼풀·동안 세대'},
+    {name:'부분절개',recover:'10~14일',scar:'적음',duration:'반영구 (근육·지방 제거)',fit:'피부조직 일부 있는 경우'},
+    {name:'완전절개',recover:'2~3주',scar:'주름으로 자리잡음',duration:'반영구',fit:'눈꺼풀·지방 많은 눈'}
   ]},
   nose:{title:'코 보형물 재료 비교',rows:[
     {name:'실리콘',recover:'2~3주',scar:'코 안 절개',duration:'반영구 (필요시 교체)',fit:'자연스러운 높이 선호'},
-    {name:'고어텍스',recover:'2~3주',scar:'코 안 절개',duration:'반영구',fit:'은은한·따뚻한 느낌 선호'},
-    {name:'자가당·당골',recover:'2~3주 + 채취부',scar:'채취부 존재',duration:'반영구',fit:'재수술·피부 얖은 경우'}
+    {name:'고어텍스',recover:'2~3주',scar:'코 안 절개',duration:'반영구',fit:'은은한·따뜻한 느낌 선호'},
+    {name:'자가늑연골·비중격연골',recover:'2~3주 + 채취부',scar:'채취부 존재',duration:'반영구',fit:'재수술·피부 얇은 경우'}
   ]},
   breast:{title:'가슴 보형물 비교',rows:[
-    {name:'스무스 표면',recover:'2~3주',scar:'검등·근동·유률',duration:'반영구',fit:'조직 애착 적음'},
-    {name:'텍스처 표면',recover:'2~3주',scar:'동일',duration:'반영구',fit:'구축 낮으는 탐독'},
-    {name:'자가지방',recover:'1~2주 + 흡입부',scar:'안종·흡입부',duration:'추이수 필요',fit:'자연스러운 텍스처 선호'}
+    {name:'스무스 표면',recover:'2~3주',scar:'겨드랑이·유방밑·유륜',duration:'반영구',fit:'조직 애착 적음'},
+    {name:'텍스처 표면',recover:'2~3주',scar:'동일',duration:'반영구',fit:'구축률 낮은 편'},
+    {name:'자가지방',recover:'1~2주 + 흡입부',scar:'절개부·흡입부',duration:'흡수 가능성 있어 재시술 필요',fit:'자연스러운 텍스처 선호'}
   ]},
   lipo:{title:'지방흡입 방식 비교',rows:[
-    {name:'일반 흡입',recover:'1~2주',scar:'4~6mm',duration:'영구적 (결합·제어)',fit:'광범위 부위'},
-    {name:'초음파 흡입',recover:'1~2주',scar:'동일',duration:'동일',fit:'피부 괴산·탄력 동시'},
-    {name:'레이저 흡입',recover:'1주',scar:'타',duration:'동일',fit:'소량·셊세 부위'}
+    {name:'일반 흡입',recover:'1~2주',scar:'4~6mm',duration:'영구적 (지방세포 제거)',fit:'광범위 부위'},
+    {name:'초음파 흡입',recover:'1~2주',scar:'동일',duration:'동일',fit:'피부 탄력 개선 효과도'},
+    {name:'레이저 흡입',recover:'1주',scar:'동일',duration:'동일',fit:'소량·섬세 부위'}
   ]},
   contour:{title:'안면윤곽 수술 비교',rows:[
-    {name:'광대축소',recover:'2~3주',scar:'구강 내·롱',duration:'반영구',fit:'안면 넘고 넘은 경우'},
-    {name:'사각턱',recover:'2~3주',scar:'구강 내',duration:'반영구',fit:'턱선·너비 조점'},
-    {name:'앞턱',recover:'2주',scar:'구강 내',duration:'반영구',fit:'뢜식·틀릭·앞턱'},
-    {name:'양악',recover:'4~6주',scar:'구강 내',duration:'반영구',fit:'교정·주소탐·주소·주소텊'}
+    {name:'광대축소',recover:'2~3주',scar:'구강 내',duration:'반영구',fit:'광대가 넓은 경우'},
+    {name:'사각턱',recover:'2~3주',scar:'구강 내',duration:'반영구',fit:'턱선·너비 조절'},
+    {name:'앞턱',recover:'2주',scar:'구강 내',duration:'반영구',fit:'무턱·앞턱 후퇴'},
+    {name:'양악',recover:'4~6주',scar:'구강 내',duration:'반영구',fit:'교정·양악 필요 케이스'}
   ]}
 };
 
@@ -1996,7 +2001,7 @@ async function showSurgeryCompare(){
   ensureChatActive();
   const wrap=document.createElement('div');wrap.className='compare-card';
   wrap.innerHTML=`<div class="compare-head"><strong>${esc(data.title)}</strong><span>참고용</span></div>
-    <table class="compare-table"><thead><tr><th>방식</th><th>회복</th><th>팋어</th><th>지속</th><th>적합 대상</th></tr></thead><tbody>
+    <table class="compare-table"><thead><tr><th>방식</th><th>회복</th><th>흉터</th><th>지속</th><th>적합 대상</th></tr></thead><tbody>
     ${data.rows.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td>${esc(r.recover)}</td><td>${esc(r.scar)}</td><td>${esc(r.duration)}</td><td>${esc(r.fit)}</td></tr>`).join('')}
     </tbody></table>
     <p class="compare-note">※ 일반적 특징 기준이며 개인·병원 방식에 따라 달라질 수 있어요.</p>`;
@@ -2069,12 +2074,12 @@ const RECOVERY_TABLE={
     {day:0,text:'수술 당일. 입원 1~2일 권장'},
     {day:7,text:'일상 돌아올 수 있음. 팔 올림 금지'},
     {day:30,text:'가벼운 운동 가능. 터치도 약간 느껴짐'},
-    {day:90,text:'조광·📄 안정. 보형물 자연 자리 잡음'},
+    {day:90,text:'조직 안정. 보형물 자연 자리 잡음'},
     {day:180,text:'대부분의 활동 자유롭음'}
   ],minOk:30,fullOk:180},
   lipo:{name:'지방흡입',stages:[
     {day:0,text:'수술 당일. 압박복 착용'},
-    {day:5,text:'출근 가능한 수준. 임파·마사지 시작'},
+    {day:5,text:'출근 가능. 림프·마사지 시작'},
     {day:30,text:'부기 70% 자리 잡음. 라인 관찰 가능'},
     {day:90,text:'최종 라인 80~90% 완성'},
     {day:180,text:'최종 라인 완성'}
@@ -2083,7 +2088,7 @@ const RECOVERY_TABLE={
     {day:0,text:'수술 당일. 입원 1일 권장'},
     {day:7,text:'부기 최고조. 안면 타박이 있어 주의'},
     {day:21,text:'외출 가능하지만 조심'},
-    {day:60,text:'라인 자리 잡는 조종'},
+    {day:60,text:'라인 자리 잡는 중'},
     {day:180,text:'최종 라인 완성'}
   ],minOk:30,fullOk:180},
   botox:{name:'보톡스',stages:[

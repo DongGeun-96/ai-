@@ -77,6 +77,12 @@ const tests = [
   // 모발이식
   { in: 'M자 탈모 모발이식', area: 'hair' },
   { in: '정수리 탈모 상담', area: 'hair' },
+  // 코 세부 키워드
+  { in: '인중축소', area: 'nose' },
+  { in: '콧볼축소 하고 싶어요', area: 'nose' },
+  { in: '들창코 교정', area: 'nose' },
+  { in: '입술 필러', area: 'skin' },
+  { in: '다크서클 없애고 싶어', area: 'eye' },
   // 부위 미지정
   { in: '요즘 유행하는 성형', area: '' },
   { in: '뭐가 제일 예뻐', area: '' }
