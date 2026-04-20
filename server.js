@@ -54,6 +54,7 @@ const KNOWLEDGE_MAP = {
 };
 const SAFETY_MD = readKnowledge('general/safety.md');
 const STATS_MD = readKnowledge('general/stats.md');
+const TRENDS_MD = readKnowledge('general/trends.md');
 
 function readKnowledge(rel) {
   try {
@@ -380,9 +381,10 @@ async function handleChat(req, res) {
   const includeSafety = step === 1 || step >= 6;
   const safety = includeSafety && SAFETY_MD ? `\n\n── 안전·가드레일 ──\n${SAFETY_MD}` : '';
   const stats = STATS_MD ? `\n\n── 공식 통계·부작용·비용 자료 (인용 가능) ──\n${STATS_MD}` : '';
+  const trends = TRENDS_MD ? `\n\n── 2025 성형 트렌드 메모 ──\n${TRENDS_MD}` : '';
 
   const messages = [
-    { role: 'system', content: SYSTEM_PROMPT + stepNote + context + safety + kb + stats },
+    { role: 'system', content: SYSTEM_PROMPT + stepNote + context + safety + kb + stats + trends },
     ...userMessages
   ];
 

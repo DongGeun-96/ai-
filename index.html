@@ -972,15 +972,20 @@ async function handleUserInput(text){
   }
 }
 
-/* ── 부위 되물기 ── */
+/* ── 부위 되물기 (트렌드 가이드 포함) ── */
 async function askArea(){
   state.step='area';
-  addAi('어느 부위 상담하실 건지 먼저 알려주시겠어요?');
+  const g=state.gender;
+  let guide='';
+  if(g==='남성') guide='참고로 요즘 남성은 눈(쌍꺼풀·눈밑지방)·코·턱라인 순으로 많이 찾아요.';
+  else if(g==='여성') guide='참고로 요즘은 눈·코·지방·윤꽉 순으로 관심 많아요.';
+  else guide='참고로 이용자들이 가장 많이 물어보는 건 눈·코·윤꽉이에요.';
+  addAi(`어느 부위가 지금 제일 고민이세요?\n${guide}`);
   addQuickReply(['눈','코','가슴','지방','윤꽉'],async pick=>{
     addUser(pick);
     const d=detectArea(pick);
     if(d){state.areaKey=d;state.step=1;if(state.gender&&state.age)goStep2();else if(state.gender)askAge();else askGender();}
-  },'직접 입력하셔도 돼요 (예: 코끝, 쌍꺼풀)');
+  },'직접 입력하셔도 돼요 (예: 코끝, 쌍꺼풀, 눈밑)');
 }
 function addUserAck(key){
   const label={eye:'눈',nose:'코',breast:'가슴',lipo:'지방',contour:'윤꽉'}[key]||'';
