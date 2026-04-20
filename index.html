@@ -1064,7 +1064,7 @@ function addMultiQuickReply(options,onSubmit,placeholderHint){
   ensureChatActive();
   const wrap=document.createElement('div');wrap.className='quick-reply multi';
   const picked=new Set();
-  const update=()=>{submit.disabled=picked.size===0;submit.textContent=picked.size?`선택 완료 (${picked.size}개)`:'여러 개 고른 뒤 눌러주세요 · 또는 아래에 직접 입력';};
+  const update=()=>{submit.disabled=picked.size===0;if(picked.size){submit.textContent=`선택 완료 (${picked.size}개)`}else{submit.innerHTML='여러 개 고른 뒤 눌러주세요 · <span style="color:var(--accent);font-weight:700">또는 아래에 직접 입력</span>';}};
   options.forEach(opt=>{
     const b=document.createElement('button');b.className='qchip multi';b.textContent=opt;
     b.addEventListener('click',()=>{
