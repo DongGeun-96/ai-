@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const hit = CACHE.get(key);
   if (hit && Date.now() - hit.at < TTL) return send(res, 200, { items: hit.items, cached: true });
   try {
-    const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&hl=ko&gl=KR`, {
+    const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=CAMSAhAB&hl=ko&gl=KR`, {
       headers: {
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
         'accept-language': 'ko-KR,ko;q=0.9,en;q=0.7'
@@ -30,13 +30,23 @@ export default async function handler(req, res) {
 function extractYtItems(html, limit) {
   const seen = new Set();
   const out = [];
-  const re = /"videoRenderer":\s*\{"videoId":"([A-Za-z0-9_-]{11})"[^]*?"title":\{"runs":\[\{"text":"([^"]+)"[^]*?"ownerText":\{"runs":\[\{"text":"([^"]+)"/g;
-  let m;
-  while ((m = re.exec(html)) && out.length < limit) {
-    const [, id, title, channel] = m;
+  // videoRenderer 블록 단위로 추출
+  const blockRe = /"videoRenderer":\s*\{"videoId":"([A-Za-z0-9_-]{11})"([\s\S]*?)(?="videoRenderer"|\}$)/g;
+  let bm;
+  while ((bm = blockRe.exec(html)) && out.length < limit) {
+    const id = bm[1];
     if (seen.has(id)) continue;
     seen.add(id);
-    out.push({ id, title: decodeHtml(title), channel: decodeHtml(channel) });
+    const block = bm[2];
+    const titleMatch = block.match(/"title":\{"runs":\[\{"text":"([^"]+)"/);
+    const chMatch = block.match(/"ownerText":\{"runs":\[\{"text":"([^"]+)"/);
+    const viewMatch = block.match(/"viewCountText":\{"simpleText":"([^"]+)"/);
+    out.push({
+      id,
+      title: decodeHtml(titleMatch?.[1] || ''),
+      channel: decodeHtml(chMatch?.[1] || ''),
+      views: decodeHtml(viewMatch?.[1] || '')
+    });
   }
   if (out.length === 0) {
     const re2 = /"videoId":"([A-Za-z0-9_-]{11})"/g;
@@ -45,7 +55,7 @@ function extractYtItems(html, limit) {
       const id = m2[1];
       if (seen.has(id)) continue;
       seen.add(id);
-      out.push({ id, title: '', channel: '' });
+      out.push({ id, title: '', channel: '', views: '' });
     }
   }
   return out;

@@ -258,6 +258,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .yt-card-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-right:4px}
     .yt-card-title{font-size:13px;font-weight:700;color:var(--text-0);letter-spacing:-.2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .yt-card-meta{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3)}
+    .yt-card-views{font-size:10px;color:var(--text-3)}
     .yt-card-tag{background:rgba(123,143,212,0.1);color:var(--accent-deep);font-weight:700;padding:2px 7px;border-radius:7px;font-size:10px}
     .upload-btn{flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--text-2);border-radius:50%;transition:background .2s}
     .upload-btn:hover{background:rgba(0,0,0,0.04)}
@@ -1377,7 +1378,7 @@ function addYtCards(list){
       </div>
       <div class="yt-card-body">
         <div class="yt-card-title">${esc(v.title)}</div>
-        <div class="yt-card-meta"><span>${esc(v.channel)}</span><span class="yt-card-tag">${esc(v.tag||'')}</span></div>
+        <div class="yt-card-meta"><span>${esc(v.channel)}</span>${v.views?`<span class="yt-card-views">${esc(v.views)}</span>`:''}<span class="yt-card-tag">${esc(v.tag||'')}</span></div>
       </div>
     </a>
   `).join('');
@@ -1665,7 +1666,7 @@ async function showYoutubeRecommendation(){
     // 영상 카드
     if(Array.isArray(ytData.items) && ytData.items.length){
       await scriptedReply('관련 영상 찾아드렸어요 ~',200);
-      addYtCards(ytData.items.map(v=>({id:v.id,title:v.title||area,channel:v.channel||'YouTube',tag:state.mood||'참고'})));
+      addYtCards(ytData.items.map(v=>({id:v.id,title:v.title||area,channel:v.channel||'YouTube',views:v.views||'',tag:state.mood||'참고'})));
     }
     // Shorts 카드
     if(Array.isArray(shortsData.items) && shortsData.items.length){
