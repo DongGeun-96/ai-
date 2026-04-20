@@ -707,7 +707,7 @@ const AREAS={
   eye:{label:'눈',focusOptions:['쌍꺼풀이 없어요','눈이 답답해 보여요','눈매가 흐려 보여요','자연스럽게 또렷했으면 해요'],
     info:'눈 수술은 크게 매몰법과 절개법, 눈매교정으로 나뉘어요.\n방식마다 유지력과 회복 부담이 달라요.\n\n부작용 사례로는 풀림, 비대칭, 흉터 등이 있고, 초기 붓기와 실제 문제는 구분해서 봐야 해요.\n\n요즘은 과교정보다 자연스러운 라인이 만족도가 높다는 평가가 많아요.',
     links:[['YouTube','쌍꺼풀 상담 전 체크 질문','https://www.youtube.com/results?search_query=쌍꺼풀+상담+질문'],['Instagram','자연스러운 눈매 사례','https://www.instagram.com/explore/tags/자연스러운눈성형/'],['Google','눈 수술 회복기간','https://www.google.com/search?q=눈+수술+회복기간']]},
-  nose:{label:'코',focusOptions:['콧대가 낮아요','코끝이 뭉툭해요','전체적으로 퍼져 보여요','인중이 길어요','콧볼이 넓어요','자연스럽게만 정리하고 싶어요'],
+  nose:{label:'코',focusOptions:['콧대가 낮아요','코끝이 뭉툭해요','전체적으로 퍼져 보여요','콧볼이 넓어요','자연스럽게만 정리하고 싶어요'],
     info:'코 수술은 재료(실리콘, 자가연골 등)와 부위(코끝, 콧대)에 따라 난이도가 달라요.\n\n부작용으로는 염증, 구축, 비침이 알려져 있어, 응급 대응 프로세스가 있는 병원인지가 중요해요.\n\n코는 이벤트보다 집도의 전문성이 더 중요하다는 후기가 많아요.',
     links:[['YouTube','코 성형 재료 차이','https://www.youtube.com/results?search_query=코+성형+재료'],['Instagram','코끝 자연스럽게 정리한 사례','https://www.instagram.com/explore/tags/코끝성형/'],['Google','코 수술 구축','https://www.google.com/search?q=코+수술+구축']]},
   lipo:{label:'지방흡입',focusOptions:['복부','허벅지','팔','전체적으로 라인 정리'],
@@ -716,7 +716,7 @@ const AREAS={
   breast:{label:'가슴',focusOptions:['볼륨이 작아요','모양이 신경쓰여요','처짐이 있어요','자연스럽게 정리'],
     info:'가슴 수술은 보형물(실리콘/모티바 등)과 지방이식, 처짐 교정으로 나뉘어요.\n\n부작용 사례로는 구형구축, 모양 비대칭, 감각 저하 등이 있고, 보형물 안전성과 집도의의 경험이 중요해요.\n\n사이즈·모양보다 자기 몸에 맞는 상담을 받는 병원이 만족도가 높다고 알려져 있어요.',
     links:[['YouTube','가슴 성형 보형물 비교','https://www.youtube.com/results?search_query=가슴+성형+보형물'],['Instagram','가슴 성형 후기','https://www.instagram.com/explore/tags/가슴성형후기/'],['Google','가슴 수술 회복기간','https://www.google.com/search?q=가슴+수술+회복기간']]},
-  contour:{label:'안면윤곽',focusOptions:['사각턱','광대','앞턱','전체적인 얼굴선'],
+  contour:{label:'안면윤곽',focusOptions:['사각턱','광대','앞턱','인중이 길어요','입술 모양','전체적인 얼굴선'],
     info:'안면윤곽은 사각턱, 광대, 앞턱으로 나뉘고 회복과 변화 체감이 커요.\n\n부작용 사례는 감각 저하, 비대칭, 긴 회복 등이 있고, 적합도를 신중하게 판단해주는 병원이 신뢰 신호예요.\n\n수술 말고 대안 설명도 함께 해주는지 꼭 확인하는 게 좋아요.',
     links:[['YouTube','윤곽 수술 전 질문','https://www.youtube.com/results?search_query=윤곽+수술+질문'],['Instagram','윤곽 회복 루틴','https://www.instagram.com/explore/tags/윤곽수술후기/'],['Google','윤곽 회복기간','https://www.google.com/search?q=윤곽+수술+회복기간']]},
   skin:{label:'피부시술',focusOptions:['주름·탄력 개선','색소·기미 관리','모공·피부결 개선','리프팅·처짐 개선'],
@@ -906,7 +906,7 @@ const chatSendEl=document.getElementById('chatSend');
 const mainInputEl=document.getElementById('mainInput'); // legacy, may be null
 function setStep(n){state.step=n}
 
-function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/모발|탈모|이식|M자|정수리|숨감소|두피|헤어라인|발모/.test(t))return'hair';if(/피부|보톡스|필러|레이저|토닝|리프팅|스킨부스터|여드름|흉터|주름|탄력|써마지|울쎄라|쥬베룩|리쥬란|프락셀|피코|기미|색소|실리프팅|물광|케어/.test(t))return'skin';if(/코|콧대|코끝|인중|콧볼|콧구멍|매부리|들창|휜코|비중격/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱|양악|이마|관자놀이|볼꺼짐|팔자주름/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매|눈밑|다크서클|눈꺼풀|안검/.test(t))return'eye';return''}
+function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/모발|탈모|이식|M자|정수리|숨감소|두피|헤어라인|발모/.test(t))return'hair';if(/피부|보톡스|필러|레이저|토닝|리프팅|스킨부스터|여드름|흉터|주름|탄력|써마지|울쎄라|쥬베룩|리쥬란|프락셀|피코|기미|색소|실리프팅|물광|케어/.test(t))return'skin';if(/코|콧대|코끝|콧볼|콧구멍|매부리|들창|휜코|비중격/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱|양악|이마|관자놀이|볼꺼짐|팔자주름|인중|인중축소|입술|립리프트/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매|눈밑|다크서클|눈꺼풀|안검/.test(t))return'eye';return''}
 
 /* ── 연예인 이름 감지 + 스타일 매핑 ── */
 const CELEB_TRIGGER=/처럼|같이|같은|느낌|스타일|분위기/;
@@ -974,7 +974,6 @@ function inferFocusFromConcern(text, areaKey){
     {kw:/낮(은|은코)|낮은코|콧대.*낮|낮아요/, label:'콧대가 낮아요'},
     {kw:/코끝|뭉툭|둥근|별로|퍼진|퍼져/, label:'코끝이 뭉툭해요'},
     {kw:/퍼져|전체적.*퍼|넓(어|은)|넓은/, label:'전체적으로 퍼져 보여요'},
-    {kw:/인중|필트럼/, label:'인중이 길어요'},
     {kw:/콧볼|코날개/, label:'콧볼이 넓어요'},
     {kw:/들창|매부리|휜코/, label:'코가 들려 보여요'},
     {kw:/비중격|코막히/, label:'비중격이 휘어져 있어요'},
@@ -993,7 +992,9 @@ function inferFocusFromConcern(text, areaKey){
   const contourMap=[
     {kw:/사각턱|사각/, label:'사각턱'},
     {kw:/광대/, label:'광대'},
-    {kw:/앞턱|턱 없/, label:'앞턱'}
+    {kw:/앞턱|턱 없/, label:'앞턱'},
+    {kw:/인중|인중축소|립리프트|필트럼/, label:'인중이 길어요'},
+    {kw:/입술|입술축소|입꼬리/, label:'입술 모양이 고민이에요'}
   ];
   const skinMap=[
     {kw:/주름|탄력|늘어|처짐/, label:'주름·탄력 개선'},

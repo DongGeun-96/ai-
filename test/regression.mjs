@@ -78,7 +78,7 @@ const tests = [
   { in: 'M자 탈모 모발이식', area: 'hair' },
   { in: '정수리 탈모 상담', area: 'hair' },
   // 코 세부 키워드
-  { in: '인중축소', area: 'nose' },
+  { in: '인중축소', area: 'contour' },
   { in: '콧볼축소 하고 싶어요', area: 'nose' },
   { in: '들창코 교정', area: 'nose' },
   { in: '입술 필러', area: 'skin' },
