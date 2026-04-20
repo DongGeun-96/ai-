@@ -1212,8 +1212,7 @@ async function handleUserInput(text){
         if(detected){
           const surgeryMd=getCelebSurgeryGuide(detected, celebData.mood);
           if(surgeryMd) await scriptedReply(surgeryMd, 600);
-          await scriptedReply(`좌측 아래 사진 버튼으로 ${partLabel} 사진 한 장만 올려주시면 ~ 고객님의 ${partLabel} 조건에 맞춰서 더 꼼꼼하게 안내해드릴 수 있어요 !`, 600);
-          addAi('사진 없으셔도 그냥 다음으로 넘어가셔도 괜찮아요 ~');
+          await scriptedReply(`고객님의 ${partLabel} 조건에 맞춰서 더 꼼꼼하게 안내해드릴게요 ~`, 600);
         }else{
           addAi('제가 열심히 상담 도와드릴게요 ~');
         }
@@ -1570,9 +1569,7 @@ async function showFocusTrend(){
 /* ── focus 이후 사진 요청 (영상 제안 대체) ── */
 async function offerFocusVideos(){
   const area=AREAS[state.areaKey]?.label||'고민 부위';
-  await scriptedReply(`혹시 현재 ${area} 사진이 있으시면 좌측 아래 사진 버튼으로 한 장 올려주세요 !`,520);
-  await scriptedReply(`고객님의 ${area} 조건을 보고 위 3가지 중 더 꼼꼼하게 추천드릴 수 있어요 ~`,460);
-  addAi('사진 없으셔도 그대로 다음으로 넘어가셔도 괜찮아요 !');
+  await scriptedReply(`고객님의 ${area} 조건을 기반으로 더 꼼꼼하게 추천드릴게요 ~`,460);
   await new Promise(r=>setTimeout(r,400));
 }
 
