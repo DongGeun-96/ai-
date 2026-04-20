@@ -573,10 +573,6 @@ class SwirlOrb{
     for(const b of B){const g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c1);g.addColorStop(.45,b.c2);g.addColorStop(1,b.c3);ctx.fillStyle=g;ctx.fillRect(0,0,size,size)}
   }
 }
-// 참고 링크 로드
-window.__areaRefs={};
-fetch('/api/references').then(r=>r.ok?r.json():null).then(d=>{if(d)window.__areaRefs=d}).catch(()=>{});
-
 const mainOrb=new SwirlOrb(document.getElementById('orbCanvas'),200);
 const chatOrb=new SwirlOrb(document.getElementById('chatOrbCanvas'),160);
 mainOrb.start();
@@ -1431,16 +1427,7 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
         rec.innerHTML=`<strong>✨ 제 추천</strong> ${esc(data.recommendation)}`;
         card.appendChild(rec);
       }
-      // 참고 링크 (서울대병원 의학정보 등)
-      if(state.areaKey && window.__areaRefs && window.__areaRefs[state.areaKey]){
-        const refs=window.__areaRefs[state.areaKey];
-        const keys=Object.keys(refs);
-        if(keys.length){
-          const rd=document.createElement('div');rd.className='mc-refs';
-          rd.innerHTML=`<div class="mc-refs-title">참고 자료 (서울대병원 의학정보)</div>`+keys.map(k=>`<a href="${esc(refs[k])}" target="_blank" rel="noopener">${esc(k)}</a>`).join('');
-          card.appendChild(rd);
-        }
-      }
+
       chatMessages.appendChild(card);scrollBottom();
       await new Promise(r=>setTimeout(r,250));
     }
