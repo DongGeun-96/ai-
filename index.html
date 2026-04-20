@@ -1146,6 +1146,7 @@ async function askAI({stepGoal,userText,systemNote}){
 async function handleUserInput(text){
   if(!text||state.busy)return;
   hideRetryBtn();
+  pushUndo(null);
   addUser(text);
 
   if(state.step===1){
@@ -1267,7 +1268,6 @@ async function handleUserInput(text){
 
 /* ── 부위 되물기 (트렌드 가이드 포함) ── */
 async function askArea(){
-  pushUndo(askArea);
   state.step='area';
   const g=state.gender;
   let guide='';
@@ -1276,6 +1276,7 @@ async function askArea(){
   else guide='참고로 이용자들이 가장 많이 물어보는 건 눈·코·윤곽이에요.';
   addAi(`어느 부위가 지금 제일 고민이세요?\n${guide}`);
   addQuickReply(['눈','코','가슴','지방','윤곽'],async pick=>{
+    pushUndo(askArea);
     addUser(pick);
     const d=detectArea(pick);
     if(d){state.areaKey=d;state.step=1;if(state.gender&&state.age)goStep2();else if(state.gender)askAge();else askGender();}
@@ -1303,18 +1304,18 @@ async function startConsultWithEmpathy(text, detectedAreaKey){
 }
 
 async function askGender(){
-  pushUndo(askGender);
   addAi('성별이 어떻게 되실까요?');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
+    pushUndo(askGender);
     addUser(pick);state.gender=pick;
     askAge();
   },'직접 입력해도 돼요');
 }
 
 async function askAge(){
-  pushUndo(askAge);
   addAi('나이대도 알려주세요 ~ 연령대마다 많이 하시는 방식이 조금씩 달라서요 !');
   addQuickReply(['10대','20대','30대','40대','50대 이상','선택 안 함'],pick=>{
+    pushUndo(askAge);
     addUser(pick);state.age=pick;
     goStep2();
   },'직접 입력해도 돼요');
@@ -1349,28 +1350,28 @@ async function goStep2(){
 async function nextStep2Question(){
   const area=AREAS[state.areaKey];
   if(!state.revisit){
-    pushUndo(nextStep2Question);
     state.step2Pending='revisit';
     addAi(`${area.label} 수술 이력 여부 알려주세요. 재수술이면 체크 포인트가 달라져요.`);
     addQuickReply(['아니요, 처음이에요','네, 재수술이에요'],pick=>{
+      pushUndo(nextStep2Question);
       addUser(pick);state.revisit=pick;nextStep2Question();
     },'수술 회수 등 자세한 건 알려주셔도 돼요');
     return;
   }
   if(state.revisit && state.revisit.includes('재수술') && !state.sideEffect){
-    pushUndo(nextStep2Question);
     state.step2Pending='sideEffect';
     addAi('이전 수술 후 부작용이나 불편하셨던 점 있으셨을까요? ~\n여러 개여도 편하게 다 골라주세요 !');
     addMultiQuickReply(['특별한 부작용 없었어요','모양이 마음에 안 들었어요','흉·구축 같은 끈끈함','마취·회복이 힘들었어요','비대칭이 생겼어요','말씀드리기 어려워요'],picks=>{
+      pushUndo(nextStep2Question);
       const txt=picks.join(' / ');addUser(txt);state.sideEffect=txt;nextStep2Question();
     },'증상이나 시기, 경과를 자세히 적어주셔도 돼요');
     return;
   }
   if(!state.focus){
-    pushUndo(nextStep2Question);
     state.step2Pending='focus';
     addAi('요즘 특별히 신경 쓰이시는 부분 골라주세요 ~\n여러 개 골라주셔도 돼요 !');
     addMultiQuickReply(area.focusOptions,async picks=>{
+      pushUndo(nextStep2Question);
       const txt=picks.join(' / ');addUser(txt);state.focus=txt;state.focusShown=true;
       await showFocusTrend();
       await offerFocusVideos();
@@ -1386,10 +1387,10 @@ async function nextStep2Question(){
     return nextStep2Question();
   }
   if(!state.mood){
-    pushUndo(nextStep2Question);
     state.step2Pending='mood';
     addAi('원하시는 스타일 살짝 알려주세요 ! 직접 표현해주셔도 돼요 ~');
     addQuickReply(['자연스럽게','또렷하게','세련되게','동안 느낌'],async pick=>{
+      pushUndo(nextStep2Question);
       addUser(pick);state.mood=pick;
       nextStep2Question();
     },'직접 입력해도 돼요');
@@ -1818,18 +1819,17 @@ async function goStep3(){
 }
 
 async function askHospitalPriority(){
-  pushUndo(askHospitalPriority);
   addAi('병원 찾을 때 어떤 걸 제일 중요하게 보세요? ~\n여러 개여도 돼요 !');
   addMultiQuickReply(['비용','안전','좋은 후기','의료진 경력','접근성','상담 분위기','사후 관리'],picks=>{
+    pushUndo(askHospitalPriority);
     const txt=picks.join(' / ');addUser(txt);state.priority=txt;
     scriptedReply(`${txt} 중심으로 잘 찾아볼게요 ~`).then(()=>askRegion());
   },'예: 수술 전후 관리, 사후보증 같은 것도 입력 가능해요');
 }
 
 async function askRegion(){
-  pushUndo(askRegion);
   addAi('어느 지역으로 찾아드릴까요 ? 직접 입력하셔도 돼요 !');
-  addQuickReply(Object.keys(REGIONS),r=>{addUser(r);pickRegion(r)},'원하는 지역을 입력해도 돼요');
+  addQuickReply(Object.keys(REGIONS),r=>{pushUndo(askRegion);addUser(r);pickRegion(r)},'원하는 지역을 입력해도 돼요');
 }
 
 async function pickRegion(r){
