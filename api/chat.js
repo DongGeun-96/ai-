@@ -1,58 +1,41 @@
-import { SYSTEM_PROMPT, SAFETY_MD, STATS_MD, TRENDS_MD, PRICING_MD, loadAreaKnowledge, loadReferences, MODEL, getApiKey, readJson, send } from './_lib.js';
-import { ragSearch } from './_rag.js';
+import { MODEL, getApiKey, readJson, send } from './_lib.js';
+import { SYSTEM_PROMPT, buildContext } from './_prompts.js';
+
+export const config = { api: { bodyParser: { sizeLimit: '1mb' } } };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
   const apiKey = getApiKey();
   if (!apiKey) return send(res, 500, { error: 'OPENAI_API_KEY 미설정' });
-  let payload;
-  try { payload = await readJson(req); } catch (e) { return send(res, 400, { error: 'invalid json' }); }
-  const rawMsgs = Array.isArray(payload.messages) ? payload.messages : [];
-  const userMessages = rawMsgs.slice(-5);
-  const stepNote = payload.step ? `\n\n현재 STEP: ${payload.step}\n단계 목적: ${payload.stepGoal || ''}` : '';
-  const context = payload.context
-    ? `\n\n대화 컨텍스트\n${Object.entries(payload.context).filter(([, v]) => v).map(([k, v]) => `- ${k}: ${v}`).join('\n')}`
-    : '';
-  const areaKey = payload.context?.areaKey;
-  
-  // RAG: 사용자 마지막 메시지 기반 관련 지식 검색
-  const lastUserMsg = userMessages.filter(m => m.role === 'user').pop()?.content || '';
-  const ragQuery = `${payload.context?.관심부위 || ''} ${payload.context?.신경쓰이는포인트 || ''} ${lastUserMsg}`.trim();
-  let ragKnowledge = '';
-  try {
-    ragKnowledge = await ragSearch(ragQuery, apiKey, { topK: 5, areaKey: areaKey || null, minScore: 0.25 });
-  } catch { /* RAG 실패해도 기존 방식으로 폴백 */ }
 
-  // RAG 결과가 있으면 RAG 사용, 없으면 기존 전체 주입 폴백
-  const areaDoc = loadAreaKnowledge(areaKey);
-  let kb;
-  if (ragKnowledge) {
-    kb = `\n\n── 관련 전문 지식 (RAG 검색 결과) ──\n${ragKnowledge}`;
-  } else {
-    kb = areaDoc ? `\n\n── 전문 지식 (${areaKey}) ──\n${areaDoc}` : '';
-  }
-  
-  const refs = loadReferences(areaKey);
-  const refsNote = Object.keys(refs).length ? `\n\n── 참고 링크 (서울대병원 의학정보) ──\n${Object.entries(refs).map(([k,v])=>`- ${k}: ${v}`).join('\n')}` : '';
-  const step = Number(payload.step || 0);
-  const includeSafety = step === 1 || step >= 6;
-  const safety = includeSafety && SAFETY_MD ? `\n\n── 안전·가드레일 ──\n${SAFETY_MD}` : '';
-  const stats = STATS_MD ? `\n\n── 공식 통계·부작용·비용 자료 (인용 가능) ──\n${STATS_MD}` : '';
-  const trends = TRENDS_MD ? `\n\n── 2025 성형 트렌드 메모 (경향 참고) ──\n${TRENDS_MD}` : '';
-  const pricing = PRICING_MD ? `\n\n── 시술 비용 참고 (공공데이터 기반, 대략적 시세) ──\n${PRICING_MD}` : '';
+  let payload;
+  try { payload = await readJson(req); } catch { return send(res, 400, { error: 'invalid json' }); }
+
+  const userMessage = payload.message;
+  if (!userMessage || typeof userMessage !== 'string') return send(res, 400, { error: 'message 필요' });
+
+  const history = Array.isArray(payload.history) ? payload.history.slice(-20) : [];
+  const stateCtx = payload.state ? buildContext(payload.state) : '';
+
   const messages = [
-    { role: 'system', content: SYSTEM_PROMPT + stepNote + context + safety + kb + refsNote + stats + trends + pricing },
-    ...userMessages
+    { role: 'system', content: SYSTEM_PROMPT + stateCtx },
+    ...history.map(m => ({ role: m.role, content: m.content })),
+    { role: 'user', content: userMessage }
   ];
+
   try {
-    const upstream = await fetch('https://api.openai.com/v1/chat/completions', {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, messages, temperature: 0.65, max_tokens: 480 })
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: MODEL,
+        temperature: 0.6,
+        max_tokens: 300,
+        messages
+      })
     });
-    const data = await upstream.json();
-    if (!upstream.ok) return send(res, upstream.status, { error: data?.error?.message || '요청 실패' });
-    const text = data?.choices?.[0]?.message?.content?.trim() || '';
+    const j = await r.json();
+    const text = j.choices?.[0]?.message?.content?.trim() || '';
     return send(res, 200, { text });
   } catch (err) {
     return send(res, 502, { error: String(err) });
