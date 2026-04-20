@@ -1097,7 +1097,7 @@ async function nextStep2Question(){
   if(!state.revisit){
     state.step2Pending='revisit';
     addAi(`${area.label} 수술 이력 여부 알려주세요. 재수술이면 체크 포인트가 달라져요.`);
-    addQuickReply(['아니요, 처음이에요','네, 재수술이에요','고민 중이에요'],pick=>{
+    addQuickReply(['아니요, 처음이에요','네, 재수술이에요'],pick=>{
       addUser(pick);state.revisit=pick;nextStep2Question();
     },'수술 회수 등 자세한 건 알려주셔도 돼요');
     return;
@@ -1168,7 +1168,7 @@ function briefReaction(key){
 async function reactToCustomInput(key,text,opts){
   opts=opts||{};
   const isPreset={
-    revisit:['아니요, 처음이에요','네, 재수술이에요','고민 중이에요'],
+    revisit:['아니요, 처음이에요','네, 재수술이에요'],
     mood:['자연스럽게','또렷하게','세련되게','동안 느낌'],
     recovery:['짧을수록 좋아요','1~2주 가능해요','상관없어요']
   }[key];
