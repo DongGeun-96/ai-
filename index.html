@@ -744,7 +744,7 @@ const STEPS=[
 
 /* ─── State ─── */
 const state={
-  step:1,areaKey:'eye',concern:'',gender:'',age:'',
+  step:1,areaKey:'',concern:'',gender:'',age:'',
   focus:'',recovery:'',mood:'',region:'',
   hospitals:[],history:[],busy:false,
   step2Pending:'focus',revisit:'',sideEffect:''
@@ -776,7 +776,7 @@ function openChat(initial){
 function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
-  Object.assign(state,{step:1,areaKey:'eye',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus'});
+  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus'});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
 }
 function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
@@ -918,7 +918,7 @@ async function handleUserInput(text){
     const a=detectAge(text);
     if(g) state.gender=g;
     if(a) state.age=a;
-    await startConsultWithEmpathy(text);
+    await startConsultWithEmpathy(text, detected);
     if(!detected){
       askArea();
       return;
@@ -993,8 +993,9 @@ function addUserAck(key){
 }
 
 /* ── 처음 고민 입력 → 부드러운 인사 + 상담 시작 안내 ── */
-async function startConsultWithEmpathy(text){
-  const area=AREAS[state.areaKey]?.label||'';
+async function startConsultWithEmpathy(text, detectedAreaKey){
+  // 명시적으로 넘어온 key가 있을 때만 부위명 인사. 아니면 일반 인사.
+  const area=detectedAreaKey?AREAS[detectedAreaKey]?.label:'';
   const intro=area
     ? `안녕하세요, ${area} 상담 잘 도와드릴게요.`
     : '안녕하세요, 좋은 상담이 되도록 도와드릴게요.';
