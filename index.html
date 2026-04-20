@@ -992,37 +992,13 @@ function addUserAck(key){
   if(label) addAi(`아 ${label} 관련으로 볼게요.`);
 }
 
-/* ── 처음 고민에 대한 짧은 공감 한 마디 + 상담 시작 안내 (AI 호출) ── */
+/* ── 처음 고민 입력 → 부드러운 인사 + 상담 시작 안내 ── */
 async function startConsultWithEmpathy(text){
   const area=AREAS[state.areaKey]?.label||'';
-  const tp=addTyping();state.busy=true;setInputEnabled(false);
-  try{
-    const payload={
-      step:1,
-      stepGoal:`처음 고민 입력에 대한 짧은 공감 한 마디(1문장)만 쓰고 끝내기. "상담 시작해볼게요" 같은 만료 먘트는 붙이지 않는다(다음 질문이 바로 이어짐). 정보·제안·되물음 금지. 총 10~40자. 상담실장 투(예: "아 콧대가 신경 쓰이셨구나", "코끝 모양 고민이시구나"). 한 문장으로 끝.`,
-      context:{고민:text,관심부위:area,areaKey:state.areaKey},
-      messages:[{role:'user',content:text}]
-    };
-    const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
-    const j=await r.json();
-    tp.remove();chatOrb.setThinking(false);
-    let msg=(j.text||'').trim();
-    if(!msg){msg=area?`아 ${area} 고민이시구나.`:'아 네, 말씀해주셔서 감사해요.'}
-    // 지나치게 긴 AI 답변은 첫 문장만
-    msg=msg.split(/[.!?\n]/)[0].trim();
-    if(msg && !/[.!\?요다]$/.test(msg))msg+='.';
-    addAi(msg);
-    await new Promise(r=>setTimeout(r,300));
-    addAi('그럼 상담 시작해볼게요.');
-    await new Promise(r=>setTimeout(r,250));
-  }catch(e){
-    tp.remove();chatOrb.setThinking(false);
-    if(area)addAi(`아 ${area} 고민이시구나.`);
-    else addAi('아 네, 말씀해주셔서 감사해요.');
-    await new Promise(r=>setTimeout(r,250));
-    addAi('상담 시작해볼게요.');
-    await new Promise(r=>setTimeout(r,200));
-  }finally{state.busy=false;setInputEnabled(true);chatInputEl.focus()}
+  const intro=area
+    ? `안녕하세요, ${area} 상담 잘 도와드릴게요.`
+    : '안녕하세요, 좋은 상담이 되도록 도와드릴게요.';
+  await scriptedReply(intro,420);
 }
 
 async function askGender(){
@@ -1153,12 +1129,12 @@ async function showStyleTrend(){
 
 /* ── 짧은 리액션 (실제 상담사 후기 기반: "아 그러세요", "네~" 수준) ── */
 const REACT_POOL={
-  revisit:['아 이해했어요.','아~ 네.','네 알겠습니다.'],
-  sideEffect:['아 그러셉어요.','아 그러셔서 조심스러운 부분이시겠다.','네 그 부분은 꿁 챙겨서 볼게요.'],
-  focus:['아 그 부분이구나.','아 네.','음음 네.'],
-  recovery:['아 네.','그럼 그 기간 기준으로 볼게요.'],
-  mood:['아 그러세요.','음~ 느낌 오긴했어요.','네 그 방향으로.'],
-  priority:['아 그럼 그 기준으로 볼게요.','네 알겠습니다.']
+  revisit:['네, 확인했어요.','알겠습니다.'],
+  sideEffect:['네, 그 부분 꿁 챙겨볼게요.','알겠습니다, 조심스러운 부분으로 보고 있습니다.'],
+  focus:['네, 그 부분 기준으로 볼게요.','확인했어요.'],
+  recovery:['네, 그 조건으로 보겠습니다.','알겠습니다.'],
+  mood:['네, 그 방향으로 정리해드릴게요.','좋아요, 반영해서 볼게요.'],
+  priority:['네, 그 기준으로 알아볼게요.','알겠습니다.']
 };
 function briefReaction(key){
   const pool=REACT_POOL[key];
