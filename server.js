@@ -361,11 +361,35 @@ async function handleShorts(req, res) {
       headers: { 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15', 'accept-language': 'ko-KR,ko;q=0.9' }
     });
     const html = await r.text();
-    const items = extractYtItems(html, limit);
+    const items = extractShorts(html, limit);
     YT_CACHE.set(key, { at: Date.now(), items });
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ items }));
   } catch (err) { res.writeHead(502, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: String(err) })); }
+}
+
+function extractShorts(html, limit) {
+  const seen = new Set();
+  const out = [];
+  const slvmRe = /"shortsLockupViewModel":\{"entityId":"shorts-shelf-item-([A-Za-z0-9_-]{11})","accessibilityText":"([^"]+)"/g;
+  let m;
+  while ((m = slvmRe.exec(html)) && out.length < limit) {
+    const [, id, accText] = m;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const title = accText.split(',')[0].trim();
+    out.push({ id, title: decodeHtml(title), type: 'short' });
+  }
+  if (out.length < limit) {
+    const urlRe = /"url":"\/shorts\/([A-Za-z0-9_-]{11})"/g;
+    while ((m = urlRe.exec(html)) && out.length < limit) {
+      const id = m[1];
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.push({ id, title: '', type: 'short' });
+    }
+  }
+  return out;
 }
 
 async function handleSearch(req, res) {
