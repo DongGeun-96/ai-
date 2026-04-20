@@ -1531,6 +1531,63 @@ async function showMoodLiveTrend(){
   });
 }
 
+
+async function showRecoDetail(){
+  const area=AREAS[state.areaKey]?.label||'';
+  const methods=state.lastTrendItems?state.lastTrendItems.map(it=>it.name).join(', '):'';
+  const photoCtx=state.photoAnalysis||'';
+
+  // 1단계: 대략적 가격 안내
+  await scriptedReply('먼저 대략적인 비용부터 안내해드릴게요 ~',400);
+  await liveStructuredCard({
+    title:`${area} 시술 예상 비용`,
+    emoji:'',variant:'trend',
+    schema:`{"items":[{"name":"시술명","price":"가격대","note":"참고 1줄"}],"tip":"1줄 주의"}`,
+    instruction:`강남 성형외과 상담실장(20후 여성) 톤.
+방금 추천한 수술법 중심으로 대략적 시세 안내.
+추천 수술법: ${methods}
+사진 분석 내용: ${photoCtx}
+
+items: 추천한 수술법 각각에 대해:
+- name: 시술명
+- price: 대략적 가격 범위 (예: "50~100만원대"). 범위로 표현.
+- note: 가격에 영향 주는 요소 1줄
+
+tip: "실제 비용은 병원·재료·의료진에 따라 달라요. 비용만 보지 마시고 경력과 사후관리도 확인하세요" 1줄.
+
+규칙: 정확한 금액 단정 금지. "~만원대/대략/시세" 표현. 특정 병원·의사 금지. 이모지·하트 금지. JSON만.`
+  });
+
+  await new Promise(r=>setTimeout(r,800));
+
+  // 2단계: 참고 정보 링크 제안
+  await new Promise(resolve=>{
+    addAi('도움 될 만한 참고 정보도 찾아볼까요?');
+    addQuickReply(['네, 알려주세요','괜찮아요'],async pick=>{
+      addUser(pick);
+      if(pick.includes('네')){
+        // 구글 검색 링크 제공
+        const queries=state.lastTrendItems
+          ?state.lastTrendItems.slice(0,3).map(it=>it.name)
+          :[area+' 수술'];
+        const links=queries.map(q=>{
+          const encoded=encodeURIComponent(q+' 후기 비용 회복기간');
+          return {name:q,url:'https://www.google.com/search?q='+encoded};
+        });
+        await scriptedReply('참고하시면 좋을 링크 정리해드릴게요 ~',400);
+        const linkHtml=links.map(l=>`<a href="${l.url}" target="_blank" rel="noopener" style="display:block;padding:8px 12px;margin:4px 0;border-radius:10px;background:rgba(123,143,212,0.08);color:var(--accent-deep);text-decoration:none;font-size:13px;line-height:1.4">${l.name} 후기/비용/회복기간</a>`).join('');
+        const wrap=document.createElement('div');wrap.className='msg ai';
+        wrap.innerHTML='<div class="msg-bubble" style="padding:12px 14px">'+linkHtml+'</div>';
+        chatMessages.appendChild(wrap);scrollBottom();
+      }
+      resolve();
+    });
+  });
+
+  await new Promise(r=>setTimeout(r,400));
+  await scriptedReply('궁금한 점 더 있으시면 편하게 물어보세요 ~',300);
+}
+
 async function showYoutubeRecommendation(){
   const area=AREAS[state.areaKey]?.label||'시술';
   const q=`${area} ${state.focus||''} ${state.mood||''} 시술 후기 비교`.replace(/\s+/g,' ').trim();
@@ -2262,7 +2319,21 @@ async function analyzeImage(dataUrl){
       body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect,연예인:state.celebName||'',연예인스타일:state.celebVibe||'',사진모드:state.celebName?'본인':'단독',추천수술법:state.lastTrendItems?state.lastTrendItems.map(it=>it.name).join(', '):'',얼굴분석:faceMeshData?JSON.stringify(faceMeshData):''}})});
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
-    if(res.ok && data.text){state.photoAnalysis=data.text;addAi(data.text)}
+    if(res.ok && data.text){
+      state.photoAnalysis=data.text;addAi(data.text);
+      // 사진 분석 후 추천 수술법 가격+정보 안내 제안
+      await new Promise(r=>setTimeout(r,600));
+      await new Promise(resolve=>{
+        addAi('추천드린 수술법의 대략적인 비용과 참고 정보도 안내해드릴까요?');
+        addQuickReply(['네, 알려주세요','괜찮아요, 다음으로'],async pick=>{
+          addUser(pick);
+          if(pick.includes('네')){
+            await showRecoDetail();
+          }
+          resolve();
+        });
+      });
+    }
     else addAi('사진 분석에 문제가 있었어요. 다음으로 넘어가셔도 돼요.');
   }catch(err){tp.remove();chatOrb.setThinking(false);addAi('사진 분석 에러가 났어요.')}
   state.busy=false;
