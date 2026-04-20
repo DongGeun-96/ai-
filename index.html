@@ -969,8 +969,10 @@ async function handleUserInput(text){
       const celebData=await fetchCelebStyle(celebName, detected);
       if(celebData && celebData.mood){
         state.mood=celebData.mood;
-        addAi(`“${celebName}” 느낌을 ${celebData.vibe||celebData.mood} 방향으로 정리해둡게요.`);
-        addAi('참고로, 연예인을 그대로 닮는 목표보다 느낌·분위기만 참고해요.');
+        const partLabel=detected?AREAS[detected]?.label:'느낌';
+        const vibe=celebData.vibe||celebData.mood;
+        addAi(`${celebName}의 ${partLabel}처럼 ${vibe} 스타일로 되고 싶으시구나요.`);
+        addAi('제가 열심히 상담 도와드릴게요.');
       }
     }
     if(!detected){
