@@ -1470,7 +1470,7 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
   const tp=addTyping();
   try{
     const stepGoal=`${instruction}\n\n⚔️ 오직 유효 JSON 하나로만 반환. 설명·인사·마크다운 금지. 필드: ${schema}`;
-    const ctx=context||{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,재수술:state.revisit,포인트:state.focus,스타일:state.mood,areaKey:state.areaKey};
+    const ctx=context||{concern:state.concern,gender:state.gender,age:state.age,areaKey:state.areaKey,focus:state.focus,mood:state.mood,revisit:state.revisit,sideEffect:state.sideEffect,celebName:state.celebName};
     const payload={
       message:stepGoal,
       state:ctx,
