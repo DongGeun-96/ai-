@@ -1069,7 +1069,7 @@ function detectGender(t){
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 function openChat(initial){
-  chatScreen.classList.add('open');chatOrb.start();resetChat();
+  closeAllScreens();chatScreen.classList.add('open');chatOrb.start();resetChat();
   if(initial&&initial.trim()){setTimeout(()=>handleUserInput(initial.trim()),300)}
   else {setTimeout(()=>greetAndAsk(),350)}
 }
@@ -2628,7 +2628,14 @@ function renderCheckPanel(el,data){
 
 /* ─── bindings ─── */
 const rankScreen=document.getElementById('rankScreen');
-function openRank(){rankScreen.classList.add('open')}
+function closeAllScreens(){
+  document.getElementById('rankScreen')?.classList.remove('open');
+  document.getElementById('timelineScreen')?.classList.remove('open');
+  document.getElementById('glossaryScreen')?.classList.remove('open');
+  document.getElementById('catDetailScreen')?.classList.remove('open');
+  chatScreen?.classList.remove('open');
+}
+function openRank(){closeAllScreens();rankScreen.classList.add('open')}
 function closeRank(){rankScreen.classList.remove('open')}
 document.getElementById('rankBanner').addEventListener('click',e=>{e.preventDefault();openRank()});
 document.getElementById('rankClose').addEventListener('click',closeRank);
@@ -2692,7 +2699,7 @@ const RECOVERY_TABLE={
   ],minOk:3,fullOk:14}
 };
 
-function openTimeline(){document.getElementById('timelineScreen').classList.add('open')}
+function openTimeline(){closeAllScreens();document.getElementById('timelineScreen').classList.add('open')}
 function closeTimeline(){document.getElementById('timelineScreen').classList.remove('open')}
 document.getElementById('timelineBanner').addEventListener('click',e=>{e.preventDefault();openTimeline()});
 document.getElementById('timelineClose').addEventListener('click',closeTimeline);
@@ -2748,7 +2755,7 @@ function renderGlossary(filter=''){
   list.innerHTML=filtered.map(g=>`<div class="gl-item"><span class="gl-tag">${esc(g.cat)}</span><h5>${esc(g.term)}</h5><p>${esc(g.def)}</p></div>`).join('')||'<div class="tl-verdict warn" style="margin:0 18px">일치하는 용어가 없어요.</div>';
 }
 
-function openGlossary(){document.getElementById('glossaryScreen').classList.add('open');renderGlossary()}
+function openGlossary(){closeAllScreens();document.getElementById('glossaryScreen').classList.add('open');renderGlossary()}
 function closeGlossary(){document.getElementById('glossaryScreen').classList.remove('open')}
 document.getElementById('glossaryBanner').addEventListener('click',e=>{e.preventDefault();openGlossary()});
 document.getElementById('glossaryClose').addEventListener('click',closeGlossary);
