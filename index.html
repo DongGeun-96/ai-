@@ -786,7 +786,7 @@ const state={
   focus:'',recovery:'',mood:'',region:'',
   hospitals:[],history:[],busy:false,
   step2Pending:'focus',revisit:'',sideEffect:'',
-  celebName:'',celebVibe:'',greeted:false
+  celebName:'',celebVibe:'',greeted:false,focusShown:false
 };
 
 /* ─── DOM ─── */
@@ -851,6 +851,45 @@ async function fetchCelebStyle(name,areaKey){
   }catch{return null}
 }
 
+/* ── concern 텍스트 → focus 추론 (STEP2 focus 질문 스킵용) ── */
+function inferFocusFromConcern(text, areaKey){
+  if(!text||!areaKey) return '';
+  const t=text;
+  // 구체적 단서가 하나라도 있어야 focus 추론 (단순히 '눈 고민'만으로는 아님)
+  const eyeMap=[
+    {kw:/쌍꺼풀|쌍꺼플|쌍수|쌍껏|올쌍|홍길동/, label:'쌍꺼풀이 없어요'},
+    {kw:/작(은|은눈|은눈매)|답답|조골|눈이 작/, label:'눈이 답답해 보여요'},
+    {kw:/잠자는|졸린|흐릿|흐릿|쌈만한|안겨|삼백안|눈매.*흐/, label:'눈매가 흐려 보여요'},
+    {kw:/자연|또렷|부드럽/, label:'자연스럽게 또렷했으면 해요'}
+  ];
+  const noseMap=[
+    {kw:/낮(은|은코)|낮은코|콧대.*낮|고무|낮죠/, label:'콧대가 낮아요'},
+    {kw:/코끝|뭉툭|둥근|뱔|퍼진|퍼져/, label:'코끝이 뭉툭해요'},
+    {kw:/퍼져|전체적.*퍼|넓(어|은)|넓은/, label:'전체적으로 퍼져 보여요'},
+    {kw:/자연|정리/, label:'자연스럽게만 정리하고 싶어요'}
+  ];
+  const breastMap=[
+    {kw:/작|볼륨|없(어|어요)/, label:'볼륨이 작아요'},
+    {kw:/처짐|처질/, label:'처짐이 있어요'},
+    {kw:/모양|비대칭/, label:'모양이 신경쓰여요'}
+  ];
+  const lipoMap=[
+    {kw:/복부|배|뜿살/, label:'복부'},
+    {kw:/허벅지|다리/, label:'허벅지'},
+    {kw:/팔/, label:'팔'}
+  ];
+  const contourMap=[
+    {kw:/사각턱|사각/, label:'사각턱'},
+    {kw:/광대/, label:'광대'},
+    {kw:/앞턱|턱 없/, label:'앞턱'}
+  ];
+  const maps={eye:eyeMap, nose:noseMap, breast:breastMap, lipo:lipoMap, contour:contourMap};
+  const map=maps[areaKey]||[];
+  const hits=[];
+  for(const m of map){ if(m.kw.test(t)) hits.push(m.label); }
+  return hits.join(' / ');
+}
+
 /* ── 연예인 스타일·부위별 수술방식 안내 문구 (의학 단정 금지, 경향 수준) ── */
 function getCelebSurgeryGuide(areaKey, vibe){
   const guides={
@@ -899,7 +938,7 @@ async function greetAndAsk(){
 function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
-  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false});
+  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
 }
 function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
@@ -1041,6 +1080,11 @@ async function handleUserInput(text){
     const a=detectAge(text);
     if(g) state.gender=g;
     if(a) state.age=a;
+    // 고민(concern) 에서 focus 단서 추출 → STEP2 focus 질문 스킵
+    if(detected){
+      const inferred=inferFocusFromConcern(text, detected);
+      if(inferred) state.focus=inferred;
+    }
     // 연예인 이름 감지 → 스타일 자동 설정 시도
     const celebName=detectCelebName(text);
     await startConsultWithEmpathy(text, detected);
@@ -1242,12 +1286,19 @@ async function nextStep2Question(){
     state.step2Pending='focus';
     addAi('요즘 특별히 신경 쓰이시는 부분 골라주세요 ~\n여러 개 골라주셔도 돼요 !');
     addMultiQuickReply(area.focusOptions,async picks=>{
-      const txt=picks.join(' / ');addUser(txt);state.focus=txt;
+      const txt=picks.join(' / ');addUser(txt);state.focus=txt;state.focusShown=true;
       await showFocusTrend();
       await offerFocusVideos();
       nextStep2Question();
     },'직접 입력하셔도 돼요');
     return;
+  }
+  // concern에서 추론으로 focus가 이미 채워졌으면 한 번만 트렌드+영상 안내
+  if(state.focus && !state.focusShown){
+    state.focusShown=true;
+    await showFocusTrend();
+    await offerFocusVideos();
+    return nextStep2Question();
   }
   if(!state.mood){
     state.step2Pending='mood';
