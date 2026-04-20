@@ -1,4 +1,5 @@
 import { SYSTEM_PROMPT, SAFETY_MD, STATS_MD, TRENDS_MD, PRICING_MD, loadAreaKnowledge, loadReferences, MODEL, getApiKey, readJson, send } from './_lib.js';
+import { ragSearch } from './_rag.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
@@ -13,8 +14,24 @@ export default async function handler(req, res) {
     ? `\n\n대화 컨텍스트\n${Object.entries(payload.context).filter(([, v]) => v).map(([k, v]) => `- ${k}: ${v}`).join('\n')}`
     : '';
   const areaKey = payload.context?.areaKey;
+  
+  // RAG: 사용자 마지막 메시지 기반 관련 지식 검색
+  const lastUserMsg = userMessages.filter(m => m.role === 'user').pop()?.content || '';
+  const ragQuery = `${payload.context?.관심부위 || ''} ${payload.context?.신경쓰이는포인트 || ''} ${lastUserMsg}`.trim();
+  let ragKnowledge = '';
+  try {
+    ragKnowledge = await ragSearch(ragQuery, apiKey, { topK: 5, areaKey: areaKey || null, minScore: 0.25 });
+  } catch { /* RAG 실패해도 기존 방식으로 폴백 */ }
+
+  // RAG 결과가 있으면 RAG 사용, 없으면 기존 전체 주입 폴백
   const areaDoc = loadAreaKnowledge(areaKey);
-  const kb = areaDoc ? `\n\n── 전문 지식 (${areaKey}) ──\n${areaDoc}` : '';
+  let kb;
+  if (ragKnowledge) {
+    kb = `\n\n── 관련 전문 지식 (RAG 검색 결과) ──\n${ragKnowledge}`;
+  } else {
+    kb = areaDoc ? `\n\n── 전문 지식 (${areaKey}) ──\n${areaDoc}` : '';
+  }
+  
   const refs = loadReferences(areaKey);
   const refsNote = Object.keys(refs).length ? `\n\n── 참고 링크 (서울대병원 의학정보) ──\n${Object.entries(refs).map(([k,v])=>`- ${k}: ${v}`).join('\n')}` : '';
   const step = Number(payload.step || 0);
