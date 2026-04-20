@@ -971,8 +971,8 @@ async function handleUserInput(text){
         state.mood=celebData.mood;
         const partLabel=detected?AREAS[detected]?.label:'느낌';
         const vibe=celebData.vibe||celebData.mood;
-        addAi(`${celebName}의 ${partLabel}처럼 ${vibe} 스타일 너무 이쁜죠 !`);
-        addAi('제가 열심히 상담 도와드릴게요.');
+        addAi(`${celebName}의 ${partLabel}처럼 ${vibe} 스타일 너무 이쁜죠 ! ♡`);
+        addAi('제가 열심히 상담 도와드릴게요 ~');
       }
     }
     if(!detected){
@@ -988,7 +988,7 @@ async function handleUserInput(text){
   if(state.step==='area'){
     const d=detectArea(text);
     if(d){state.areaKey=d;state.step=1;addUserAck(d);if(state.gender&&state.age)goStep2();else if(state.gender)askAge();else askGender();return}
-    addAi('혹시 눈·코·가슴·지방·윤꽉 중 어느 쪽을 생각하세요?');
+    addAi('혹시 눈·코·가슴·지방·윤곽 중 어느 쪽을 생각하고 계세요 ?');
     askArea();
     return;
   }
@@ -1053,13 +1053,13 @@ async function startConsultWithEmpathy(text, detectedAreaKey){
   // 명시적으로 넘어온 key가 있을 때만 부위명 인사. 아니면 일반 인사.
   const area=detectedAreaKey?AREAS[detectedAreaKey]?.label:'';
   const intro=area
-    ? `안녕하세요, ${area} 상담 잘 도와드릴게요.`
-    : '안녕하세요, 좋은 상담이 되도록 도와드릴게요.';
+    ? `안녕하세요 ! ${area} 상담 제가 편하게 도와드릴게요 ♡`
+    : '안녕하세요 ! 제가 편하게 잘 도와드릴게요 ♡';
   await scriptedReply(intro,420);
 }
 
 async function askGender(){
-  addAi('성별이 어떻게 되세요?');
+  addAi('성별이 어떻게 되실까요?');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
     addUser(pick);state.gender=pick;
     askAge();
@@ -1067,7 +1067,7 @@ async function askGender(){
 }
 
 async function askAge(){
-  addAi('나이대도 골라주세요. 연령대별로 많이 하는 방식이 조금씩 달라요.');
+  addAi('나이대도 알려주세요 ~ 연령대마다 많이 하시는 방식이 조금씩 달라서요 !');
   addQuickReply(['10대','20대','30대','40대','50대 이상','선택 안 함'],pick=>{
     addUser(pick);state.age=pick;
     goStep2();
@@ -1077,7 +1077,7 @@ async function askAge(){
 async function showPopularMethods(){
   const area=AREAS[state.areaKey].label;
   const q=`${state.gender||''} ${state.age||''} ${area} 수술 추천 후기`.trim();
-  await scriptedReply(`${state.gender||''} ${state.age||''} 기준으로 많이 보시는 영상부터 뽑아볼게요.`);
+  await scriptedReply(`${state.gender||''} ${state.age||''} 기준으로 많이 보시는 영상 몇 개 뽑아올게요 ~`);
   const tp=addTyping();
   try{
     const res=await fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=4');
@@ -1137,7 +1137,7 @@ async function nextStep2Question(){
   }
   if(state.revisit && state.revisit.includes('재수술') && !state.sideEffect){
     state.step2Pending='sideEffect';
-    addAi('이전 수술 후 부작용이나 불편했던 점이 있었을까요?\n해당되는 게 여러 개면 모두 골라주세요.');
+    addAi('이전 수술 후 부작용이나 불편하셨던 점 있으셨을까요? ~\n여러 개여도 편하게 다 골라주세요 !');
     addMultiQuickReply(['특별한 부작용 없었어요','모양이 마음에 안 들었어요','흉·구축 같은 끈끈함','마취·회복이 힘들었어요','비대칭이 생겼어요','말씀드리기 어려워요'],picks=>{
       const txt=picks.join(' / ');addUser(txt);state.sideEffect=txt;nextStep2Question();
     },'증상이나 시기, 경과를 자세히 적어주셔도 돼요');
@@ -1145,7 +1145,7 @@ async function nextStep2Question(){
   }
   if(!state.focus){
     state.step2Pending='focus';
-    addAi('신경 쓰이는 부분 골라주세요. 여러 개여도 괜찮아요.');
+    addAi('요즘 특별히 신경 쓰이시는 부분 골라주세요 ~\n여러 개 골라주셔도 돼요 !');
     addMultiQuickReply(area.focusOptions,async picks=>{
       const txt=picks.join(' / ');addUser(txt);state.focus=txt;
       await showFocusTrend();
@@ -1156,7 +1156,7 @@ async function nextStep2Question(){
   }
   if(!state.mood){
     state.step2Pending='mood';
-    addAi('원하시는 스타일 골라주세요. 직접 표현해주셔도 돼요.');
+    addAi('원하시는 스타일 살짝 알려주세요 ! 직접 표현해주셔도 돼요 ~');
     addQuickReply(['자연스럽게','또렷하게','세련되게','동안 느낌'],async pick=>{
       addUser(pick);state.mood=pick;
       nextStep2Question();
@@ -1180,18 +1180,18 @@ async function showStyleTrend(){
     chatMessages.appendChild(el);scrollBottom();
     await new Promise(r=>setTimeout(r,450));
   }
-  addAi('원하시는 스타일 사진을 하나 첨부해 주시면 더 정확하게 맞춰드려요.\n사진이 없으셔도 그냥 다음으로 넘어가셔도 돼요.');
+  addAi('원하시는 스타일 사진 한 장만 올려주시면 더 꼼꼼히 맞춰드릴 수 있어요 !\n사진이 없으시면 그냥 넘어가셔도 괜찮아요 ~');
   await new Promise(r=>setTimeout(r,300));
 }
 
 /* ── 짧은 리액션 (실제 상담사 후기 기반: "아 그러세요", "네~" 수준) ── */
 const REACT_POOL={
-  revisit:['네, 확인했어요.','알겠습니다.'],
-  sideEffect:['네, 그 부분 꿁 챙겨볼게요.','알겠습니다, 조심스러운 부분으로 보고 있습니다.'],
-  focus:['네, 그 부분 기준으로 볼게요.','확인했어요.'],
-  recovery:['네, 그 조건으로 보겠습니다.','알겠습니다.'],
-  mood:['네, 그 방향으로 정리해드릴게요.','좋아요, 반영해서 볼게요.'],
-  priority:['네, 그 기준으로 알아볼게요.','알겠습니다.']
+  revisit:['네 ~ 확인했어요 !','네 알겠습니다 ~'],
+  sideEffect:['네 ~ 그 부분 꿁 챙겨볼게요 !','조심스러운 부분이시겠어요 ~ 꼭 체크해둠게요 !'],
+  focus:['네 ~ 그 부분 기준으로 볼게요 !','오~ 알겠습니다 ~'],
+  recovery:['네 ~ 그 조건으로 잘 맞춰볼게요 !','알겠습니다 ~'],
+  mood:['네 ~ 그 방향으로 예쁜게 정리해드릴게요 !','오 좋아요 ~ 그 느낌 반영해서 볼게요 !'],
+  priority:['네 ~ 그 기준으로 꼼꼼히 알아볼게요 !','오 알겠습니다 ~']
 };
 function briefReaction(key){
   const pool=REACT_POOL[key];
@@ -1301,7 +1301,7 @@ async function offerFocusVideos(){
 
 async function playFocusVideos(){
   const area=AREAS[state.areaKey];
-  await scriptedReply('네, 몇 개 뽑아볼게요.',260);
+  await scriptedReply('네 ~ 몇 개 뽑아볼게요 !',260);
   const q=`${state.gender||''} ${state.age||''} ${area.label} ${state.focus||''}`.replace(/\s+/g,' ').trim();
   const tp=addTyping();
   try{
@@ -1334,7 +1334,7 @@ async function showMoodLiveTrend(){
 
 async function showInfoAndVideos(){
   // focus에서 이미 방식·영상 안내 끝남. STEP 3로 넘기기 전 간결 전환문구만.
-  await scriptedReply(`${state.focus} / ${state.mood} 기준으로 병원까지 같이 찾아볼게요.`);
+  await scriptedReply(`${state.focus} / ${state.mood} 기준으로 병원까지 제가 같이 찾아볼게요 !`);
   await new Promise(r=>setTimeout(r,250));
 }
 
@@ -1344,15 +1344,15 @@ async function goStep3(){
 }
 
 async function askHospitalPriority(){
-  addAi('병원 안내 기준 골라주세요. 중요한 게 여러 개면 모두 선택해주세요.');
+  addAi('병원 찾을 때 어떤 걸 제일 중요하게 보세요? ~\n여러 개여도 돼요 !');
   addMultiQuickReply(['비용','안전','좋은 후기','의료진 경력','접근성','상담 분위기','사후 관리'],picks=>{
     const txt=picks.join(' / ');addUser(txt);state.priority=txt;
-    scriptedReply(`${txt} 중심으로 찾아볼게요.`).then(()=>askRegion());
+    scriptedReply(`${txt} 중심으로 잘 찾아볼게요 ~`).then(()=>askRegion());
   },'예: 수술 전후 관리, 사후보증 같은 것도 입력 가능해요');
 }
 
 async function askRegion(){
-  addAi('지역 골라주세요. 직접 입력하셔도 돼요.');
+  addAi('어느 지역으로 찾아드릴까요 ? 직접 입력하셔도 돼요 !');
   addQuickReply(Object.keys(REGIONS),r=>{addUser(r);pickRegion(r)},'원하는 지역을 입력해도 돼요');
 }
 
@@ -1379,7 +1379,7 @@ async function goStep4(){
   setStep(4);
   addHospitalList();
   await new Promise(r=>setTimeout(r,400));
-  addAi('더 궁금한 게 있으실까요?\n아래에서 골라주시거나, 다른 질문을 직접 입력해주셔도 돼요.');
+  addAi('혹시 더 궁금한 거 있으세요 ? \n아래에서 고르셔도 되고, 직접 입력하셔도 돼요 !');
   goStep5();
 }
 
@@ -1401,10 +1401,10 @@ function goStep5(){
 }
 
 function askRecovery(){
-  addAi('회복 기간 여유 정도 알려주세요.');
+  addAi('회복 기간 얼마나 여유 있으세요 ? ~');
   addQuickReply(['짧을수록 좋아요','1~2주 가능해요','상관없어요'],pick=>{
     addUser(pick);state.recovery=pick;
-    scriptedReply(`${pick} 기준이면 그에 맞춰 안내해드릴게요.`).then(()=>goStep5());
+    scriptedReply(`${pick} 기준으로 딱 맞춰 안내해드릴게요 ~`).then(()=>goStep5());
   },'직접 입력해도 돼요');
 }
 
@@ -1414,7 +1414,7 @@ async function sendExtra(key){
   const info=EXTRA_TOPICS[key];
   addAi(info.text);
   await new Promise(r=>setTimeout(r,400));
-  addAi('다른 방향도 볼까요?');
+  addAi('다른 방향으로도 같이 볼까요 ?');
   goStep5();
 }
 
@@ -1505,12 +1505,12 @@ function renderSideCard(areaKey){
 }
 
 async function showOfficialPricing(){
-  await scriptedReply('공개된 비급여 가격대로 정리해드릴게요.');
+  await scriptedReply('공개된 비급여 가격대로 정리해드릴게요 ~');
   renderCostCard(state.areaKey);
 }
 
 async function showOfficialSideEffects(){
-  await scriptedReply('공개 통계 기준으로 부작용 포인트 정리해드릴게요.');
+  await scriptedReply('공개 통계 기준으로 주의할 포인트 정리해드릴게요 ~');
   renderSideCard(state.areaKey);
 }
 
@@ -1564,7 +1564,7 @@ async function showQuestionList(){
   if(state.sideEffect&&!state.sideEffect.includes('없었어요')){
     list.push(`이전 증상(${state.sideEffect}) 관련, 이번 수술에서 이를 개선할 수 있는 방향은?`);
   }
-  await scriptedReply(`${area.label} 상담 갈 때 챙먹하면 좋은 질문 리스트예요.`);
+  await scriptedReply(`${area.label} 상담 가실 때 챙겨가시면 좋은 질문 리스트예요 !`);
   ensureChatActive();
   const wrap=document.createElement('div');wrap.className='question-card';
   wrap.innerHTML=`<div class="question-card-head"><strong>✨ 상담실 질문지</strong><span>${area.label}</span></div>
@@ -1573,7 +1573,7 @@ async function showQuestionList(){
   wrap.dataset.text=list.map((q,i)=>`${i+1}. ${q}`).join('\n');
   chatMessages.appendChild(wrap);scrollBottom();
   await new Promise(r=>setTimeout(r,400));
-  addAi('상담 전에 한번 읽어보시고, 필요한 건 직접 메모해 가세요.');
+  addAi('상담 전에 한 번 쭉 읽어보시고, 필요하신 건 메모해 가시면 좋아요 !');
   goStep5();
 }
 
@@ -1618,7 +1618,7 @@ const SURGERY_COMPARE={
 async function showSurgeryCompare(){
   const data=SURGERY_COMPARE[state.areaKey];
   if(!data){addAi('비교표 준비가 아직 없어요. 다른 메뉴를 선택해주세요.');goStep5();return;}
-  await scriptedReply(`${data.title} 표로 정리해드릴게요.`);
+  await scriptedReply(`${data.title} 표로 예쁘게 정리해드릴게요 ~`);
   ensureChatActive();
   const wrap=document.createElement('div');wrap.className='compare-card';
   wrap.innerHTML=`<div class="compare-head"><strong>${esc(data.title)}</strong><span>참고용</span></div>
@@ -1632,13 +1632,13 @@ async function showSurgeryCompare(){
 }
 
 function askOtherRegion(){
-  addAi('어느 지역으로 다시 볼까요?\n직접 입력해 주셔도 돼요.');
+  addAi('어느 지역으로 다시 볼까요 ? 직접 입력하셔도 돼요 !');
   addQuickReply(Object.keys(REGIONS),async r=>{
     addUser(r);state.region=r;await loadRealHospitals();
     addAi(`${r} 기준으로 다시 조회했어요.`);
     addHospitalList();
     await new Promise(rs=>setTimeout(rs,300));
-    addAi('이 지역 기준으로 정리해드릴게요. 더 궁금한 게 있으면 말씀해주세요.');
+    addAi('이 지역 기준으로 정리해드릴게요 ! 더 궁금한 거 있으시면 편하게 말씀해주세요 ~');
     goStep5();
   });
 }
@@ -1649,7 +1649,7 @@ async function goStep6(){
   const body=`고민 부위: ${area.label}\n관심 포인트: ${state.focus}\n회복 조건: ${state.recovery}\n원하는 무드: ${state.mood}\n추천 지역: ${state.region}\n조회된 병원 ${state.hospitals.length}곳을 순위 없이 공개정보 기반으로 안내했어요.\n\n예약 직접 연결은 하지 않아요. 아래 정보는 공개된 자료 기반이며 특정 병원 추천이 아닙니다.`;
   addSummary('오늘 상담 요약',body);
   await new Promise(r=>setTimeout(r,350));
-  addAi('공개 정보 기반 병원 안내예요. 이용 전에 각 병원에 직접 확인해 주세요.');
+  addAi('공개 정보 기반 병원 안내예요 ~ 이용 전에 각 병원에 직접 확인해주시면 더 안심돼요 !');
   addHospitalList();
   await new Promise(r=>setTimeout(r,300));
   await askAI({
