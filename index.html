@@ -2671,11 +2671,13 @@ retryBtnEl.addEventListener('click',()=>{
     let cur=undo.mark.nextSibling;
     while(cur){const tmp=cur.nextSibling;cur.remove();cur=tmp;}
   }
-  // 남아있는 칩 다시 활성화
-  chatMessages.querySelectorAll('.qchip.disabled').forEach(c=>c.classList.remove('disabled'));
-  chatMessages.querySelectorAll('.qchip.multi.on').forEach(c=>c.classList.remove('on'));
-  const submitBtn=chatMessages.querySelector('.qchip.submit');
-  if(submitBtn) submitBtn.disabled=true;
+  // 현재 단계 칩만 재활성화 (mark가 quick-reply면 그 안에서만)
+  const qr=undo.mark&&(undo.mark.classList.contains('quick-reply')||undo.mark.classList.contains('multi'))?undo.mark:null;
+  if(qr){
+    qr.querySelectorAll('.qchip.disabled').forEach(c=>c.classList.remove('disabled'));
+    qr.querySelectorAll('.qchip.multi.on').forEach(c=>c.classList.remove('on'));
+    const sb=qr.querySelector('.qchip.submit');if(sb)sb.disabled=true;
+  }
   // 스냅샷으로 state 복원
   if(undo.snap){
     for(const k of Object.keys(undo.snap)){
@@ -2683,9 +2685,10 @@ retryBtnEl.addEventListener('click',()=>{
     }
   }
   state.busy=false;
-  hideRetryBtn();
   setInputEnabled(true);
   chatInputEl.value='';
+  // 스택에 아직 남아있으면 버튼 유지, 없으면 숨김
+  if(state._undoStack.length)showRetryBtn();else hideRetryBtn();
 });
 function showUploadBtn(){
   uploadBtn.style.display='flex';
