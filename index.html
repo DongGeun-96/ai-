@@ -747,7 +747,8 @@ const state={
   step:1,areaKey:'',concern:'',gender:'',age:'',
   focus:'',recovery:'',mood:'',region:'',
   hospitals:[],history:[],busy:false,
-  step2Pending:'focus',revisit:'',sideEffect:''
+  step2Pending:'focus',revisit:'',sideEffect:'',
+  celebName:'',celebVibe:''
 };
 
 /* ─── DOM ─── */
@@ -852,7 +853,7 @@ function openChat(initial){
 function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
-  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus'});
+  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:''});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
 }
 function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
@@ -1001,6 +1002,8 @@ async function handleUserInput(text){
       const celebData=await fetchCelebStyle(celebName, detected);
       if(celebData && celebData.mood){
         state.mood=celebData.mood;
+        state.celebName=celebName;
+        state.celebVibe=celebData.vibe||celebData.mood;
         const partLabel=detected?AREAS[detected]?.label:'느낌';
         const vibe=celebData.vibe||celebData.mood;
         addAi(`${celebName}의 ${partLabel}처럼 ${vibe} 스타일 너무 이쁘죠 !`);
@@ -1874,7 +1877,7 @@ async function analyzeImage(dataUrl){
   try{
     const area=AREAS[state.areaKey]?.label||'';
     const res=await fetch('/api/vision',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect}})});
+      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect,연예인:state.celebName||'',연예인스타일:state.celebVibe||'',사진모드:state.celebName?'본인':'단독'}})});
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
     if(res.ok && data.text){addAi(data.text)}
