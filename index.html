@@ -2168,7 +2168,7 @@ async function analyzeImage(dataUrl){
   try{
     const area=AREAS[state.areaKey]?.label||'';
     const res=await fetch('/api/vision',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect,연예인:state.celebName||'',연예인스타일:state.celebVibe||'',사진모드:state.celebName?'본인':'단독'}})});
+      body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect,연예인:state.celebName||'',연예인스타일:state.celebVibe||'',사진모드:state.celebName?'본인':'단독',추천수술법:state.lastTrendItems?state.lastTrendItems.map(it=>it.name).join(', '):''}})});
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
     if(res.ok && data.text){state.photoAnalysis=data.text;addAi(data.text)}
