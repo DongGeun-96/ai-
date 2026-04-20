@@ -1470,10 +1470,11 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
   const tp=addTyping();
   try{
     const stepGoal=`${instruction}\n\n⚔️ 오직 유효 JSON 하나로만 반환. 설명·인사·마크다운 금지. 필드: ${schema}`;
+    const ctx=context||{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,재수술:state.revisit,포인트:state.focus,스타일:state.mood,areaKey:state.areaKey};
     const payload={
-      step:state.step,stepGoal,
-      context:context||{고민:state.concern,성별:state.gender,나이대:state.age,관심부위:AREAS[state.areaKey]?.label,재수술:state.revisit,포인트:state.focus,스타일:state.mood,areaKey:state.areaKey},
-      messages:[{role:'user',content:'스키마에 맞는 JSON만 반환.'}]
+      message:stepGoal,
+      state:ctx,
+      history:[]
     };
     const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     const j=await r.json();
