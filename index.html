@@ -1219,9 +1219,7 @@ async function handleUserInput(text){
   if(state.step===1){
     state.concern=text;
     const detected=detectArea(text);
-    const g=detectGender(text);
     const a=detectAge(text);
-    if(g) state.gender=g;
     if(a) state.age=a;
     // 고민(concern) 에서 focus 단서 추출 → STEP2 focus 질문 스킵
     if(detected){
@@ -1256,8 +1254,8 @@ async function handleUserInput(text){
       return;
     }
     state.areaKey=detected;
-    if(g && a) goStep2();
-    else if(g && !a) askAge();
+    if(state.gender && a) goStep2();
+    else if(state.gender && !a) askAge();
     else askGender();
     return;
   }
