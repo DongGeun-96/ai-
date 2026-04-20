@@ -971,7 +971,7 @@ async function handleUserInput(text){
         state.mood=celebData.mood;
         const partLabel=detected?AREAS[detected]?.label:'느낌';
         const vibe=celebData.vibe||celebData.mood;
-        addAi(`${celebName}의 ${partLabel}처럼 ${vibe} 스타일 너무 이쁜죠 ! ♡`);
+        addAi(`${celebName}의 ${partLabel}처럼 ${vibe} 스타일 너무 이쁜죠 !`);
         addAi('제가 열심히 상담 도와드릴게요 ~');
       }
     }
@@ -1053,8 +1053,8 @@ async function startConsultWithEmpathy(text, detectedAreaKey){
   // 명시적으로 넘어온 key가 있을 때만 부위명 인사. 아니면 일반 인사.
   const area=detectedAreaKey?AREAS[detectedAreaKey]?.label:'';
   const intro=area
-    ? `안녕하세요 ! ${area} 상담 제가 편하게 도와드릴게요 ♡`
-    : '안녕하세요 ! 제가 편하게 잘 도와드릴게요 ♡';
+    ? `안녕하세요 ! ${area} 상담 제가 편하게 도와드릴게요`
+    : '안녕하세요 ! 제가 편하게 잘 도와드릴게요';
   await scriptedReply(intro,420);
 }
 
