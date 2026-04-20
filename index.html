@@ -547,6 +547,7 @@
     <div class="chat-input-inner">
       <button class="upload-btn" id="uploadBtn" title="사진 첨부"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
       <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
       <input type="text" id="chatInput" placeholder="자유롭게 입력해 주세요" enterkeyhint="send" autocomplete="off">
       <button class="send-btn" id="chatSend"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
     </div>
@@ -1562,17 +1563,32 @@ ${celebCtx}
 앞서 안내한 3가지 방식: ${methods}
 사진은 없음.
 
-1) summary: "사진이 없어서 정확한 판단은 어렵지만, 고객님 조건(${state.gender||''}·${state.age||''}·${state.focus}·${state.mood})을 종합하면 ~" 2줄로.
-2) recommendation: 3가지(${methods}) 중 고객 조건·원하는 느낌에 가장 적합한 1가지를 추천. 이유 포함 3~4줄.
-${celebCtx?'"'+state.celebName+'같은 느낌을 원하시니까 ~방식이 가장 잘 맞을 것 같아요" 패턴 사용.':''}
-마지막에 "정확한 적용 가능 여부는 대면 상담에서 꼭 확인하셔야 해요 !" 포함.
+1) summary: "사진이 없어서 정확한 판단은 어렵지만" + "고객님이 ${state.mood} 느낌을 원하시니까 위 3가지 중 ~가 가장 잘 맞을 것 같아요" 2줄.
+2) recommendation (필수! 반드시 채울 것): 3가지 방식(${methods})을 하나씩 언급하면서 왜 고객 조건(${state.gender||''}·${state.age||''}·${state.focus}·${state.mood})에 맞는지/안 맞는지 짧게 비교한 뒤, 최종 1가지를 구체적으로 추천. 총 4~5줄.
+예시 패턴: "3가지 중에서 보면, A방식은 ~한 장점이 있지만 고객님 조건에서는 ~하고, B방식은 ~, 그래서 C방식이 ${state.mood} 느낌에 가장 잘 맞을 것 같아요 ~ 왜냐하면 ~이기 때문이에요. 다만 정확한 적용은 대면 상담에서 꼭 확인하셔야 해요 !"
+${celebCtx?state.celebName+'같은 느낌을 원하시니까 라는 맥락도 반영.':''}
 3) tip: 주의할 점 1줄.
 items 필드는 쓰지 않는다.
+recommendation 필드가 비어있으면 안 됩니다. 반드시 3가지를 비교하고 1개를 추천하세요.
 
 규칙: 광고·가격·특정 병원·의사명·수치 금지. 칭찬·미화 금지. "경향"/"편이에요" 톤. 이모지·하트 금지. JSON만 반환.`
     });
   } else {
     await scriptedReply(`${state.focus} / ${state.mood} 기준으로 잘 정리해드릴게요 ~`);
+  }
+  // 사진 한번 더 권유 (카메라 촬영 가능)
+  if(!state.photoAnalysis){
+    await new Promise(resolve=>{
+      addAi('혹시 지금 사진 한 장 찍어서 올려주시면 더 정확하게 맞춤 추천 드릴 수 있어요 !');
+      addQuickReply(['사진 찍기','갤러리에서 선택','괜찮아요, 넘어갈게요'],pick=>{
+        addUser(pick);
+        if(pick==='사진 찍기'){triggerCamera();resolve()}
+        else if(pick.includes('갤러리')){triggerGallery();resolve()}
+        else{resolve()}
+      },'사진 없으셔도 괜찮아요 !');
+    });
+    // 사진 업로드 후 약간의 대기
+    if(state.photoAnalysis) await new Promise(r=>setTimeout(r,500));
   }
   await scriptedReply('그러면 병원까지 제가 같이 찾아볼게요 !',350);
   await new Promise(r=>setTimeout(r,250));
@@ -2053,7 +2069,28 @@ chatInputEl.addEventListener('keydown',e=>{
 /* ── 이미지 분석 ── */
 const uploadBtn=document.getElementById('uploadBtn');
 const fileInput=document.getElementById('fileInput');
+const cameraInput=document.getElementById('cameraInput');
 uploadBtn.addEventListener('click',()=>fileInput.click());
+
+// 카메라/갤러리 트리거 함수
+function triggerCamera(){cameraInput.click()}
+function triggerGallery(){fileInput.click()}
+
+// 카메라 입력도 동일 처리
+cameraInput.addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  cameraInput.value='';
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    const dataUrl=ev.target.result;
+    ensureChatActive();
+    const wrap=document.createElement('div');wrap.className='msg user';
+    wrap.innerHTML=`<div class="msg-bubble">사진 보냈어요<img class="msg-image" src="${dataUrl}" alt=""></div>`;
+    chatMessages.appendChild(wrap);scrollBottom();
+    await analyzeImage(dataUrl);
+  };
+  reader.readAsDataURL(f);
+});
 fileInput.addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   fileInput.value='';
