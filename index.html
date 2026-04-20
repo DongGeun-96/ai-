@@ -334,6 +334,8 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .mc-name em{font-style:normal;font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;background:var(--accent);color:#fff;letter-spacing:.2px}
     .mc-desc{font-size:13px;color:var(--text-1);margin-top:2px;line-height:1.6}
     .mc-detail{font-size:12.5px;color:var(--text-2);margin-top:6px;line-height:1.55;padding-top:8px;border-top:1px dashed rgba(123,143,212,0.22)}
+    .mc-price{font-size:14px;font-weight:700;color:var(--accent-deep);margin-top:4px}
+    .mc-note{font-size:12px;color:var(--text-2);margin-top:4px;font-style:italic}
     .mc-reco{margin-top:14px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(123,143,212,0.14),rgba(168,186,232,0.06));border:1px solid rgba(123,143,212,0.28);font-size:13px;line-height:1.6;color:var(--text-0)}
     .mc-reco strong{color:var(--accent-deep);font-weight:800;margin-right:4px}
     .mc-refs{margin-top:12px;padding:10px 14px;border-radius:12px;background:rgba(123,143,212,0.06);border:1px solid rgba(123,143,212,0.15)}
@@ -1422,7 +1424,7 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
         const li=document.createElement('li');
         if(typeof it==='string'){li.innerHTML=`<span>${esc(it)}</span>`}
         else{
-          li.innerHTML=`<div class="mc-name">${esc(it.name||'')}${it.tag?`<em>${esc(it.tag)}</em>`:''}</div>${it.desc?`<div class="mc-desc">${esc(it.desc)}</div>`:''}${it.detail?`<div class="mc-detail">${esc(it.detail)}</div>`:''}`;
+          li.innerHTML=`<div class="mc-name">${esc(it.name||'')}${it.tag?`<em>${esc(it.tag)}</em>`:''}</div>${it.price?`<div class="mc-price">${esc(it.price)}</div>`:''}${it.desc?`<div class="mc-desc">${esc(it.desc)}</div>`:''}${it.detail?`<div class="mc-detail">${esc(it.detail)}</div>`:''}${it.note?`<div class="mc-note">${esc(it.note)}</div>`:''}`;
         }
         ul.appendChild(li);
       });
