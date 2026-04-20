@@ -97,5 +97,16 @@ for (const t of tests) {
   }
 }
 
-console.log(`\n${pass}/${pass + fail} passed`);
-process.exit(fail === 0 ? 0 : 1);
+// 오타 / 금지 기호 전수 검사
+const banned = ['♡', '♥', '❤', '이쁜죠', '이뽐죠', '이뿐죠', '예뽐죠', '아 네~', '되고 싶으시구나요', '되고 싶으구나'];
+let lintFail = 0;
+for (const word of banned) {
+  if (html.includes(word) || readFileSync(join(__dirname, '..', 'api', '_lib.js'), 'utf8').includes(word)) {
+    console.log(`✗ 금지어 발견: "${word}"`);
+    lintFail++;
+  }
+}
+if (lintFail === 0) console.log('✓ 오타·금지어 없음');
+
+console.log(`\n${pass}/${pass + fail} detect passed, ${lintFail === 0 ? '0 lint issue' : lintFail + ' lint issue'}`);
+process.exit(fail === 0 && lintFail === 0 ? 0 : 1);
