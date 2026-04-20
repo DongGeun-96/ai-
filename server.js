@@ -113,6 +113,12 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && req.url.startsWith('/api/places')) {
       return handlePlaces(req, res);
     }
+    if (req.method === 'GET' && req.url.startsWith('/api/shorts')) {
+      return handleShorts(req, res);
+    }
+    if (req.method === 'GET' && req.url.startsWith('/api/search')) {
+      return handleSearch(req, res);
+    }
     return serveStatic(req, res);
   } catch (err) {
     console.error('[server] error', err);
@@ -340,6 +346,53 @@ function decodeHtml(s) {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'");
+}
+
+async function handleShorts(req, res) {
+  const u = new URL(req.url, 'http://localhost');
+  const q = (u.searchParams.get('q') || '').trim();
+  const limit = Math.min(Number(u.searchParams.get('limit') || 4), 8);
+  if (!q) { res.writeHead(400, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: 'q 필수' })); return; }
+  const key = 'shorts|' + q + '|' + limit;
+  const hit = YT_CACHE.get(key);
+  if (hit && Date.now() - hit.at < YT_CACHE_TTL) { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ items: hit.items, cached: true })); return; }
+  try {
+    const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q + ' #shorts')}&hl=ko&gl=KR`, {
+      headers: { 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15', 'accept-language': 'ko-KR,ko;q=0.9' }
+    });
+    const html = await r.text();
+    const items = extractYtItems(html, limit);
+    YT_CACHE.set(key, { at: Date.now(), items });
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ items }));
+  } catch (err) { res.writeHead(502, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: String(err) })); }
+}
+
+async function handleSearch(req, res) {
+  const u = new URL(req.url, 'http://localhost');
+  const q = (u.searchParams.get('q') || '').trim();
+  const limit = Math.min(Number(u.searchParams.get('limit') || 4), 8);
+  if (!q) { res.writeHead(400, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: 'q 필수' })); return; }
+  const NID = process.env.NAVER_CLIENT_ID || loadDotenv().NAVER_CLIENT_ID;
+  const NSEC = process.env.NAVER_CLIENT_SECRET || loadDotenv().NAVER_CLIENT_SECRET;
+  if (!NID || !NSEC) { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ items: [] })); return; }
+  try {
+    const [blogR, cafeR] = await Promise.all([
+      fetch(`https://openapi.naver.com/v1/search/blog.json?query=${encodeURIComponent(q)}&display=${limit}&sort=sim`, { headers: { 'X-Naver-Client-Id': NID, 'X-Naver-Client-Secret': NSEC } }),
+      fetch(`https://openapi.naver.com/v1/search/cafearticle.json?query=${encodeURIComponent(q)}&display=${limit}&sort=sim`, { headers: { 'X-Naver-Client-Id': NID, 'X-Naver-Client-Secret': NSEC } })
+    ]);
+    const blogs = blogR.ok ? (await blogR.json()).items || [] : [];
+    const cafes = cafeR.ok ? (await cafeR.json()).items || [] : [];
+    const items = [];
+    const seen = new Set();
+    const maxLen = Math.max(blogs.length, cafes.length);
+    for (let i = 0; i < maxLen && items.length < limit; i++) {
+      if (i < blogs.length && !seen.has(blogs[i].link)) { seen.add(blogs[i].link); items.push({ type: 'blog', title: stripTags(blogs[i].title), desc: stripTags(blogs[i].description).slice(0, 80), url: blogs[i].link, source: blogs[i].bloggername || '블로그' }); }
+      if (i < cafes.length && items.length < limit && !seen.has(cafes[i].link)) { seen.add(cafes[i].link); items.push({ type: 'cafe', title: stripTags(cafes[i].title), desc: stripTags(cafes[i].description).slice(0, 80), url: cafes[i].link, source: cafes[i].cafename || '카페' }); }
+    }
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ items }));
+  } catch (err) { res.writeHead(502, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: String(err) })); }
 }
 
 async function handleChat(req, res) {
