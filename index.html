@@ -206,9 +206,9 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     @keyframes msgSlide{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
     .msg.ai{background:var(--bg-sub);color:var(--text-1);border-bottom-left-radius:6px;align-self:flex-start;white-space:pre-line}
     .msg.user{background:linear-gradient(135deg,var(--accent-light),var(--accent));color:white;border-bottom-right-radius:6px;align-self:flex-end;box-shadow:0 3px 12px rgba(123,143,212,0.2);display:flex;align-items:center;gap:6px}
-    .retry-bar{display:flex;justify-content:flex-end;padding:4px 16px 0}
-    .retry-btn{border:1px solid var(--accent);background:none;color:var(--accent);border-radius:16px;font-size:12px;font-weight:600;padding:4px 14px;cursor:pointer;transition:all .15s}
-    .retry-btn:active{background:var(--accent);color:#fff}
+    .retry-bar{display:flex;justify-content:center;padding:8px 16px 4px}
+    .retry-btn{border:none;background:var(--accent);color:#fff;border-radius:20px;font-size:13px;font-weight:700;padding:8px 24px;cursor:pointer;transition:all .15s;box-shadow:0 2px 8px rgba(123,143,212,0.3);letter-spacing:.3px}
+    .retry-btn:active{transform:scale(0.95);box-shadow:0 1px 4px rgba(123,143,212,0.2)}
     .msg + .quick-reply{margin-top:2px}
 
     .quick-reply{align-self:flex-start;max-width:88%;display:flex;flex-wrap:wrap;gap:6px;padding:2px 2px 6px 2px;animation:msgSlide .32s both}
@@ -1446,7 +1446,7 @@ async function goStep2(){
 async function nextStep2Question(){
   const area=AREAS[state.areaKey];
   if(!state.revisit){
-    state.step2Pending='revisit';
+    state.step2Pending='revisit';state._lastStep2Q='revisit';
     addAi(`${area.label} 수술 이력 여부 알려주세요. 재수술이면 체크 포인트가 달라져요.`);
     addQuickReply(['아니요, 처음이에요','네, 재수술이에요'],pick=>{
       addUser(pick);state.revisit=pick;nextStep2Question();
@@ -2827,12 +2827,23 @@ retryBtnEl.addEventListener('click',()=>{
   let next=last.el.nextSibling;
   while(next){const tmp=next.nextSibling;next.remove();next=tmp;}
   last.el.remove();
-  // 입력창에 이전 값 + 포커스
-  chatInputEl.value=last.text;
-  chatInputEl.focus();
   // busy 해제
   state.busy=false;
   hideRetryBtn();
+  // 현재 step에 맞는 질문 다시 호출
+  if(state.step===1 && !state.areaKey){askArea();return;}
+  if(state.step===1 && state.areaKey && !state.gender){askGender();return;}
+  if(state.step===1 && state.areaKey && state.gender && !state.age){state.gender='';askGender();return;}
+  if(state.step==='area'){askArea();return;}
+  if(state.step===2){
+    state.step2Pending=state._lastStep2Q||'focus';
+    nextStep2Question();return;
+  }
+  if(state.step===3 && !state.priority){askHospitalPriority();return;}
+  if(state.step===3 && !state.region){askRegion();return;}
+  // 기본: 입력창에 값 넣기
+  chatInputEl.value=last.text;
+  chatInputEl.focus();
 });
 function showUploadBtn(){
   uploadBtn.style.display='flex';
