@@ -1012,7 +1012,7 @@ async function askGender(){
 
 async function askAge(){
   addAi('나이대도 골라주세요. 연령대별로 많이 하는 방식이 조금씩 달라요.');
-  addQuickReply(['20대','30대','40대','50대 이상','선택 안 함'],pick=>{
+  addQuickReply(['10대','20대','30대','40대','50대 이상','선택 안 함'],pick=>{
     addUser(pick);state.age=pick;
     goStep2();
   },'직접 입력해도 돼요');
@@ -1044,7 +1044,7 @@ async function showPopularMethods(){
 }
 
 /* 자동 감지 시도 */
-function detectAge(t){t=t||'';const m=t.match(/(\d{2})\s*대/);if(m)return m[1]+'대';const m2=t.match(/(\d{2})\s*살|(\d{2})\s*세/);if(m2){const n=parseInt(m2[1]||m2[2]);if(n<30)return '20대';if(n<40)return '30대';if(n<50)return '40대';return '50대 이상'}return '';}
+function detectAge(t){t=t||'';const m=t.match(/(\d{2})\s*대/);if(m)return m[1]+'대';const m2=t.match(/(\d{2})\s*살|(\d{2})\s*세/);if(m2){const n=parseInt(m2[1]||m2[2]);if(n<20)return '10대';if(n<30)return '20대';if(n<40)return '30대';if(n<50)return '40대';return '50대 이상'}return '';}
 
 function addYtCards(list){
   ensureChatActive();
