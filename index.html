@@ -48,11 +48,18 @@
     .scroll-panel::-webkit-scrollbar{display:none}
 
     .ai-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px}
-    .greeting{text-align:center;margin-bottom:32px;opacity:0;animation:fadeUp .7s .1s forwards}
-    .greeting-label{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-family:'DM Sans',sans-serif;padding:5px 14px;border:1px solid rgba(123,143,212,0.2);border-radius:20px;background:rgba(123,143,212,0.06);margin-bottom:16px}
-    .greeting-title{font-size:26px;font-weight:300;line-height:1.4;letter-spacing:-0.3px}
+    .greeting{text-align:center;margin-bottom:32px}
+    .greeting-label{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-family:'DM Sans',sans-serif;padding:5px 14px;border:1px solid rgba(123,143,212,0.2);border-radius:20px;background:rgba(123,143,212,0.06);margin-bottom:16px;opacity:0;transform:translateY(-6px);animation:fadeDown .7s .1s forwards}
+    .greeting-title{font-size:26px;font-weight:300;line-height:1.4;letter-spacing:-0.3px;min-height:72px}
     .greeting-title strong{font-weight:700}
-    .greeting-sub{margin-top:12px;font-size:13px;color:var(--text-3);line-height:1.6}
+    .greeting-title .tt-line{display:block;opacity:0;transform:translateY(8px);animation:fadeUp .55s forwards}
+    .greeting-title .tt-line.line2{animation-delay:1.0s}
+    .greeting-title .tt-line .caret{display:inline-block;width:2px;height:1em;vertical-align:-2px;background:var(--accent);margin-left:2px;animation:caret 0.8s steps(2) infinite}
+    .greeting-sub{margin-top:14px;font-size:13px;color:var(--text-3);line-height:1.6;opacity:0;animation:fadeUp .7s 2.0s forwards}
+    .orb-area{opacity:0;transform:scale(0.96);animation:orbIn 0.9s 2.2s forwards cubic-bezier(.2,.8,.2,1)}
+    @keyframes fadeDown{to{opacity:1;transform:translateY(0)}}
+    @keyframes orbIn{to{opacity:1;transform:scale(1)}}
+    @keyframes caret{50%{opacity:0}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
     .orb-area{display:flex;flex-direction:column;align-items:center;opacity:0;animation:fadeUp .8s .25s forwards}
     .orb-wrap{width:200px;height:200px;cursor:pointer}
@@ -393,7 +400,10 @@
     <div class="ai-main">
       <div class="greeting">
         <span class="greeting-label">AI Consultation</span>
-        <h1 class="greeting-title">당신만을 위한<br><strong>성형 전문 AI 상담</strong></h1>
+        <h1 class="greeting-title">
+          <span class="tt-line line1" id="ttLine1"></span>
+          <span class="tt-line line2" id="ttLine2"></span>
+        </h1>
         <p class="greeting-sub">광고 없는 객관적 정보와 맞춤 분석으로<br>신뢰할 수 있는 선택을 도와드려요</p>
       </div>
       <div class="orb-area" id="orbArea">
@@ -559,6 +569,35 @@ class SwirlOrb{
 const mainOrb=new SwirlOrb(document.getElementById('orbCanvas'),200);
 const chatOrb=new SwirlOrb(document.getElementById('chatOrbCanvas'),160);
 mainOrb.start();
+
+/* ── 메인 타이폄 타이핑 효과 ── */
+function typeInto(el, text, speed, onDone){
+  if(!el) return;
+  el.textContent='';
+  const caret=document.createElement('span');caret.className='caret';el.appendChild(caret);
+  let i=0;
+  const tick=()=>{
+    if(i>=text.length){caret.remove();onDone&&onDone();return}
+    const ch=text[i++];
+    const node=document.createTextNode(ch);
+    el.insertBefore(node, caret);
+    setTimeout(tick, speed + Math.random()*40);
+  };
+  tick();
+}
+setTimeout(()=>{
+  const l1=document.getElementById('ttLine1');
+  const l2=document.getElementById('ttLine2');
+  if(!l1||!l2) return;
+  l1.style.animation='none';l1.style.opacity='1';l1.style.transform='none';
+  typeInto(l1, '당신만을 위한', 65, ()=>{
+    setTimeout(()=>{
+      l2.style.animation='none';l2.style.opacity='1';l2.style.transform='none';
+      const strong=document.createElement('strong');l2.appendChild(strong);
+      typeInto(strong, '성형 전문 AI 상담', 75);
+    }, 180);
+  });
+}, 250);
 
 
 /* ─── Domain data ─── */
