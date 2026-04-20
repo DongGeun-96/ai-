@@ -917,17 +917,11 @@ async function handleUserInput(text){
     const a=detectAge(text);
     if(g) state.gender=g;
     if(a) state.age=a;
-    // 바로 이어지는 시스템 질문이 있을 때는 짧은 공감만 (중복 방지)
-    if(g && a){
-      await reactToCustomInput('concern',text,{brief:true});
-      goStep2();
-    }else if(g && !a){
-      await reactToCustomInput('concern',text,{brief:true});
-      askAge();
-    }else{
-      await reactToCustomInput('concern',text,{brief:true});
-      askGender();
-    }
+    // 고민 입력에 관련된 공감 한 마디 + 상담 시작 안내
+    await startConsultWithEmpathy(text);
+    if(g && a) goStep2();
+    else if(g && !a) askAge();
+    else askGender();
     return;
   }
 
@@ -966,8 +960,41 @@ async function handleUserInput(text){
   }
 }
 
+/* ── 처음 고민에 대한 짧은 공감 한 마디 + 상담 시작 안내 (AI 호출) ── */
+async function startConsultWithEmpathy(text){
+  const area=AREAS[state.areaKey]?.label||'';
+  const tp=addTyping();state.busy=true;setInputEnabled(false);
+  try{
+    const payload={
+      step:1,
+      stepGoal:`처음 고민 입력에 대한 짧은 공감 한 마디(1문장)만 쓰고 끝내기. "상담 시작해볼게요" 같은 만료 먘트는 붙이지 않는다(다음 질문이 바로 이어짐). 정보·제안·되물음 금지. 총 10~40자. 상담실장 투(예: "아 콧대가 신경 쓰이셨구나", "코끝 모양 고민이시구나"). 한 문장으로 끝.`,
+      context:{고민:text,관심부위:area,areaKey:state.areaKey},
+      messages:[{role:'user',content:text}]
+    };
+    const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+    const j=await r.json();
+    tp.remove();chatOrb.setThinking(false);
+    let msg=(j.text||'').trim();
+    if(!msg){msg=area?`아 ${area} 고민이시구나.`:'아 네, 말씀해주셔서 감사해요.'}
+    // 지나치게 긴 AI 답변은 첫 문장만
+    msg=msg.split(/[.!?\n]/)[0].trim();
+    if(msg && !/[.!\?요다]$/.test(msg))msg+='.';
+    addAi(msg);
+    await new Promise(r=>setTimeout(r,300));
+    addAi('대신 상담 시작해볼게요.');
+    await new Promise(r=>setTimeout(r,250));
+  }catch(e){
+    tp.remove();chatOrb.setThinking(false);
+    if(area)addAi(`아 ${area} 고민이시구나.`);
+    else addAi('아 네, 말씀해주셔서 감사해요.');
+    await new Promise(r=>setTimeout(r,250));
+    addAi('상담 시작해볼게요.');
+    await new Promise(r=>setTimeout(r,200));
+  }finally{state.busy=false;setInputEnabled(true);chatInputEl.focus()}
+}
+
 async function askGender(){
-  addAi('편하게 진행해드릴게요. 먼저 상담받으시는 분부터 알려주세요.');
+  addAi('먼저 상담받으시는 분부터 알려주세요.');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
     addUser(pick);state.gender=pick;
     askAge();
