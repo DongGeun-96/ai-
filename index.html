@@ -762,8 +762,9 @@ function setStep(n){state.step=n}
 function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return'eye'}
 function detectGender(t){
   t=t||'';
-  if(/\b(남자|남성|남|아저씨|형|오빠|남친|훈남)\b/.test(t)) return '남성';
-  if(/\b(여자|여성|여|언니|누나|여친|엄마|이모)\b/.test(t)) return '여성';
+  // 단어 중간에 끊는 수류(훈남자 같은 프리픽스 한자만) 제외하고, 한글은 단순 포함여부로 판단
+  if(/(남자|남성|아저씨|남친)/.test(t)) return '남성';
+  if(/(여자|여성|언니|누나|여친|엄마|이모)/.test(t)) return '여성';
   return '';
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
