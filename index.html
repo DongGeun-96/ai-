@@ -319,15 +319,18 @@
     .sc-chip:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(123,143,212,0.3)}
     .sc-chip.disabled{opacity:.4;pointer-events:none}
     /* ── 미니 카드 (말풍선 사이에 껴는 가벼운 리스트) ── */
-    .mini-card{align-self:flex-start;max-width:88%;margin:4px 0;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid rgba(123,143,212,0.2);animation:msgSlide .32s both}
-    .mini-card.variant-trend{border-color:rgba(123,143,212,0.3);background:linear-gradient(180deg,#F6F8FE,#fff)}
-    .mini-card.variant-mood{border-color:rgba(255,200,170,0.55);background:linear-gradient(180deg,#FFF9F5,#fff)}
-    .mc-title{font-size:12px;font-weight:800;color:var(--accent-deep);margin-bottom:6px;letter-spacing:.2px}
-    .mc-items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px}
-    .mc-items li{padding:6px 8px;border-radius:8px;background:rgba(123,143,212,0.05);font-size:12.5px;line-height:1.45}
-    .mc-name{font-weight:700;color:var(--text-0);display:flex;align-items:center;gap:6px}
-    .mc-name em{font-style:normal;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;background:var(--accent);color:#fff;letter-spacing:.2px}
-    .mc-desc{font-size:12px;color:var(--text-1);margin-top:2px;line-height:1.5}
+    .mini-card{align-self:stretch;width:100%;max-width:100%;margin:10px 0;padding:18px 18px 16px;border-radius:20px;background:#fff;border:1px solid rgba(123,143,212,0.25);box-shadow:0 4px 18px rgba(123,143,212,0.08);animation:msgSlide .32s both}
+    .mini-card.variant-trend{border-color:rgba(123,143,212,0.35);background:linear-gradient(180deg,#F6F8FE,#fff)}
+    .mini-card.variant-mood{border-color:rgba(255,200,170,0.6);background:linear-gradient(180deg,#FFF9F5,#fff)}
+    .mc-title{font-size:14px;font-weight:800;color:var(--accent-deep);margin-bottom:12px;letter-spacing:-.2px}
+    .mc-items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+    .mc-items li{padding:12px 14px;border-radius:14px;background:rgba(123,143,212,0.06);font-size:13.5px;line-height:1.55;border:1px solid rgba(123,143,212,0.1)}
+    .mc-name{font-weight:800;color:var(--text-0);display:flex;align-items:center;gap:8px;font-size:14.5px;margin-bottom:6px}
+    .mc-name em{font-style:normal;font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;background:var(--accent);color:#fff;letter-spacing:.2px}
+    .mc-desc{font-size:13px;color:var(--text-1);margin-top:2px;line-height:1.6}
+    .mc-detail{font-size:12.5px;color:var(--text-2);margin-top:6px;line-height:1.55;padding-top:8px;border-top:1px dashed rgba(123,143,212,0.22)}
+    .mc-reco{margin-top:14px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(123,143,212,0.14),rgba(168,186,232,0.06));border:1px solid rgba(123,143,212,0.28);font-size:13px;line-height:1.6;color:var(--text-0)}
+    .mc-reco strong{color:var(--accent-deep);font-weight:800;margin-right:4px}
     .tip-line{align-self:flex-start;max-width:88%;margin:4px 0;padding:8px 12px;border-radius:14px;font-size:12.5px;line-height:1.5;color:#5C4A00;background:#FFFBE8;border:1px solid #FFE8A0;animation:msgSlide .32s both}
 
     .ai-summary strong{display:block;font-size:15px;font-weight:700;color:var(--text-0);margin-bottom:6px;letter-spacing:-.2px}
@@ -1101,7 +1104,7 @@ async function handleUserInput(text){
         if(detected){
           const surgeryMd=getCelebSurgeryGuide(detected, celebData.mood);
           if(surgeryMd) await scriptedReply(surgeryMd, 600);
-          await scriptedReply(`좌쪽 아래 사진 버튼으로 ${partLabel} 사진 한 장만 올려주시면 ~ 오너자의 ${partLabel} 조건에 맞춰서 더 꼼꼼하게 안내해드릴 수 있어요 !`, 600);
+          await scriptedReply(`좌측 아래 사진 버튼으로 ${partLabel} 사진 한 장만 올려주시면 ~ 고객님의 ${partLabel} 조건에 맞춰서 더 꼼꼼하게 안내해드릴 수 있어요 !`, 600);
           addAi('사진 없으셔도 그냥 다음으로 넘어가셔도 괜찮아요 ~');
         }else{
           addAi('제가 열심히 상담 도와드릴게요 ~');
@@ -1390,11 +1393,17 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
         const li=document.createElement('li');
         if(typeof it==='string'){li.innerHTML=`<span>${esc(it)}</span>`}
         else{
-          li.innerHTML=`<div class="mc-name">${esc(it.name||'')}${it.tag?`<em>${esc(it.tag)}</em>`:''}</div>${it.desc?`<div class="mc-desc">${esc(it.desc)}</div>`:''}`;
+          li.innerHTML=`<div class="mc-name">${esc(it.name||'')}${it.tag?`<em>${esc(it.tag)}</em>`:''}</div>${it.desc?`<div class="mc-desc">${esc(it.desc)}</div>`:''}${it.detail?`<div class="mc-detail">${esc(it.detail)}</div>`:''}`;
         }
         ul.appendChild(li);
       });
       card.appendChild(ul);
+      // 상담실장 추천 한 줄 (recommendation)
+      if(data.recommendation){
+        const rec=document.createElement('div');rec.className='mc-reco';
+        rec.innerHTML=`<strong>✨ 제 추천</strong> ${esc(data.recommendation)}`;
+        card.appendChild(rec);
+      }
       chatMessages.appendChild(card);scrollBottom();
       await new Promise(r=>setTimeout(r,250));
     }
@@ -1423,26 +1432,40 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
 
 async function showFocusTrend(){
   const area=AREAS[state.areaKey].label;
+  const ageTxt=state.age||'';
+  const genderTxt=state.gender||'';
   await liveStructuredCard({
-    title:`${area} · ${state.focus} 요즘 방식`,
+    title:`${area} · ${state.focus} — 이런 방식이 있어요`,
     emoji:'',variant:'trend',
-    schema:`{"summary":"상담사 톤 짧은 멘트 1줄","items":[{"name":"방식명","desc":"많이 하는 이유 한 줄","tag":"키워드"}],"tip":"주의점 한 줄"}`,
-    instruction:`${area}의 "${state.focus}" 고민에 요즘 어떤 방식이 유행하는지, 그리고 왜 많이 하는지 이유 중심으로 3가지를 items로. 각 item의 name은 방식명(12자 이하), desc는 "요즘 왜 선호되는지/어떤 효과 때문에 많이 하는지" 한 줄(30자 이하), tag는 키워드 8자 이하. summary는 상담사처럼 짧게(예: "${state.focus}는 요즘 방식이 다양해서 주요한 것 위주로 알려드릴게요"). tip은 이 고민에서 놓치기 쉬운 주의점 한 줄. followup 필드는 쓰지 않는다. 광고·수치·특정 병원 금지.`
+    schema:`{"summary":"2줄 멘트","items":[{"name":"방식명","desc":"한줄 장점","detail":"2~3줄 상세","tag":"키워드"}],"recommendation":"추천 2~3줄","tip":"주의점 1줄"}`,
+    instruction:`강남 성형외과 상담실장(20후 여성) 톤으로 채워주세요.
+고객 맥락: ${genderTxt||'성별미지정'} / ${ageTxt||'나이미지정'} / ${area} 고민 "${state.focus}".
+
+1) summary: 2줄. 첫줄 "${ageTxt||'이 연령대'}는 보통 이런 방식을 많이 하세요 ~" + 둘째줄 "주요한 3가지 알려드릴게요 !"
+2) items: 3개. 각각의:
+   - name: 실제 수술법/방식명 (예: 매몰법, 부분절개, 눈매교정, 아티로 코무보형, 자가연골 코끝성형 등)
+   - desc: 이 방식이 ${ageTxt||'이 연령대'}에 왜 좋은지 한줄 (30자 이내)
+   - detail: 실제 진행방식 + 특징 + 회복감 2~3줄. 공개 의료정보 기반 (예: "눈꺼풀 안쪽 조직을 실로 고정해서 매듭 라인을 만드는 방식이에요. 흉터가 거의 없고 붓기도 적어 회복이 빠른 편이에요 ! 다만 오래 지나면 풀릴 수도 있고 조직 조건에 따라 맞지 않기도 해요")
+   - tag: 특징 키워드 (빠른회복, 자연스러움 등)
+3) recommendation: 상담실장 입장에서 경험을 바탕으로, 위 3개 중 고객(${genderTxt||'고객님'} · ${ageTxt||''} · ${state.focus}) 조건에 가장 잘 맞을 것 같은 방식 1개를 골라서 2~3줄로 추천. 이유 포함. 마지막에 "다만 실제 적용 가능 여부는 대면 상담에서 꼭 확인해야 해요 !" 포함.
+4) tip: 이 고민에서 놓치기 쉬운 주의점 한 줄.
+
+규칙:
+- 광고·가격·특정 병원·의사명·수치(만족도/효과%) 금지
+- 의학 단정 금지 ("경향", "많아요", "편이에요" 형식)
+- 이모지·하트 금지
+- 부드러운 존댓말, 끝어미: ~에요/~죠/~드릴게요/~같아요
+- JSON만 반환.`
   });
 }
 
-/* ── focus 이후 영상 제안 ── */
+/* ── focus 이후 사진 요청 (영상 제안 대체) ── */
 async function offerFocusVideos(){
-  return new Promise(resolve=>{
-    addAi('관련 영상도 몇 개 보여드릴까요?');
-    addQuickReply(['네, 봐볼게요','아니요, 다음으로'],async pick=>{
-      addUser(pick);
-      if(pick.startsWith('네')){
-        await playFocusVideos();
-      }
-      resolve();
-    },'그냥 넘어가도 돼요');
-  });
+  const area=AREAS[state.areaKey]?.label||'고민 부위';
+  await scriptedReply(`혹시 현재 ${area} 사진이 있으시면 좌측 아래 사진 버튼으로 한 장 올려주세요 !`,520);
+  await scriptedReply(`고객님의 ${area} 조건을 보고 위 3가지 중 더 꼼꼼하게 추천드릴 수 있어요 ~`,460);
+  addAi('사진 없으셔도 그대로 다음으로 넘어가셔도 괜찮아요 !');
+  await new Promise(r=>setTimeout(r,400));
 }
 
 async function playFocusVideos(){
