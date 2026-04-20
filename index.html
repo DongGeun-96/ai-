@@ -331,6 +331,10 @@
     .mc-detail{font-size:12.5px;color:var(--text-2);margin-top:6px;line-height:1.55;padding-top:8px;border-top:1px dashed rgba(123,143,212,0.22)}
     .mc-reco{margin-top:14px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(123,143,212,0.14),rgba(168,186,232,0.06));border:1px solid rgba(123,143,212,0.28);font-size:13px;line-height:1.6;color:var(--text-0)}
     .mc-reco strong{color:var(--accent-deep);font-weight:800;margin-right:4px}
+    .mc-refs{margin-top:12px;padding:10px 14px;border-radius:12px;background:rgba(123,143,212,0.06);border:1px solid rgba(123,143,212,0.15)}
+    .mc-refs-title{font-size:11.5px;font-weight:700;color:var(--accent-deep);margin-bottom:6px}
+    .mc-refs a{display:block;font-size:12px;color:var(--accent);text-decoration:none;padding:3px 0;line-height:1.4}
+    .mc-refs a:hover{text-decoration:underline}
     .tip-line{align-self:flex-start;max-width:88%;margin:4px 0;padding:8px 12px;border-radius:14px;font-size:12.5px;line-height:1.5;color:#5C4A00;background:#FFFBE8;border:1px solid #FFE8A0;animation:msgSlide .32s both}
 
     .ai-summary strong{display:block;font-size:15px;font-weight:700;color:var(--text-0);margin-bottom:6px;letter-spacing:-.2px}
@@ -569,6 +573,10 @@ class SwirlOrb{
     for(const b of B){const g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c1);g.addColorStop(.45,b.c2);g.addColorStop(1,b.c3);ctx.fillStyle=g;ctx.fillRect(0,0,size,size)}
   }
 }
+// 참고 링크 로드
+window.__areaRefs={};
+fetch('/api/references').then(r=>r.ok?r.json():null).then(d=>{if(d)window.__areaRefs=d}).catch(()=>{});
+
 const mainOrb=new SwirlOrb(document.getElementById('orbCanvas'),200);
 const chatOrb=new SwirlOrb(document.getElementById('chatOrbCanvas'),160);
 mainOrb.start();
@@ -1422,6 +1430,16 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
         const rec=document.createElement('div');rec.className='mc-reco';
         rec.innerHTML=`<strong>✨ 제 추천</strong> ${esc(data.recommendation)}`;
         card.appendChild(rec);
+      }
+      // 참고 링크 (서울대병원 의학정보 등)
+      if(state.areaKey && window.__areaRefs && window.__areaRefs[state.areaKey]){
+        const refs=window.__areaRefs[state.areaKey];
+        const keys=Object.keys(refs);
+        if(keys.length){
+          const rd=document.createElement('div');rd.className='mc-refs';
+          rd.innerHTML=`<div class="mc-refs-title">참고 자료 (서울대병원 의학정보)</div>`+keys.map(k=>`<a href="${esc(refs[k])}" target="_blank" rel="noopener">${esc(k)}</a>`).join('');
+          card.appendChild(rd);
+        }
       }
       chatMessages.appendChild(card);scrollBottom();
       await new Promise(r=>setTimeout(r,250));

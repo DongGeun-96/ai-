@@ -1,0 +1,22 @@
+{
+  "_comment": "공개 의학정보 참고 링크. AI 카드에서 '더 알아보기' 링크 제공용. 병원 추천/광고 아님.",
+  "eye": {
+    "쌍꺼풀 수술": "https://www.snuh.org/health/nMedInfo/nView.do?category=TREAT&medid=BB000070",
+    "눈꺼풀처짐(안검하수)": "https://www.snuh.org/health/nMedInfo/nView.do?category=SYM&medid=AC000005"
+  },
+  "nose": {
+    "융비술(코성형)": "https://www.snuh.org/health/nMedInfo/nView.do?category=TREAT&medid=BB000258",
+    "비중격 성형술": "https://www.snuh.org/health/nMedInfo/nView.do?medid=BB000021",
+    "외비 기형": "https://www.snuh.org/health/nMedInfo/nView.do?category=DIS&medid=AA000434"
+  },
+  "contour": {
+    "안면윤곽 수술": "https://www.snuh.org/health/nMedInfo/nView.do?medid=BB000066",
+    "사각턱 치료": "https://www.snuh.org/health/nMedInfo/nView.do?medid=BB000023",
+    "악안면 수술(양악)": "https://www.snuh.org/health/nMedInfo/nView.do?category=TREAT&medid=BB000065",
+    "안면비대칭": "https://www.snuh.org/health/nMedInfo/nView.do?medid=AA001272"
+  },
+  "breast": {},
+  "lipo": {},
+  "skin": {},
+  "hair": {}
+}

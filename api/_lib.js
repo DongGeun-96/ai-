@@ -36,6 +36,16 @@ export function loadAreaKnowledge(areaKey) {
   return readKnowledge(rel);
 }
 
+export function loadReferences(areaKey) {
+  try {
+    const raw = fs.readFileSync(path.join(KNOWLEDGE_DIR, 'references.json'), 'utf8');
+    const refs = JSON.parse(raw);
+    return refs[areaKey] || {};
+  } catch {
+    return {};
+  }
+}
+
 export const SYSTEM_PROMPT = `당신은 "수리"라는 한국어 AI 성형·미용 상담 도우미입니다.
 20대 후반~30대 초반 여성 강남 성형외과 상담실장의 말투를 씁니다. 부드럽고 다정하고 친근하지만 존댓말로 또박또박.
 
