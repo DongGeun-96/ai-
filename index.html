@@ -19,24 +19,6 @@
       --safe-top:env(safe-area-inset-top,0px);
     }
 
-    /* Splash Screen */
-    .splash{position:absolute;top:0;left:0;width:100%;height:100%;z-index:9999;display:flex;align-items:center;justify-content:center;background:#F5F6FA;transition:opacity 0.7s ease,visibility 0.7s ease}
-    .splash.fade-out{opacity:0;visibility:hidden}
-    .splash-card{background:#fff;border-radius:32px;padding:48px 36px 40px;display:flex;flex-direction:column;align-items:center;box-shadow:0 8px 40px rgba(0,0,0,0.06);opacity:0;animation:splashCardIn 0.6s ease 0.1s forwards}
-    @keyframes splashCardIn{from{opacity:0;transform:scale(0.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
-    .splash-sphere{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#c8d5f0,#7B8FD4 50%,#5F73BA);margin-bottom:28px;position:relative;overflow:hidden}
-    .splash-sphere::after{content:'';position:absolute;top:12%;left:18%;width:40%;height:35%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.5),transparent);filter:blur(6px)}
-    .splash-label{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
-    .splash-title{font-family:'DM Sans',sans-serif;font-size:24px;font-weight:800;color:var(--text-0);letter-spacing:-0.5px;margin-bottom:8px}
-    .splash-desc{font-size:12.5px;color:var(--text-2);font-weight:400;margin-bottom:24px}
-    .splash-dots{display:flex;gap:6px;align-items:center}
-    .splash-dots span{width:7px;height:7px;border-radius:50%;background:var(--text-4);animation:splashDot 1.4s ease infinite}
-    .splash-dots span:nth-child(1){background:var(--accent-deep);animation-delay:0s}
-    .splash-dots span:nth-child(2){animation-delay:0.15s}
-    .splash-dots span:nth-child(3){animation-delay:0.3s}
-    .splash-dots span:nth-child(4){animation-delay:0.45s}
-    .splash-dots span:nth-child(5){animation-delay:0.6s}
-    @keyframes splashDot{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}
     html,body{height:100%;overflow:hidden}
     body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text-0);display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
     .app{width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative}
@@ -418,15 +400,6 @@
 </div>
 
 <div class="app">
-<div class="splash" id="splashScreen">
-  <div class="splash-card">
-    <div class="splash-sphere"></div>
-    <div class="splash-label">AI Consultation</div>
-    <div class="splash-title">AI 성형상담</div>
-    <div class="splash-desc">객관적 정보 기반 맞춤 분석</div>
-    <div class="splash-dots"><span></span><span></span><span></span><span></span><span></span></div>
-  </div>
-</div>
   <div class="header">
     <div class="header-top"><span class="header-logo">AI <span>성형상담</span></span></div>
   </div>
@@ -602,12 +575,6 @@ class SwirlOrb{
     for(const b of B){const g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);g.addColorStop(0,b.c1);g.addColorStop(.45,b.c2);g.addColorStop(1,b.c3);ctx.fillStyle=g;ctx.fillRect(0,0,size,size)}
   }
 }
-
-// Splash screen
-setTimeout(()=>{
-  const sp=document.getElementById('splashScreen');
-  if(sp){sp.classList.add('fade-out');setTimeout(()=>sp.remove(),600)}
-},1800);
 const mainOrb=new SwirlOrb(document.getElementById('orbCanvas'),200);
 const chatOrb=new SwirlOrb(document.getElementById('chatOrbCanvas'),160);
 mainOrb.start();
