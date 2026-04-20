@@ -12,18 +12,21 @@ export default async function handler(req, res) {
   let payload;
   try { payload = await readJson(req); } catch { return send(res, 400, { error: 'invalid json' }); }
 
-  const userMessage = payload.message;
-  if (!userMessage || typeof userMessage !== 'string') return send(res, 400, { error: 'message 필요' });
-
+  const userMessage = payload.message || '';
+  const rawMsgs = Array.isArray(payload.messages) ? payload.messages : [];
   const history = Array.isArray(payload.history) ? payload.history.slice(-20) : [];
+
+  // message도 messages도 없으면 400
+  if (!userMessage && !rawMsgs.length) return send(res, 400, { error: 'message 또는 messages 필요' });
   const stateCtx = payload.state ? buildContext(payload.state) : '';
 
   // RAG: 유저 메시지(+관심부위)로 관련 청크 검색
   const areaKey = payload.state?.areaKey || null;
   let kb = '';
   try {
-    const q = [userMessage, payload.state?.focus, payload.state?.mood].filter(Boolean).join(' ');
-    const ragText = searchKnowledgeText(q || userMessage, { topK: 3, areaKey });
+    const lastUser = rawMsgs.length ? [...rawMsgs].reverse().find(m=>m.role==='user')?.content||'' : '';
+    const q = [userMessage || lastUser, payload.state?.focus || payload.context?.areaKey, payload.state?.mood].filter(Boolean).join(' ');
+    const ragText = searchKnowledgeText(q, { topK: 3, areaKey: areaKey || payload.context?.areaKey });
     if (ragText) kb = '\n\n── 관련 지식 (RAG) ──\n' + ragText;
   } catch (e) {
     // RAG 실패시 조용히 넘어감 (기존 플로우 유지)
@@ -54,11 +57,25 @@ export default async function handler(req, res) {
     }
   }
 
-  const messages = [
-    { role: 'system', content: SYSTEM_PROMPT + stateCtx + kb },
-    ...history.map(m => ({ role: m.role, content: m.content })),
-    { role: 'user', content: userMessage }
-  ];
+  // message 단일 필드 또는 messages 배열 모두 지원
+  let messages;
+  if (rawMsgs.length) {
+    // server.js 호환: messages 배열 방식
+    const stepNote = payload.step ? `\n\n현재 STEP: ${payload.step}\n단계 목적: ${payload.stepGoal || ''}` : '';
+    const context = payload.context
+      ? `\n\n대화 컨텍스트\n${Object.entries(payload.context).filter(([,v])=>v).map(([k,v])=>`- ${k}: ${v}`).join('\n')}`
+      : '';
+    messages = [
+      { role: 'system', content: SYSTEM_PROMPT + stepNote + context + kb },
+      ...rawMsgs.slice(-5)
+    ];
+  } else {
+    messages = [
+      { role: 'system', content: SYSTEM_PROMPT + stateCtx + kb },
+      ...history.map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: userMessage }
+    ];
+  }
 
   try {
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
