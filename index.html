@@ -762,15 +762,22 @@ function setStep(n){state.step=n}
 function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return''}
 
 /* ── 연예인 이름 감지 + 스타일 매핑 ── */
-const CELEB_PATTERN=/([가-힣]{2,4})\s*(?:처럼|같이|같은|느낌|스타일|분위기)/;
+const CELEB_TRIGGER=/처럼|같이|같은|느낌|스타일|분위기/;
+const CELEB_SKIP=/^(어제|오늘|내일|다음|이번|지금|현재|진짜|조금|많이|약간|너무|그냥|원래|대개|대충|상담|예약|비슷|동일|이런|저런|그런|요런|요즘|최근|기존|보통|이전|수술|시술|병원|의사|느낌|스타일|분위기|쌍수|쌍꺼풀|쌍꺼플|콧대|코끝|눈매|광대|사각|유방|보형|복부|허벅|볼륨|지방|윤곽|가슴|여자|남자|여성|남성|언니|누나|오빠|아저씨|엄마|이모|여친|남친|친구|엄청|완전|어제|오늘|지금|현재|처럼|되고|되고싶어|하고싶어|하고싶|되고싶|싶어요|싶어|좋아|예뻐|이뻐|이쁜|예쁜)$/;
 function detectCelebName(t){
   if(!t) return '';
-  const m=t.match(CELEB_PATTERN);
-  if(!m) return '';
-  const name=m[1];
-  const SKIP=/^(어제|오늘|내일|다음|이번|지금|현재|진짜|조금|많이|약간|너무|그냥|원래|대개|대충|상담|예약|비슷|동일|이런|저런|그런|요런|요즘|최근|기존|보통|이전|수술|시술|병원|의사|느낌)$/;
-  if(SKIP.test(name)) return '';
-  return name;
+  if(!CELEB_TRIGGER.test(t)) return '';
+  // 1) 이름+트리거가 붙어있는 경우 ('카리나처럼')
+  const adj=t.match(/([가-힣]{2,4})(처럼|같이|같은|느낌|스타일|분위기)/);
+  if(adj && !CELEB_SKIP.test(adj[1])) return adj[1];
+  // 2) 떨어진 경우 ('카리나 눈 처럼') → 2~4글자 후보 중 스킵 아닌 첫 이름
+  const cands=t.match(/[가-힣]{2,4}/g)||[];
+  for(const c of cands){
+    if(CELEB_SKIP.test(c)) continue;
+    if(CELEB_TRIGGER.test(c)) continue;
+    return c;
+  }
+  return '';
 }
 
 /* ── 연예인 스타일 캐시 (localStorage, 30일) ── */
