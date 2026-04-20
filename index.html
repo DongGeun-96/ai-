@@ -41,9 +41,9 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .header-top{margin-top:8px;padding-top:8px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
     .header-logo{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700;color:var(--text-0);letter-spacing:-0.3px}
     .header-logo span{color:var(--accent)}
-    .header .sub-back{position:absolute;left:12px;top:calc(var(--safe-top)+68px);width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:10px;color:var(--text-2)}
-    .header .sub-back:active{background:rgba(0,0,0,0.04)}
-    .header .sub-back svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+    .sub-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:10px;color:var(--text-2);margin-right:8px}
+    .sub-back:active{background:rgba(0,0,0,0.04)}
+    .sub-back svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
     .panel{flex:1;display:none;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
     .panel::-webkit-scrollbar{display:none}
     .panel.active{display:flex}
@@ -490,8 +490,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
 
 <div class="rank-screen" id="rankScreen">
   <div class="header">
-    <button class="sub-back" id="rankClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-    <div class="sub-title">인기 검색 추이</div>
+    <div class="header-top"><button class="sub-back" id="rankClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button><span class="sub-title">인기 검색 추이</span></div>
   </div>
   <div class="rank-body">
     <div class="rank-hero">
@@ -545,8 +544,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
 <!-- 타임라인 시뮬레이터 화면 -->
 <div class="rank-screen" id="timelineScreen">
   <div class="header">
-    <button class="sub-back" id="timelineClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-    <div class="sub-title">회복 시뮬레이터</div>
+    <div class="header-top"><button class="sub-back" id="timelineClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button><span class="sub-title">회복 시뮬레이터</span></div>
   </div>
   <div class="rank-body">
     <div class="rank-hero" style="background:linear-gradient(135deg,#FFF6EC,#FFE9D2)">
@@ -581,8 +579,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
 <!-- 용어 사전 화면 -->
 <div class="rank-screen" id="glossaryScreen">
   <div class="header">
-    <button class="sub-back" id="glossaryClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-    <div class="sub-title">부위별 성형 가이드</div>
+    <div class="header-top"><button class="sub-back" id="glossaryClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button><span class="sub-title">부위별 성형 가이드</span></div>
   </div>
   <div class="rank-body">
     <div class="rank-hero" style="background:linear-gradient(135deg,#EEF8EE,#DBEFE0)">
@@ -611,8 +608,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
 <!-- 부위별 카테고리 상세 화면 -->
 <div class="cat-detail-screen" id="catDetailScreen">
   <div class="header">
-    <button class="sub-back" id="catDetailClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-    <div class="sub-title" id="catDetailTitle"></div>
+    <div class="header-top"><button class="sub-back" id="catDetailClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button><span class="sub-title" id="catDetailTitle"></span></div>
   </div>
   <div class="cat-tabs" id="catDetailTabs"></div>
   <div class="cat-content" id="catDetailContent"></div>
@@ -623,8 +619,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
 
 <div class="chat-screen" id="chatScreen">
   <div class="header">
-    <button class="sub-back" id="chatClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-    <div class="sub-title">수리 · AI 성형 상담</div>
+    <div class="header-top"><button class="sub-back" id="chatClose"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button><span class="sub-title">수리 · AI 성형 상담</span></div>
   </div>
   <div class="chat-welcome" id="chatWelcome">
     <div class="chat-orb-wrap"><canvas id="chatOrbCanvas" width="400" height="400"></canvas></div>
