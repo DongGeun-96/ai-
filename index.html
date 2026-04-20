@@ -715,9 +715,12 @@ const AREAS={
   breast:{label:'가슴',focusOptions:['볼륨이 작아요','모양이 신경쓰여요','처짐이 있어요','자연스럽게 정리'],
     info:'가슴 수술은 보형물(실리콘/모티바 등)과 지방이식, 처짐 교정으로 나뉘어요.\n\n부작용 사례로는 구형구축, 모양 비대칭, 감각 저하 등이 있고, 보형물 안전성과 집도의의 경험이 중요해요.\n\n사이즈·모양보다 자기 몸에 맞는 상담을 받는 병원이 만족도가 높다고 알려져 있어요.',
     links:[['YouTube','가슴 성형 보형물 비교','https://www.youtube.com/results?search_query=가슴+성형+보형물'],['Instagram','가슴 성형 후기','https://www.instagram.com/explore/tags/가슴성형후기/'],['Google','가슴 수술 회복기간','https://www.google.com/search?q=가슴+수술+회복기간']]},
-  contour:{label:'안면윤곽',focusOptions:['사각턱','광대','앞턱','인중이 길어요','입술 모양','전체적인 얼굴선'],
+  contour:{label:'안면윤곽',focusOptions:['사각턱','광대','앞턱','전체적인 얼굴선'],
     info:'안면윤곽은 사각턱, 광대, 앞턱으로 나뉘고 회복과 변화 체감이 커요.\n\n부작용 사례는 감각 저하, 비대칭, 긴 회복 등이 있고, 적합도를 신중하게 판단해주는 병원이 신뢰 신호예요.\n\n수술 말고 대안 설명도 함께 해주는지 꼭 확인하는 게 좋아요.',
     links:[['YouTube','윤곽 수술 전 질문','https://www.youtube.com/results?search_query=윤곽+수술+질문'],['Instagram','윤곽 회복 루틴','https://www.instagram.com/explore/tags/윤곽수술후기/'],['Google','윤곽 회복기간','https://www.google.com/search?q=윤곽+수술+회복기간']]},
+  lip:{label:'인중·입술',focusOptions:['인중이 길어요','윗입술이 얇아요','입꼬리가 처져요','입술 모양이 고민이에요'],
+    info:'인중축소(립리프트)는 코 밑 피부를 절제해 인중 길이를 줄이는 수술이에요. 안면윤곽과 달리 뼈를 건드리지 않아요.\n\n수술법은 불혼(bullhorn), 이탈리안, 코너 립리프트 등이 있고 흉터 위치와 효과가 달라요.\n\n회복은 실밥 제거 5~7일, 최종 결과 3~6개월이에요. 흉터 관리가 중요해요.\n\n코끝 성형이나 입술 필러와 함께 많이 해요.',
+    links:[['YouTube','인중축소 수술 비교','https://www.youtube.com/results?search_query=인중축소+립리프트'],['Google','인중축소 후기','https://www.google.com/search?q=인중축소+후기+흉터']]},
   skin:{label:'피부시술',focusOptions:['주름·탄력 개선','색소·기미 관리','모공·피부결 개선','리프팅·처짐 개선'],
     info:'피부 시술은 보톡스·필러·레이저·리프팅·스킨부스터 등으로 나뉘어요.\n\n고민에 따라 적합한 시술이 다르고, 다운타임과 횟수도 달라요.\n\n전문의와 상담 후 피부 타입에 맞는 시술을 선택하는 게 중요해요.',
     links:[['YouTube','피부시술 비교','https://www.youtube.com/results?search_query=피부+시술+비교'],['Google','보톡스 필러 차이','https://www.google.com/search?q=보톡스+필러+차이']]},
@@ -841,7 +844,7 @@ const chatInputEl=document.getElementById('chatInput');
 const chatSendEl=document.getElementById('chatSend');
 function setStep(n){state.step=n}
 
-function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/모발|탈모|이식|M자|정수리|숨감소|두피|헤어라인|발모/.test(t))return'hair';if(/피부|보톡스|필러|레이저|토닝|리프팅|스킨부스터|여드름|흉터|주름|탄력|써마지|울쎄라|쥬베룩|리쥬란|프락셀|피코|기미|색소|실리프팅|물광|케어/.test(t))return'skin';if(/코|콧대|코끝|콧볼|콧구멍|매부리|들창|휜코|비중격/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱|양악|이마|관자놀이|볼꺼짐|팔자주름|인중|인중축소|입술|립리프트/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매|눈밑|다크서클|눈꺼풀|안검/.test(t))return'eye';return''}
+function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/모발|탈모|이식|M자|정수리|숨감소|두피|헤어라인|발모/.test(t))return'hair';if(/피부|보톡스|필러|레이저|토닝|리프팅|스킨부스터|여드름|흉터|주름|탄력|써마지|울쎄라|쥬베룩|리쥬란|프락셀|피코|기미|색소|실리프팅|물광|케어/.test(t))return'skin';if(/인중|인중축소|립리프트|필트럼|윗입술|입꼬리/.test(t))return'lip';if(/코|콧대|코끝|콧볼|콧구멍|매부리|들창|휜코|비중격/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱|양악|이마|관자놀이|볼꺼짐|팔자주름/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매|눈밑|다크서클|눈꺼풀|안검/.test(t))return'eye';return''}
 
 /* ── 연예인 이름 감지 + 스타일 매핑 ── */
 const CELEB_TRIGGER=/처럼|같이|같은|느낌|스타일|분위기/;
@@ -927,9 +930,13 @@ function inferFocusFromConcern(text, areaKey){
   const contourMap=[
     {kw:/사각턱|사각/, label:'사각턱'},
     {kw:/광대/, label:'광대'},
-    {kw:/앞턱|턱 없/, label:'앞턱'},
+    {kw:/앞턱|턱 없/, label:'앞턱'}
+  ];
+  const lipMap=[
     {kw:/인중|인중축소|립리프트|필트럼/, label:'인중이 길어요'},
-    {kw:/입술|입술축소|입꼬리/, label:'입술 모양이 고민이에요'}
+    {kw:/윗입술|입술.*얇/, label:'윗입술이 얇아요'},
+    {kw:/입꼬리/, label:'입꼬리가 처져요'},
+    {kw:/입술/, label:'입술 모양이 고민이에요'}
   ];
   const skinMap=[
     {kw:/주름|탄력|늘어|처짐/, label:'주름·탄력 개선'},
@@ -943,7 +950,7 @@ function inferFocusFromConcern(text, areaKey){
     {kw:/여성|여자|가르마/, label:'여성형 탈모'},
     {kw:/숨감소|숨|전체/, label:'전체적 숨감소'}
   ];
-  const maps={eye:eyeMap, nose:noseMap, breast:breastMap, lipo:lipoMap, contour:contourMap, skin:skinMap, hair:hairMap};
+  const maps={eye:eyeMap, nose:noseMap, breast:breastMap, lipo:lipoMap, contour:contourMap, lip:lipMap, skin:skinMap, hair:hairMap};
   const map=maps[areaKey]||[];
   const hits=[];
   for(const m of map){ if(m.kw.test(t)) hits.push(m.label); }
@@ -1231,7 +1238,7 @@ async function handleUserInput(text){
   if(state.step==='area'){
     const d=detectArea(text);
     if(d){state.areaKey=d;state.step=1;addUserAck(d);if(state.gender&&state.age)goStep2();else if(state.gender)askAge();else askGender();return}
-    addAi('혹시 눈·코·가슴·지방·윤곽 중 어느 쪽을 생각하고 계세요 ?');
+    addAi('혹시 눈·코·인중·입술·가슴·지방·윤곽 중 어느 쪽을 생각하고 계세요 ?');
     askArea();
     return;
   }
@@ -1311,7 +1318,7 @@ async function askArea(){
   else if(g==='여성') guide='참고로 요즘은 눈·코·지방·윤곽 순으로 관심 많아요.';
   else guide='참고로 이용자들이 가장 많이 물어보는 건 눈·코·윤곽이에요.';
   addAi(`어느 부위가 지금 제일 고민이세요?\n${guide}`);
-  addQuickReply(['눈','코','가슴','지방','윤곽'],async pick=>{
+  addQuickReply(['눈','코','인중·입술','가슴','지방','윤곽'],async pick=>{
     pushUndo();
     addUser(pick);
     const d=detectArea(pick);
@@ -1319,7 +1326,7 @@ async function askArea(){
   },'직접 입력하셔도 돼요 (예: 코끝, 쌍꺼풀, 눈밑)');
 }
 function addUserAck(key){
-  const label={eye:'눈',nose:'코',breast:'가슴',lipo:'지방',contour:'윤곽'}[key]||'';
+  const label={eye:'눈',nose:'코',lip:'인중·입술',breast:'가슴',lipo:'지방',contour:'윤곽'}[key]||'';
   if(label) addAi(`아 ${label} 관련으로 볼게요.`);
 }
 
