@@ -2823,24 +2823,41 @@ function hideRetryBtn(){retryBar.style.display='none'}
 retryBtnEl.addEventListener('click',()=>{
   const last=state._lastUserMsg;
   if(!last)return;
-  // 이 메시지 이후 모든 메시지 삭제
-  let next=last.el.nextSibling;
-  while(next){const tmp=next.nextSibling;next.remove();next=tmp;}
+  // 이 메시지만 삭제 (질문 텍스트는 유지)
   last.el.remove();
   // busy 해제
   state.busy=false;
   hideRetryBtn();
-  // 현재 step에 맞는 질문 다시 호출
-  if(state.step===1 && !state.areaKey){askArea();return;}
-  if(state.step===1 && state.areaKey && !state.gender){askGender();return;}
-  if(state.step===1 && state.areaKey && state.gender && !state.age){state.gender='';askGender();return;}
-  if(state.step==='area'){askArea();return;}
+  // 현재 step에 맞는 퀴리플라이만 다시 표시 (질문 텍스트 없이)
+  if(state.step===1 && state.areaKey && state.gender && !state.age){
+    state.gender='';
+    addQuickReply(['여성','남성','선택 안 함'],pick=>{addUser(pick);state.gender=pick;askAge();});
+    return;
+  }
+  if(state.step===1 && state.areaKey && !state.gender){
+    addQuickReply(['여성','남성','선택 안 함'],pick=>{addUser(pick);state.gender=pick;askAge();});
+    return;
+  }
+  if(state.step===1 && state.areaKey && state.gender && state.age){
+    state.age='';
+    addQuickReply(['10대','20대','30대','40대','50대 이상','선택 안 함'],pick=>{addUser(pick);state.age=pick;goStep2();});
+    return;
+  }
+  if(state.step==='area'){
+    askArea();return;
+  }
   if(state.step===2){
-    state.step2Pending=state._lastStep2Q||'focus';
+    const key=state.step2Pending||state._lastStep2Q||'focus';
+    state[key]='';
+    state.step2Pending=key;
     nextStep2Question();return;
   }
-  if(state.step===3 && !state.priority){askHospitalPriority();return;}
-  if(state.step===3 && !state.region){askRegion();return;}
+  if(state.step===3 && state.priority){
+    state.priority='';askHospitalPriority();return;
+  }
+  if(state.step===3 && state.region){
+    state.region='';askRegion();return;
+  }
   // 기본: 입력창에 값 넣기
   chatInputEl.value=last.text;
   chatInputEl.focus();
