@@ -13,7 +13,9 @@ const KNOWLEDGE_MAP = {
   nose: 'surgery/nose.md',
   breast: 'surgery/breast.md',
   lipo: 'surgery/lipo.md',
-  contour: 'surgery/contour.md'
+  contour: 'surgery/contour.md',
+  skin: 'surgery/skin.md',
+  hair: 'surgery/hair.md'
 };
 
 function readKnowledge(rel) {

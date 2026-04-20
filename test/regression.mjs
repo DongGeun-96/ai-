@@ -70,6 +70,13 @@ const tests = [
   { in: '17살 쌍수 궁금', age: '10대', area: 'eye' },
   { in: '20대 눈매교정', age: '20대', area: 'eye' },
   { in: '45세 코 상담', age: '40대', area: 'nose' },
+  // 피부시술
+  { in: '보톡스 맞고 싶어', area: 'skin' },
+  { in: '기미 치료 방법', area: 'skin' },
+  { in: '울쎄라 효과', area: 'skin' },
+  // 모발이식
+  { in: 'M자 탈모 모발이식', area: 'hair' },
+  { in: '정수리 탈모 상담', area: 'hair' },
   // 부위 미지정
   { in: '요즘 유행하는 성형', area: '' },
   { in: '뭐가 제일 예뻐', area: '' }
@@ -98,7 +105,7 @@ for (const t of tests) {
 }
 
 // 오타 / 금지 기호 전수 검사
-const banned = ['♡', '♥', '❤', '이쁜죠', '이뽐죠', '이뿐죠', '예뽐죠', '아 네~', '되고 싶으시구나요', '되고 싶으구나'];
+const banned = ['♡', '♥', '❤', '이쁜죠', '이뽐죠', '이뿐죠', '예뽐죠', '오너자', '좌쪽', '아 네~', '되고 싶으시구나요', '되고 싶으구나'];
 let lintFail = 0;
 for (const word of banned) {
   if (html.includes(word) || readFileSync(join(__dirname, '..', 'api', '_lib.js'), 'utf8').includes(word)) {

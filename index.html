@@ -619,7 +619,13 @@ const AREAS={
     links:[['YouTube','가슴 성형 보형물 비교','https://www.youtube.com/results?search_query=가슴+성형+보형물'],['Instagram','가슴 성형 후기','https://www.instagram.com/explore/tags/가슴성형후기/'],['Google','가슴 수술 회복기간','https://www.google.com/search?q=가슴+수술+회복기간']]},
   contour:{label:'안면윤곽',focusOptions:['사각턱','광대','앞턱','전체적인 얼굴선'],
     info:'안면윤곽은 사각턱, 광대, 앞턱으로 나뉘고 회복과 변화 체감이 커요.\n\n부작용 사례는 감각 저하, 비대칭, 긴 회복 등이 있고, 적합도를 신중하게 판단해주는 병원이 신뢰 신호예요.\n\n수술 말고 대안 설명도 함께 해주는지 꼭 확인하는 게 좋아요.',
-    links:[['YouTube','윤곽 수술 전 질문','https://www.youtube.com/results?search_query=윤곽+수술+질문'],['Instagram','윤곽 회복 루틴','https://www.instagram.com/explore/tags/윤곽수술후기/'],['Google','윤곽 회복기간','https://www.google.com/search?q=윤곽+수술+회복기간']]}
+    links:[['YouTube','윤곽 수술 전 질문','https://www.youtube.com/results?search_query=윤곽+수술+질문'],['Instagram','윤곽 회복 루틴','https://www.instagram.com/explore/tags/윤곽수술후기/'],['Google','윤곽 회복기간','https://www.google.com/search?q=윤곽+수술+회복기간']]},
+  skin:{label:'피부시술',focusOptions:['주름·탄력 개선','색소·기미 관리','모공·피부결 개선','리프팅·처짐 개선'],
+    info:'피부 시술은 보톡스·필러·레이저·리프팅·스킨부스터 등으로 나뉘어요.\n\n고민에 따라 적합한 시술이 다르고, 다운타임과 횟수도 달라요.\n\n전문의와 상담 후 피부 타입에 맞는 시술을 선택하는 게 중요해요.',
+    links:[['YouTube','피부시술 비교','https://www.youtube.com/results?search_query=피부+시술+비교'],['Google','보톡스 필러 차이','https://www.google.com/search?q=보톡스+필러+차이']]},
+  hair:{label:'모발이식',focusOptions:['M자 탈모','정수리 탈모','여성형 탈모','전체적 숨감소'],
+    info:'모발이식은 FUT(절개)·FUE(비절개)·DHI로 나뉘고, 탈모 단계에 따라 모수와 방식이 달라요.\n\n생착률이 핵심이고, 의료진 숙련도와 모낭 보관이 결과에 큰 영향을 줘요.\n\n약물 치료 병행으로 기존 모발 유지도 중요해요.',
+    links:[['YouTube','모발이식 비교','https://www.youtube.com/results?search_query=모발이식+FUE+FUT'],['Google','모발이식 회복','https://www.google.com/search?q=모발이식+회복기간']]}
 };
 // YouTube 큐레이션 (법적 안전: 썸네일 사용 + 원 영상으로 이동)
 // 각 항목은 videoId만 관리, 썸네일은 img.youtube.com에서 자동 제공
@@ -801,7 +807,7 @@ const chatSendEl=document.getElementById('chatSend');
 const mainInputEl=document.getElementById('mainInput'); // legacy, may be null
 function setStep(n){state.step=n}
 
-function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return''}
+function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/모발|탈모|이식|M자|정수리|숨감소|두피|헤어라인|발모/.test(t))return'hair';if(/피부|보톡스|필러|레이저|토닝|리프팅|스킨부스터|여드름|흉터|주름|탄력|써마지|울쎄라|쥬베룩|리쥬란|프락셀|피코|기미|색소|실리프팅|물광|케어/.test(t))return'skin';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return''}
 
 /* ── 연예인 이름 감지 + 스타일 매핑 ── */
 const CELEB_TRIGGER=/처럼|같이|같은|느낌|스타일|분위기/;
@@ -886,7 +892,19 @@ function inferFocusFromConcern(text, areaKey){
     {kw:/광대/, label:'광대'},
     {kw:/앞턱|턱 없/, label:'앞턱'}
   ];
-  const maps={eye:eyeMap, nose:noseMap, breast:breastMap, lipo:lipoMap, contour:contourMap};
+  const skinMap=[
+    {kw:/주름|탄력|늘어|처짐/, label:'주름·탄력 개선'},
+    {kw:/기미|색소|잡티|주근깨|톤/, label:'색소·기미 관리'},
+    {kw:/모공|피부결|여드름|흉터/, label:'모공·피부결 개선'},
+    {kw:/리프팅|처짐|울쎄라|써마지/, label:'리프팅·처짐 개선'}
+  ];
+  const hairMap=[
+    {kw:/M자|이마|이마라인|앞머리/, label:'M자 탈모'},
+    {kw:/정수리|꼭대기|정수리/, label:'정수리 탈모'},
+    {kw:/여성|여자|가르마/, label:'여성형 탈모'},
+    {kw:/숨감소|숨|전체/, label:'전체적 숨감소'}
+  ];
+  const maps={eye:eyeMap, nose:noseMap, breast:breastMap, lipo:lipoMap, contour:contourMap, skin:skinMap, hair:hairMap};
   const map=maps[areaKey]||[];
   const hits=[];
   for(const m of map){ if(m.kw.test(t)) hits.push(m.label); }
