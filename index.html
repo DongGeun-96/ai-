@@ -1109,8 +1109,7 @@ function addQuickReply(options,onPick,placeholderHint){
   });
   chatMessages.appendChild(wrap);scrollBottom();
   if(placeholderHint)chatInputEl.placeholder=placeholderHint;
-  // 마지막 퀴리플라이 정보 저장 (다시입력용)
-  state._lastQR={wrap,options,onPick,placeholderHint};
+
   return wrap;
 }
 
@@ -1345,6 +1344,7 @@ async function handleUserInput(text){
 /* ── 부위 되물기 (트렌드 가이드 포함) ── */
 async function askArea(){
   state.step='area';
+  state._lastRetryInfo={key:'areaKey',fn:askArea};
   const g=state.gender;
   let guide='';
   if(g==='남성') guide='참고로 요즘 남성은 눈(쌍꺼풀·눈밑지방)·코·턱라인 순으로 많이 찾아요.';
@@ -1379,6 +1379,7 @@ async function startConsultWithEmpathy(text, detectedAreaKey){
 }
 
 async function askGender(){
+  state._lastRetryInfo={key:'gender',fn:askGender};
   addAi('성별이 어떻게 되실까요?');
   addQuickReply(['여성','남성','선택 안 함'],pick=>{
     addUser(pick);state.gender=pick;
@@ -1387,6 +1388,7 @@ async function askGender(){
 }
 
 async function askAge(){
+  state._lastRetryInfo={key:'age',fn:askAge};
   addAi('나이대도 알려주세요 ~ 연령대마다 많이 하시는 방식이 조금씩 달라서요 !');
   addQuickReply(['10대','20대','30대','40대','50대 이상','선택 안 함'],pick=>{
     addUser(pick);state.age=pick;
@@ -1449,6 +1451,7 @@ async function nextStep2Question(){
   const area=AREAS[state.areaKey];
   if(!state.revisit){
     state.step2Pending='revisit';state._lastStep2Q='revisit';
+    state._lastRetryInfo={key:'revisit',fn:nextStep2Question};
     addAi(`${area.label} 수술 이력 여부 알려주세요. 재수술이면 체크 포인트가 달라져요.`);
     addQuickReply(['아니요, 처음이에요','네, 재수술이에요'],pick=>{
       addUser(pick);state.revisit=pick;nextStep2Question();
@@ -1457,6 +1460,7 @@ async function nextStep2Question(){
   }
   if(state.revisit && state.revisit.includes('재수술') && !state.sideEffect){
     state.step2Pending='sideEffect';
+    state._lastRetryInfo={key:'sideEffect',fn:nextStep2Question};
     addAi('이전 수술 후 부작용이나 불편하셨던 점 있으셨을까요? ~\n여러 개여도 편하게 다 골라주세요 !');
     addMultiQuickReply(['특별한 부작용 없었어요','모양이 마음에 안 들었어요','흉·구축 같은 끈끈함','마취·회복이 힘들었어요','비대칭이 생겼어요','말씀드리기 어려워요'],picks=>{
       const txt=picks.join(' / ');addUser(txt);state.sideEffect=txt;nextStep2Question();
@@ -1465,6 +1469,7 @@ async function nextStep2Question(){
   }
   if(!state.focus){
     state.step2Pending='focus';
+    state._lastRetryInfo={key:'focus',fn:nextStep2Question};
     addAi('요즘 특별히 신경 쓰이시는 부분 골라주세요 ~\n여러 개 골라주셔도 돼요 !');
     addMultiQuickReply(area.focusOptions,async picks=>{
       const txt=picks.join(' / ');addUser(txt);state.focus=txt;state.focusShown=true;
@@ -1483,6 +1488,7 @@ async function nextStep2Question(){
   }
   if(!state.mood){
     state.step2Pending='mood';
+    state._lastRetryInfo={key:'mood',fn:nextStep2Question};
     addAi('원하시는 스타일 살짝 알려주세요 ! 직접 표현해주셔도 돼요 ~');
     addQuickReply(['자연스럽게','또렷하게','세련되게','동안 느낌'],async pick=>{
       addUser(pick);state.mood=pick;
@@ -1963,6 +1969,7 @@ async function goStep3(){
 }
 
 async function askHospitalPriority(){
+  state._lastRetryInfo={key:'priority',fn:askHospitalPriority};
   addAi('병원 찾을 때 어떤 걸 제일 중요하게 보세요? ~\n여러 개여도 돼요 !');
   addMultiQuickReply(['비용','안전','좋은 후기','의료진 경력','접근성','상담 분위기','사후 관리'],picks=>{
     const txt=picks.join(' / ');addUser(txt);state.priority=txt;
@@ -1971,6 +1978,7 @@ async function askHospitalPriority(){
 }
 
 async function askRegion(){
+  state._lastRetryInfo={key:'region',fn:askRegion};
   addAi('어느 지역으로 찾아드릴까요 ? 직접 입력하셔도 돼요 !');
   addQuickReply(Object.keys(REGIONS),r=>{addUser(r);pickRegion(r)},'원하는 지역을 입력해도 돼요');
 }
@@ -2825,15 +2833,17 @@ function hideRetryBtn(){retryBar.style.display='none'}
 retryBtnEl.addEventListener('click',()=>{
   const last=state._lastUserMsg;
   if(!last)return;
-  // 사용자 답변만 삭제
+  // 이 메시지 + 이후 전부 삭제
+  let next=last.el.nextSibling;
+  while(next){const tmp=next.nextSibling;next.remove();next=tmp;}
   last.el.remove();
   state.busy=false;
   hideRetryBtn();
-  // 마지막 퀵리플라이 복원 (기존 질문 밑에 버튼만 다시)
-  const qr=state._lastQR;
-  if(qr && qr.wrap){
-    qr.wrap.remove();
-    addQuickReply(qr.options, qr.onPick, qr.placeholderHint);
+  // 해당 step의 state값 리셋 + 질문 함수 재호출
+  const s=state._lastRetryInfo;
+  if(s){
+    if(s.key)state[s.key]='';
+    if(s.fn)s.fn();
   } else {
     chatInputEl.value=last.text;
     chatInputEl.focus();
