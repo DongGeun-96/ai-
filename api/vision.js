@@ -77,7 +77,7 @@ ${methods ? '앞서 안내한 3가지 수술법: ' + methods : ''}
         messages: [
           { role: 'system', content: sys },
           { role: 'user', content: [
-            { type: 'text', text: mode === '본인' ? `제 ${part||'현재'} 사진이에요.${payload.sideImage?' 정면+측면 2장 보냈어요.':''} 위 3가지 중 제 상태에 맞는 걸 추천해주세요.` : '이 스타일 봐주세요.' },
+            { type: 'text', text: mode === '본인' ? `제 ${part||'현재'} 사진이에요.${payload.sideImage?' 정면+측면 2장 보냈어요. 두 사진이 같은 각도이면 지적해주세요.':''} 위 3가지 중 제 상태에 맞는 걸 추천해주세요.` : '이 스타일 봐주세요.' },
             { type: 'image_url', image_url: { url: image } },
             ...(payload.sideImage ? [{ type: 'image_url', image_url: { url: payload.sideImage } }] : [])
           ] }

@@ -2985,6 +2985,7 @@ async function analyzeImage(dataUrl){
   if(state.photoStep==='front'){
     state.frontPhoto=dataUrl;
     state.photoStep='side';
+    uploadBtn.style.display='none';
     addAi('정면 사진 잘 받았어요 ! 이제 측면 사진도 첨부해주세요 ~\n없으시면 정면 사진만으로 분석할게요 !');
     addQuickReply(['측면 사진 첨부','정면만으로 분석해주세요'],async pick=>{
       addUser(pick);
@@ -2993,12 +2994,20 @@ async function analyzeImage(dataUrl){
         addAi('측면 사진 첨부해주세요 ! 사진 버튼을 눌러주세요 ~');
       } else {
         state.photoStep='';
+        uploadBtn.style.display='none';
         await doAnalyzeImage(state.frontPhoto, null);
       }
     });
     return;
   }
   if(state.photoStep==='side'){
+    uploadBtn.style.display='none';
+    // 정면과 동일 사진 감지
+    if(dataUrl===state.frontPhoto){
+      addAi('정면 사진과 같은 사진인 것 같아요 ! 다른 각도의 측면 사진을 올려주세요 ~');
+      showUploadBtn();
+      return;
+    }
     state.sidePhoto=dataUrl;
     state.photoStep='';
     await doAnalyzeImage(state.frontPhoto, state.sidePhoto);
