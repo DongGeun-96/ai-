@@ -759,7 +759,7 @@ const chatSendEl=document.getElementById('chatSend');
 const mainInputEl=document.getElementById('mainInput');
 function setStep(n){state.step=n}
 
-function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return'eye'}
+function detectArea(t){t=t||'';if(/가슴|유방|보형물|모티바|볼륨업/.test(t))return'breast';if(/코|콧대|코끝/.test(t))return'nose';if(/지방|복부|허벅지|팔/.test(t))return'lipo';if(/윤곽|사각턱|광대|턱/.test(t))return'contour';if(/눈|쌍꺼풀|쌍수|눈매/.test(t))return'eye';return''}
 function detectGender(t){
   t=t||'';
   // 단어 중간에 끊는 수류(훈남자 같은 프리픽스 한자만) 제외하고, 한글은 단순 포함여부로 판단
@@ -913,16 +913,27 @@ async function handleUserInput(text){
 
   if(state.step===1){
     state.concern=text;
-    state.areaKey=detectArea(text);
+    const detected=detectArea(text);
     const g=detectGender(text);
     const a=detectAge(text);
     if(g) state.gender=g;
     if(a) state.age=a;
-    // 고민 입력에 관련된 공감 한 마디 + 상담 시작 안내
     await startConsultWithEmpathy(text);
+    if(!detected){
+      askArea();
+      return;
+    }
+    state.areaKey=detected;
     if(g && a) goStep2();
     else if(g && !a) askAge();
     else askGender();
+    return;
+  }
+  if(state.step==='area'){
+    const d=detectArea(text);
+    if(d){state.areaKey=d;state.step=1;addUserAck(d);if(state.gender&&state.age)goStep2();else if(state.gender)askAge();else askGender();return}
+    addAi('혹시 눈·코·가슴·지방·윤꽉 중 어느 쪽을 생각하세요?');
+    askArea();
     return;
   }
 
@@ -959,6 +970,21 @@ async function handleUserInput(text){
       userText:text
     });
   }
+}
+
+/* ── 부위 되물기 ── */
+async function askArea(){
+  state.step='area';
+  addAi('어느 부위 상담하실 건지 먼저 알려주시겠어요?');
+  addQuickReply(['눈','코','가슴','지방','윤꽉'],async pick=>{
+    addUser(pick);
+    const d=detectArea(pick);
+    if(d){state.areaKey=d;state.step=1;if(state.gender&&state.age)goStep2();else if(state.gender)askAge();else askGender();}
+  },'직접 입력하셔도 돼요 (예: 코끝, 쌍꺼풀)');
+}
+function addUserAck(key){
+  const label={eye:'눈',nose:'코',breast:'가슴',lipo:'지방',contour:'윤꽉'}[key]||'';
+  if(label) addAi(`아 ${label} 관련으로 볼게요.`);
 }
 
 /* ── 처음 고민에 대한 짧은 공감 한 마디 + 상담 시작 안내 (AI 호출) ── */
