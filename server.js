@@ -6,6 +6,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { searchKnowledgeText } from './api/_rag.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 5173);
@@ -132,6 +133,9 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && req.url.startsWith('/api/search')) {
       return handleSearch(req, res);
+    }
+    if (req.method === 'POST' && req.url === '/api/feedback') {
+      return handleFeedback(req, res);
     }
     return serveStatic(req, res);
   } catch (err) {
@@ -461,10 +465,27 @@ async function handleChat(req, res) {
         .join('\n')}`
     : '';
 
-  // 지식파일 자동 주입
+  // RAG: 최근 유저 메시지로 관련 청크 검색 → 시스템 프롬프트 주입
   const areaKey = payload.context?.areaKey;
-  const areaDoc = loadAreaKnowledge(areaKey);
-  const kb = areaDoc
+  const lastUserMsg = [...userMessages].reverse().find((m) => m && m.role === 'user');
+  const ragQuery = (lastUserMsg && typeof lastUserMsg.content === 'string')
+    ? lastUserMsg.content
+    : '';
+  let ragText = '';
+  try {
+    ragText = ragQuery ? searchKnowledgeText(ragQuery, { topK: 3, areaKey: areaKey || null }) : '';
+    // 검색 실패·빈 결과면 areaKey로 한 번 더 시도
+    if (!ragText && areaKey) {
+      ragText = searchKnowledgeText(areaKey, { topK: 3, areaKey });
+    }
+  } catch (e) {
+    console.warn('[rag] search failed', e);
+  }
+  // 검색 결과가 있으면 RAG를 우선, 없으면 기존 areaKnowledge 폴백 (호환성)
+  const areaDoc = ragText ? '' : loadAreaKnowledge(areaKey);
+  const kb = ragText
+    ? `\n\n── 관련 지식 (RAG 검색) ──\n${ragText}`
+    : areaDoc
     ? `\n\n── 전문 지식 (${areaKey}) ──\n${areaDoc}`
     : '';
   // safety는 STEP 1 · STEP 6 · 범위 밖 의심 케이스에만 주입
@@ -505,6 +526,47 @@ async function handleChat(req, res) {
   } catch (err) {
     res.writeHead(502, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ error: String(err) }));
+  }
+}
+
+const FEEDBACK_FILE = path.join(__dirname, 'feedback.log.json');
+
+async function handleFeedback(req, res) {
+  const raw = await readBody(req);
+  let payload;
+  try { payload = JSON.parse(raw || '{}'); } catch {
+    res.writeHead(400, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: 'invalid json' }));
+    return;
+  }
+  const rating = Number(payload.rating);
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+    res.writeHead(400, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: 'rating(1~5) 필요' }));
+    return;
+  }
+  const entry = {
+    at: new Date().toISOString(),
+    rating,
+    comment: typeof payload.comment === 'string' ? payload.comment.slice(0, 2000) : '',
+    state: payload.state && typeof payload.state === 'object' ? payload.state : null,
+    ua: req.headers['user-agent'] || ''
+  };
+  try {
+    let arr = [];
+    try {
+      const txt = fs.readFileSync(FEEDBACK_FILE, 'utf8');
+      arr = JSON.parse(txt);
+      if (!Array.isArray(arr)) arr = [];
+    } catch {}
+    arr.push(entry);
+    fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(arr, null, 2));
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ ok: true }));
+  } catch (err) {
+    console.error('[feedback] save failed', err);
+    res.writeHead(500, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ ok: false, error: String(err) }));
   }
 }
 

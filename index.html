@@ -829,7 +829,7 @@ const state={
   focus:'',recovery:'',mood:'',region:'',
   hospitals:[],history:[],busy:false,
   step2Pending:'focus',revisit:'',sideEffect:'',
-  celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false
+  celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false,feedbackShown:false
 };
 
 /* ─── DOM ─── */
@@ -1124,8 +1124,37 @@ async function scriptedReply(text,delay=520){
   addAi(text);
 }
 
+/* ─── 멀티턴 요약: history 가 40개 초과 시 앞 30개 요약 ─── */
+async function maybeSummarizeHistory(){
+  try{
+    if(!state.history || state.history.length<=40) return;
+    const head=state.history.slice(0,30);
+    const tail=state.history.slice(-10);
+    const r=await fetch('/api/chat',{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({
+        step:'summary',
+        message:'앞서 나눈 상담 내용을 요약해줘.',
+        messages:[
+          {role:'system',content:'다음 대화를 3줄로 요약해. 고객 정보·고민·진행 상황 포함.'},
+          ...head
+        ]
+      })
+    });
+    if(!r.ok) return;
+    const data=await r.json();
+    const summary=(data.text||'').trim();
+    if(!summary) return;
+    state.history=[
+      {role:'system',content:'이전 대화 요약: '+summary},
+      ...tail
+    ];
+  }catch(e){/* 실패해도 기존 플로우 유지 */}
+}
+
 /* ─── AI (옵션, 기본 플로우에서는 미사용) ─── */
 async function askAI({stepGoal,userText,systemNote}){
+  await maybeSummarizeHistory();
   const payload={
     step:state.step,
     stepGoal:stepGoal||'',
@@ -2135,6 +2164,67 @@ async function goStep6(){
   await askAI({
     stepGoal:'STEP 6 마무리: 오늘 상담 핵심 요약 2문장 + 고객이 다음으로 관리해야 할 것 1문장 (예: "2~3곳 직접 상담 후 비교해 보세요, 원하시면 제가 상담 다녀오신 후 정리 도와드릴게요") + 따뜻한 인사 마무리. 총 4~5문장.',
     userText:'오늘 상담 짧게 마무리해줘.'
+  });
+  await new Promise(r=>setTimeout(r,400));
+  addFeedbackWidget();
+}
+
+/* ─── 피드백 위젯 ─── */
+function addFeedbackWidget(){
+  if(state.feedbackShown) return;
+  state.feedbackShown=true;
+  ensureChatActive();
+  const wrap=document.createElement('div');
+  wrap.className='feedback-card oc-msg ai';
+  wrap.setAttribute('data-role','feedback');
+  wrap.style.cssText='background:rgba(255,192,203,0.08);border:1px solid rgba(255,182,193,0.35);border-radius:14px;padding:14px 16px;margin:10px 0;max-width:520px';
+  wrap.innerHTML=`
+    <div style="font-weight:600;margin-bottom:6px">오늘 상담이 도움이 됐나요?</div>
+    <div style="opacity:.8;font-size:.9em;margin-bottom:10px">별점과 의견으로 더 좋은 안내에 사용할게요 !</div>
+    <div class="fb-stars" style="display:flex;gap:6px;margin-bottom:10px">
+      ${[1,2,3,4,5].map(n=>`<button type="button" class="fb-star" data-n="${n}" style="font-size:24px;background:none;border:none;cursor:pointer;opacity:.55;transition:opacity .15s,transform .15s" aria-label="${n}점">★</button>`).join('')}
+    </div>
+    <textarea class="fb-comment" rows="2" placeholder="아쉬운 점이 있으면 알려주세요 (선택)" style="width:100%;box-sizing:border-box;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.2);color:inherit;padding:8px 10px;font-size:.95em;resize:vertical;font-family:inherit"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+      <button type="button" class="fb-submit" disabled style="padding:8px 16px;border-radius:999px;border:none;background:linear-gradient(135deg,#ff9aa2,#f8b4c4);color:#fff;font-weight:600;cursor:pointer;opacity:.55">보내기</button>
+      <span class="fb-thanks" style="opacity:0;transition:opacity .2s;font-size:.9em">고마워요 ! 소중하게 참고할게요 !</span>
+    </div>`;
+  chatMessages.appendChild(wrap);scrollBottom();
+
+  let rating=0;
+  const stars=wrap.querySelectorAll('.fb-star');
+  const submit=wrap.querySelector('.fb-submit');
+  const commentEl=wrap.querySelector('.fb-comment');
+  const thanks=wrap.querySelector('.fb-thanks');
+  stars.forEach(btn=>{
+    btn.addEventListener('mouseover',()=>{
+      const n=Number(btn.dataset.n);
+      stars.forEach(s=>{s.style.opacity=Number(s.dataset.n)<=n?'1':'.55';});
+    });
+    btn.addEventListener('mouseout',()=>{
+      stars.forEach(s=>{s.style.opacity=rating&&Number(s.dataset.n)<=rating?'1':'.55';});
+    });
+    btn.addEventListener('click',()=>{
+      rating=Number(btn.dataset.n);
+      stars.forEach(s=>{s.style.opacity=Number(s.dataset.n)<=rating?'1':'.55';});
+      submit.disabled=false;submit.style.opacity='1';
+    });
+  });
+  submit.addEventListener('click',async ()=>{
+    if(!rating) return;
+    submit.disabled=true;submit.style.opacity='.55';submit.textContent='보내는 중…';
+    try{
+      await fetch('/api/feedback',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+        rating,
+        comment:(commentEl.value||'').trim().slice(0,2000),
+        state:{
+          areaKey:state.areaKey,focus:state.focus,mood:state.mood,
+          region:state.region,age:state.age,gender:state.gender
+        }
+      })});
+    }catch(e){/* silent */}
+    submit.textContent='감사해요 !';
+    thanks.style.opacity='1';
   });
 }
 
