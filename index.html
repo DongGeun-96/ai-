@@ -795,7 +795,7 @@ const state={
   focus:'',recovery:'',mood:'',region:'',
   hospitals:[],history:[],busy:false,
   step2Pending:'focus',revisit:'',sideEffect:'',
-  celebName:'',celebVibe:'',greeted:false,focusShown:false
+  celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[]
 };
 
 /* ─── DOM ─── */
@@ -959,7 +959,7 @@ async function greetAndAsk(){
 function closeChat(){chatScreen.classList.remove('open');setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
-  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false});
+  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[]});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
 }
 function setInputEnabled(v){chatInputEl.disabled=!v;chatSendEl.disabled=!v}
@@ -1403,6 +1403,7 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
 
     // 2) 방식/특징 = 간략한 리스트 카드 (제목 없이 작은 카드)
     if(Array.isArray(data.items) && data.items.length){
+      state.lastTrendItems=data.items;
       ensureChatActive();
       const card=document.createElement('div');card.className=`mini-card variant-${variant||'info'}`;
       if(title){card.innerHTML=`<div class="mc-title">${emoji||''} ${esc(title)}</div>`}
@@ -1520,8 +1521,31 @@ async function showMoodLiveTrend(){
 }
 
 async function showInfoAndVideos(){
-  // focus에서 이미 방식·영상 안내 끝남. STEP 3로 넘기기 전 간결 전환문구만.
-  await scriptedReply(`${state.focus} / ${state.mood} 기준으로 병원까지 제가 같이 찾아볼게요 !`);
+  // 사진 분석 결과 + 3가지 수술법 기반 개인 맞춤 추천
+  if(state.photoAnalysis && state.lastTrendItems && state.lastTrendItems.length){
+    const area=AREAS[state.areaKey].label;
+    const methods=state.lastTrendItems.map(it=>it.name).join(', ');
+    await liveStructuredCard({
+      title:`${state.focus} · 사진 기반 맞춤 추천`,
+      emoji:'',variant:'trend',
+      schema:`{"summary":"2줄 공감+추천 요약","recommendation":"추천 3~4줄","tip":"주의점 1줄"}`,
+      instruction:`강남 성형외과 상담실장(20후 여성) 톤.
+고객 맥락: ${state.gender||'성별미지정'} / ${state.age||'나이미지정'} / ${area} "${state.focus}" 고민 / 원하는 느낌: ${state.mood}
+사진 분석 결과: ${state.photoAnalysis}
+앞서 안내한 3가지 방식: ${methods}
+
+1) summary: 사진에서 관찰된 특징을 바탕으로 "고객님의 ${area} 상태를 보면 ~" 하고 3가지 중 어느 것이 가장 적합한지 2줄로 요약.
+2) recommendation: 3가지 수술법(${methods}) 중 사진에서 보인 고객님의 실제 조건에 가장 적합한 1가지를 구체적으로 추천. 이유 포함 3~4줄. "사진에서 보면 ~한 상태이시고, ${state.mood} 느낌을 원하시니까 ~방식이 가장 잘 맞을 것 같아요" 패턴.
+마지막에 "다만 실제 적용 가능 여부는 대면 상담에서 꼭 확인하셔야 해요 !" 포함.
+3) tip: 이 조합에서 주의할 점 1줄.
+items 필드는 쓰지 않는다.
+
+규칙: 광고·가격·특정 병원·의사명·수치 금지. 칭찬·미화 금지. "경향"/"편이에요" 톤. 이모지·하트 금지. JSON만 반환.`
+    });
+  } else {
+    await scriptedReply(`${state.focus} / ${state.mood} 기준으로 잘 정리해드릴게요 ~`);
+  }
+  await scriptedReply('그러면 병원까지 제가 같이 찾아볼게요 !',350);
   await new Promise(r=>setTimeout(r,250));
 }
 
@@ -2026,7 +2050,7 @@ async function analyzeImage(dataUrl){
       body:JSON.stringify({image:dataUrl,context:{areaKey:state.areaKey,관심부위:area,스타일:state.mood,성별:state.gender,나이대:state.age,재수술여부:state.revisit,이전부작용:state.sideEffect,연예인:state.celebName||'',연예인스타일:state.celebVibe||'',사진모드:state.celebName?'본인':'단독'}})});
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
-    if(res.ok && data.text){addAi(data.text)}
+    if(res.ok && data.text){state.photoAnalysis=data.text;addAi(data.text)}
     else addAi('사진 분석에 문제가 있었어요. 다음으로 넘어가셔도 돼요.');
   }catch(err){tp.remove();chatOrb.setThinking(false);addAi('사진 분석 에러가 났어요.')}
   state.busy=false;
