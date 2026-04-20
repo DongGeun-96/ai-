@@ -352,8 +352,10 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .ai-summary p{font-size:13px;line-height:1.7;color:var(--text-1);white-space:pre-line}
 
     .chat-input-area{flex-shrink:0;padding:10px 20px;padding-bottom:calc(14px + var(--safe-bottom));border-top:1px solid var(--divider);background:#fff}
-    .chat-input-inner{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--accent);border-radius:22px;padding:8px 8px 8px 18px;transition:border-color .3s,box-shadow .3s;animation:inputGlow 2s ease-in-out infinite}
-    @keyframes inputGlow{0%,100%{box-shadow:0 0 14px rgba(123,143,212,0.25),0 0 28px rgba(123,143,212,0.1)}50%{box-shadow:0 0 22px rgba(123,143,212,0.45),0 0 40px rgba(123,143,212,0.15)}}
+    .chat-input-inner{position:relative;display:flex;align-items:center;gap:10px;background:#fff;border-radius:22px;padding:8px 8px 8px 18px;transition:box-shadow .3s}
+    .chat-input-inner::before{content:'';position:absolute;inset:-2.5px;border-radius:24px;background:linear-gradient(135deg,#A8BAE8,#7B8FD4,#9B7BD4,#7BB5D4,#A8BAE8);background-size:300% 300%;animation:borderSpin 3s linear infinite;z-index:-1}
+    .chat-input-inner::after{content:'';position:absolute;inset:-2.5px;border-radius:24px;background:linear-gradient(135deg,#A8BAE8,#7B8FD4,#9B7BD4,#7BB5D4,#A8BAE8);background-size:300% 300%;animation:borderSpin 3s linear infinite;filter:blur(12px);opacity:.5;z-index:-2}
+    @keyframes borderSpin{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     .chat-input-inner input{flex:1;border:none;outline:none;font-size:15px;font-family:'Noto Sans KR',sans-serif;color:var(--text-0);background:transparent}
     .chat-input-inner input::placeholder{color:var(--accent);opacity:.55;font-weight:500}
     .chat-input-inner input:disabled{color:var(--text-3)}
