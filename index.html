@@ -348,8 +348,7 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .mc-price{font-size:14px;font-weight:700;color:var(--accent-deep);margin-top:4px}
     .mc-note{font-size:12px;color:var(--text-2);margin-top:4px;font-style:italic}
     /* ── 검색 결과 카드 (유튰브 디자인 통일) ── */
-    .search-thumb{background:linear-gradient(135deg,#e8f0fe,#d2e3fc) !important;display:flex;align-items:center;justify-content:center}
-    .search-icon{font-size:24px}
+
     /* ── Shorts 카드 ── */
     .shorts-cards{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 0}
     .shorts-cards::-webkit-scrollbar{display:none}
@@ -1802,10 +1801,10 @@ function addSearchCards(list){
     const icon=it.type==='blog'?'\uD83D\uDCDD':'\u2615';
     const label=it.type==='blog'?'\uBE14\uB85C\uADF8':'\uCE74\uD398';
     return `<a class="yt-card" href="${esc(it.url)}" target="_blank" rel="noopener">
-      <div class="yt-card-thumb search-thumb"><span class="search-icon">${icon}</span></div>
+
       <div class="yt-card-body">
         <div class="yt-card-title">${esc(it.title)}</div>
-        <div class="yt-card-meta"><span>${esc(it.source)}</span><span class="yt-card-tag">${esc(label)}</span></div>
+        <div class="yt-card-meta"><span>${icon} ${esc(it.source)}</span><span class="yt-card-tag">${esc(label)}</span></div>
       </div>
     </a>`;
   }).join('');
