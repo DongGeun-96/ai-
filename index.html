@@ -1527,6 +1527,26 @@ async function showMoodLiveTrend(){
   });
 }
 
+async function showYoutubeRecommendation(){
+  const area=AREAS[state.areaKey]?.label||'시술';
+  const q=`${area} ${state.focus||''} ${state.mood||''} 시술 후기 비교`.replace(/\s+/g,' ').trim();
+  const tp=addTyping();chatOrb.setThinking(true);
+  try{
+    const res=await fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=3');
+    const data=await res.json();
+    tp.remove();chatOrb.setThinking(false);
+    if(res.ok && Array.isArray(data.items) && data.items.length){
+      addYtCards(data.items.map(v=>({id:v.id,title:v.title||area,channel:v.channel||'YouTube',tag:state.mood||'참고'})));
+    } else {
+      addAi('관련 영상을 찾기 어려웠어요. 상담 때 직접 확인해보시는 게 좋을 것 같아요 ~');
+    }
+  }catch(e){
+    tp.remove();chatOrb.setThinking(false);
+    addAi('영상 검색에 문제가 있었어요. 다음으로 넘어갈게요 ~');
+  }
+  await new Promise(r=>setTimeout(r,300));
+}
+
 async function showInfoAndVideos(){
   // 사진 분석 결과 + 3가지 수술법 기반 개인 맞춤 추천
   if(state.photoAnalysis && state.lastTrendItems && state.lastTrendItems.length){
@@ -1591,6 +1611,40 @@ recommendation 필드가 비어있으면 안 됩니다. 반드시 3가지를 비
     // 사진 업로드 후 약간의 대기
     if(state.photoAnalysis) await new Promise(r=>setTimeout(r,500));
   }
+  // 추천 시술 대략적 가격 안내
+  if(state.lastTrendItems && state.lastTrendItems.length){
+    const area=AREAS[state.areaKey].label;
+    const methods=state.lastTrendItems.map(it=>it.name).join(', ');
+    await liveStructuredCard({
+      title:`${area} 시술 예상 비용 안내`,
+      emoji:'',variant:'trend',
+      schema:`{"summary":"1줄 안내","items":[{"name":"시술명","price":"가격대","note":"참고 1줄"}],"tip":"1줄 주의"}`,
+      instruction:`강남 성형외과 상담실장(20후 여성) 톤.
+앞서 안내한 3가지 방식: ${methods}
+부위: ${area}
+
+items: 3가지 각각에 대해 대략적인 시술 가격대를 안내. 
+- name: 시술명
+- price: 대략적 가격 범위 (예: "50~100만원대", "200~400만원대" 등 범위로. 정확한 금액이 아닌 대략적 시세 범위.)
+- note: 가격에 영향 주는 요소 1줄 (예: "병원·의료진·재료에 따라 차이가 커요")
+
+summary: "대략적인 시세 범위이고, 실제 비용은 병원마다 차이가 있어요" 1줄.
+tip: "비용만 보지 마시고, 의료진 경력과 사후 관리도 함께 확인하시는 게 좋아요" 1줄.
+
+규칙: 정확한 금액 단정 금지. "~만원대", "대략", "시세 범위" 표현 사용. 특정 병원·의사명 금지. 이모지·하트 금지. JSON만 반환.`
+    });
+  }
+  // 관련 영상 추천 여부 질문
+  await new Promise(resolve=>{
+    addAi('관련 시술 영상도 찾아볼까요? 참고하시면 상담 때 도움이 돼요 ~');
+    addQuickReply(['네, 추천해주세요','아니요, 괜찮아요'],async pick=>{
+      addUser(pick);
+      if(pick.includes('네')){
+        await showYoutubeRecommendation();
+      }
+      resolve();
+    });
+  });
   await scriptedReply('그러면 병원까지 제가 같이 찾아볼게요 !',350);
   await new Promise(r=>setTimeout(r,250));
 }
