@@ -811,6 +811,31 @@ async function fetchCelebStyle(name,areaKey){
     return null;
   }catch{return null}
 }
+
+/* ── 연예인 스타일·부위별 수술방식 안내 문구 (의학 단정 금지, 경향 수준) ── */
+function getCelebSurgeryGuide(areaKey, vibe){
+  const guides={
+    eye:{
+      '또렷':'이런 느낌은 보통 쌍꺼풀라인을 조금 원알·애교세로 해서 눈을 때렯해 보이게 하고, 안검거상술(눈매교정)을 같이 해서 눈매를 좀 더 크고 임팩트 있게 만드는 흐름이에요 ! 경우에 따라 앞트임·뒷트임·밑트임을 조금 섭어서 공간감을 더 주기도 해요 ~',
+      '자연스럽게':'이런 느낌은 보통 내축쌍꺼풀·매몰법으로 은은한 입체감만 주고, 과교정 없이 눈매 원래 느낌을 살린 흐름이에요 ~',
+      '세련되게':'이런 느낌은 샤프한 눈꼬리 라인·모델 눈 쪽으로 안검거상과 뒷트임을 조합해서 흐름을 잡아주고요 ~',
+      '동안 느낌':'이런 느낌은 보통 녨은 쌍꺼풀라인 + 애교살 필러·재배치로 둘근하고 어린 눈매로 만드는 흐름이에요 !'
+    },
+    nose:{
+      '또렷':'콧대는 실리콘·고어텍스로 높이고 코끝은 자가연골로 따롭하게 세워주는 방식이 많아요 !',
+      '자연스럽게':'콧대는 조금만 높이고 코끝 모양을 자가연골로 다듬는 무보형물 흐름이 요즘 많아요 ~',
+      '세련되게':'콧대를 절제됩게 세우고 코끝을 살짝 내려서 세련된 라인을 만드는 방식으로 가요 !',
+      '동안 느낌':'콧대보다는 코끝을 살짝 올려주어서 부드러운 인상을 주는 방식이에요 ~'
+    },
+    contour:{
+      '또렷':'사각턱·광대·애큐섬 섭제로 얼굴선을 또렷하게 잡아주는 방향이 많아요 !',
+      '자연스럽게':'사각턱 라인만 조금 다듬고 애큐섬·마이어프로 겹겹이 자연스럽게 수정하는 흐름이에요 ~'
+    }
+  };
+  if(!areaKey || !guides[areaKey]) return '';
+  const v=guides[areaKey][vibe]||Object.values(guides[areaKey])[0];
+  return v||'';
+}
 function detectGender(t){
   t=t||'';
   // 단어 중간에 끊는 수류(훈남자 같은 프리픽스 한자만) 제외하고, 한글은 단순 포함여부로 판단
@@ -979,7 +1004,15 @@ async function handleUserInput(text){
         const partLabel=detected?AREAS[detected]?.label:'느낌';
         const vibe=celebData.vibe||celebData.mood;
         addAi(`${celebName}의 ${partLabel}처럼 ${vibe} 스타일 너무 이쁘죠 !`);
-        addAi('제가 열심히 상담 도와드릴게요 ~');
+        // 수술 방식 설명 + 사진 쳐부 요청 (실제 상담실장 흐름)
+        if(detected){
+          const surgeryMd=getCelebSurgeryGuide(detected, celebData.mood);
+          if(surgeryMd) await scriptedReply(surgeryMd, 600);
+          await scriptedReply(`좌쪽 아래 사진 버튼으로 ${partLabel} 사진 한 장만 올려주시면 ~ 오너자의 ${partLabel} 조건에 맞춰서 더 꼼꼼하게 안내해드릴 수 있어요 !`, 600);
+          addAi('사진 없으셔도 그냥 다음으로 넘어가셔도 괜찮아요 ~');
+        }else{
+          addAi('제가 열심히 상담 도와드릴게요 ~');
+        }
       }
     }
     if(!detected){
