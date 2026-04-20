@@ -2581,7 +2581,7 @@ function renderGlossary(filter=''){
 
 function openGlossary(){document.getElementById('glossaryScreen').classList.add('open');renderGlossary()}
 function closeGlossary(){document.getElementById('glossaryScreen').classList.remove('open')}
-document.getElementById('glossaryBanner').addEventListener('click',e=>{e.preventDefault();openGlossary()});
+document.getElementById('glossaryBanner')?.addEventListener('click',e=>{e.preventDefault();openGlossary()});
 document.getElementById('glossaryClose').addEventListener('click',closeGlossary);
 document.getElementById('glossarySearch').addEventListener('input',e=>renderGlossary(e.target.value));
 
