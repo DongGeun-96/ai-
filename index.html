@@ -183,6 +183,24 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     @keyframes msgSlide{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
     .msg.ai{background:var(--bg-sub);color:var(--text-1);border-bottom-left-radius:6px;align-self:flex-start;white-space:pre-line}
     .msg.user{background:linear-gradient(135deg,var(--accent-light),var(--accent));color:white;border-bottom-right-radius:6px;align-self:flex-end;box-shadow:0 3px 12px rgba(123,143,212,0.2);display:flex;align-items:center;gap:6px}
+    .intake-shell{max-width:94%;padding:0;background:transparent;border-radius:0}
+    .intake-form{background:#fff;border:1px solid var(--glass-border);border-radius:20px;padding:14px;box-shadow:0 10px 28px rgba(123,143,212,0.08)}
+    .intake-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .intake-head strong{font-size:15px;font-weight:800;color:var(--text-0);letter-spacing:-.2px}
+    .intake-head span{font-size:11px;color:var(--accent-deep);background:rgba(123,143,212,0.08);padding:5px 9px;border-radius:999px;font-weight:700}
+    .intake-grid-top{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+    .intake-field{display:flex;flex-direction:column;gap:5px}
+    .intake-field label{font-size:12px;color:var(--text-2);font-weight:700}
+    .intake-input{width:100%;height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--divider);font-size:14px;font-family:inherit;color:var(--text-0);background:#fff;outline:none}
+    .intake-input:focus{border-color:var(--accent-light);box-shadow:0 0 0 3px rgba(123,143,212,0.08)}
+    .intake-chips{display:flex;flex-wrap:wrap;gap:6px}
+    .intake-chip{height:36px;padding:0 12px;border-radius:12px;border:1px solid var(--divider);background:#fff;color:var(--text-1);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .16s}
+    .intake-chip.selected{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(123,143,212,0.18)}
+    .intake-chip:active{transform:scale(.98)}
+    .intake-row-2{display:grid;grid-template-columns:1.2fr .8fr;gap:8px;margin-top:8px}
+    .intake-submit{width:100%;height:44px;margin-top:10px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--accent-light),var(--accent));color:#fff;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 8px 20px rgba(123,143,212,0.2)}
+    .intake-note{margin-top:8px;font-size:11px;line-height:1.5;color:var(--text-3)}
+    @media (max-width:380px){.intake-grid-top,.intake-row-2{grid-template-columns:1fr}.intake-chip{flex:1 1 calc(50% - 6px)}}
     .retry-bar{display:flex;justify-content:center;padding:8px 16px 4px}
     .retry-btn{border:none;background:var(--accent);color:#fff;border-radius:20px;font-size:13px;font-weight:700;padding:8px 24px;cursor:pointer;transition:all .15s;box-shadow:0 2px 8px rgba(123,143,212,0.3);letter-spacing:.3px}
     .retry-btn:active{transform:scale(0.95);box-shadow:0 1px 4px rgba(123,143,212,0.2)}
@@ -993,68 +1011,73 @@ async function greetAndAsk(){
 
 function showIntakeForm(){
   const formHtml=`
-  <div class="intake-form" style="background:#f8f6ff;border-radius:16px;padding:20px;margin:8px 0;border:1px solid #e8e0f5;">
-    <div style="font-weight:600;color:#6c3fb5;margin-bottom:14px;font-size:15px;">상담 정보</div>
-    <div class="intake-row" style="margin-bottom:12px;">
-      <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">성별</label>
-      <div class="intake-gender" style="display:flex;gap:8px;">
-        <button type="button" class="intake-gender-btn" data-v="\uc5ec\uc131" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px;">여성</button>
-        <button type="button" class="intake-gender-btn" data-v="\ub0a8\uc131" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px;">남성</button>
+  <div class="intake-form">
+    <div class="intake-head">
+      <strong>상담 정보 입력</strong>
+      <span>정확한 상담용</span>
+    </div>
+    <div class="intake-grid-top">
+      <div class="intake-field">
+        <label>성별</label>
+        <div class="intake-chips intake-gender">
+          <button type="button" class="intake-chip intake-gender-btn" data-v="여성">여성</button>
+          <button type="button" class="intake-chip intake-gender-btn" data-v="남성">남성</button>
+        </div>
+      </div>
+      <div class="intake-field">
+        <label>나이</label>
+        <input type="number" class="intake-input intake-age" placeholder="예: 25">
       </div>
     </div>
-    <div class="intake-row" style="margin-bottom:12px;">
-      <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">나이</label>
-      <input type="number" class="intake-age" placeholder="예: 25" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid #ddd;font-size:14px;box-sizing:border-box;">
-    </div>
-    <div class="intake-row" style="margin-bottom:12px;">
-      <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">고민 부위</label>
-      <div class="intake-area" style="display:flex;flex-wrap:wrap;gap:6px;">
-        <button type="button" class="intake-area-btn" data-v="eye" style="padding:6px 12px;border-radius:16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">눈</button>
-        <button type="button" class="intake-area-btn" data-v="nose" style="padding:6px 12px;border-radius:16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">코</button>
-        <button type="button" class="intake-area-btn" data-v="contour" style="padding:6px 12px;border-radius:16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">윤곽</button>
-        <button type="button" class="intake-area-btn" data-v="breast" style="padding:6px 12px;border-radius:16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">가슴</button>
-        <button type="button" class="intake-area-btn" data-v="lipo" style="padding:6px 12px;border-radius:16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">지방흡입</button>
-        <button type="button" class="intake-area-btn" data-v="skin" style="padding:6px 12px;border-radius:16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">피부</button>
-        <button type="button" class="intake-area-btn" data-v="hair" style="padding:6px 12px;border-radius:16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">모발</button>
+    <div class="intake-field">
+      <label>고민 부위</label>
+      <div class="intake-chips intake-area">
+        <button type="button" class="intake-chip intake-area-btn" data-v="eye">눈</button>
+        <button type="button" class="intake-chip intake-area-btn" data-v="nose">코</button>
+        <button type="button" class="intake-chip intake-area-btn" data-v="contour">윤곽</button>
+        <button type="button" class="intake-chip intake-area-btn" data-v="breast">가슴</button>
+        <button type="button" class="intake-chip intake-area-btn" data-v="lipo">지방흡입</button>
+        <button type="button" class="intake-chip intake-area-btn" data-v="skin">피부</button>
+        <button type="button" class="intake-chip intake-area-btn" data-v="hair">모발</button>
       </div>
     </div>
-    <div class="intake-row" style="margin-bottom:12px;">
-      <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">세부 고민</label>
-      <input type="text" class="intake-focus" placeholder="예: 콧대가 낮아서 높이고 싶어요" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid #ddd;font-size:14px;box-sizing:border-box;">
+    <div class="intake-row-2">
+      <div class="intake-field">
+        <label>세부 고민</label>
+        <input type="text" class="intake-input intake-focus" placeholder="예: 콧대가 낮아요">
+      </div>
+      <div class="intake-field">
+        <label>원하는 느낌</label>
+        <input type="text" class="intake-input intake-style" placeholder="예: 자연스럽게">
+      </div>
     </div>
-    <div class="intake-row" style="margin-bottom:16px;">
-      <label style="font-size:13px;color:#555;display:block;margin-bottom:4px;">원하는 느낌/스타일</label>
-      <input type="text" class="intake-style" placeholder="예: 자연스럽게, 또렷하게" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid #ddd;font-size:14px;box-sizing:border-box;">
-    </div>
-    <button type="button" class="intake-submit" style="width:100%;padding:12px;border-radius:10px;background:#6c3fb5;color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;">상담 시작하기</button>
+    <button type="button" class="intake-submit">상담 시작하기</button>
+    <div class="intake-note">필수 항목만 입력해도 바로 상담 시작할 수 있어요.</div>
   </div>`;
   const wrapper=document.createElement('div');
-  wrapper.className='msg ai';
+  wrapper.className='msg ai intake-shell';
   wrapper.innerHTML=formHtml;
   chatMessages.appendChild(wrapper);
   chatMessages.scrollTop=chatMessages.scrollHeight;
 
-  // 성별 버튼 토글
   let selectedGender='';
   wrapper.querySelectorAll('.intake-gender-btn').forEach(btn=>{
     btn.onclick=()=>{
-      wrapper.querySelectorAll('.intake-gender-btn').forEach(b=>{b.style.background='#fff';b.style.color='#333';b.style.borderColor='#ddd';});
-      btn.style.background='#6c3fb5';btn.style.color='#fff';btn.style.borderColor='#6c3fb5';
+      wrapper.querySelectorAll('.intake-gender-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
       selectedGender=btn.dataset.v;
     };
   });
 
-  // 부위 버튼 토글
   let selectedArea='';
   wrapper.querySelectorAll('.intake-area-btn').forEach(btn=>{
     btn.onclick=()=>{
-      wrapper.querySelectorAll('.intake-area-btn').forEach(b=>{b.style.background='#fff';b.style.color='#333';b.style.borderColor='#ddd';});
-      btn.style.background='#6c3fb5';btn.style.color='#fff';btn.style.borderColor='#6c3fb5';
+      wrapper.querySelectorAll('.intake-area-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
       selectedArea=btn.dataset.v;
     };
   });
 
-  // 제출
   wrapper.querySelector('.intake-submit').onclick=()=>{
     const age=wrapper.querySelector('.intake-age').value.trim();
     const focus=wrapper.querySelector('.intake-focus').value.trim();
@@ -1065,7 +1088,6 @@ function showIntakeForm(){
       return;
     }
 
-    // state에 정확히 저장
     state.context.gender=selectedGender;
     state.context.age=age;
     state.context.areaKey=selectedArea;
@@ -1075,16 +1097,13 @@ function showIntakeForm(){
     state.gender=selectedGender;
     state.age=age;
     state.focus=focus;
+    if(style) state.mood=style;
 
-    // 폼 제거
     wrapper.remove();
 
-    // 사용자 메시지로 변환
-    const areaNames={eye:'눈',nose:'코',contour:'윤골',breast:'가슴',lipo:'지방흡입',skin:'피부',hair:'모발'};
+    const areaNames={eye:'눈',nose:'코',contour:'윤곽',breast:'가슴',lipo:'지방흡입',skin:'피부',hair:'모발'};
     const msg=`성별: ${selectedGender}\n나이: ${age}세\n고민 부위: ${areaNames[selectedArea]||selectedArea}\n세부 고민: ${focus}${style?`\n원하는 느낌: ${style}`:''}`;
     addUser(msg);
-
-    // API 호출
     sendConversational(msg);
   };
 }
