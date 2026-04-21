@@ -824,7 +824,7 @@ const EXTRA_TOPICS={
 const state={
   step:1,areaKey:'',concern:'',gender:'',age:'',
   focus:'',recovery:'',mood:'',region:'',
-  hospitals:[],history:[],busy:false,
+  hospitals:[],history:[],context:{},busy:false,
   step2Pending:'focus',revisit:'',sideEffect:'',
   celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false,feedbackShown:false
 };
@@ -986,9 +986,7 @@ function openChat(initial){
 async function greetAndAsk(){
   ensureChatActive();
   state.greeted=true;
-  await scriptedReply('안녕하세요 ! 제가 편하게 상담 도와드릴게요 ~',520);
-  await scriptedReply('요즘 특별히 고민이시거나 어떤 변화 원하시는 부분이 있으세요 ?',460);
-  addAi('편하게 말씀해주세요 ! "코 높이고 싶어", "잠자는 거 같은 눈", "친구 추천으로 알아보는 중" 같이 자유롭게도 돼요 ~');
+  await scriptedReply('어떤 고민으로 오셨어요?',520);
 }
 function closeChat(){_closeScreen(chatScreen);setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
@@ -1189,7 +1187,103 @@ function normalizeGender(t){
   if(/선택\s*안|선택안|상관\s*없|비공개|말하고\s*싶지|안\s*할래|안함|모름/.test(t)) return '선택 안 함';
   return t;
 }
+/* ─── 새 대화형 모드: sendConversational + executeActions ─── */
+async function sendConversational(text){
+  if(!text||state.busy)return;
+  state.busy=true;
+  setInputEnabled(false);
+  const tp=addTyping();
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({
+        mode:'conversational',
+        message:text,
+        history:state.history.slice(-8),
+        state:state.context||{}
+      })
+    });
+    const data=await res.json();
+    tp.remove();chatOrb.setThinking(false);
+    if(!res.ok){addError(data.error||'오류');return;}
+    if(data.text) addAi(data.text);
+    if(data.state_update) Object.assign(state.context||(state.context={}),data.state_update);
+    if(data.actions&&data.actions.length) await executeActions(data.actions);
+    if(data.ui_hints&&data.ui_hints.input_placeholder) chatInputEl.placeholder=data.ui_hints.input_placeholder;
+  }catch(err){
+    tp.remove();chatOrb.setThinking(false);
+    addError('네트워크 오류');
+  }finally{
+    state.busy=false;setInputEnabled(true);chatInputEl.focus();
+  }
+}
+async function executeActions(actions){
+  for(const action of actions){
+    const p=action.params||{};
+    switch(action.type){
+      case 'show_youtube':{
+        const res=await fetch('/api/yt?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
+        if(res.ok){const d=await res.json();if(d.items&&d.items.length)addYtCards(d.items.map(v=>({id:v.id,title:v.title||'',channel:v.channel||'YouTube',views:v.views||'',tag:'참고'})));}
+        break;
+      }
+      case 'show_shorts':{
+        const res=await fetch('/api/shorts?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
+        if(res.ok){const d=await res.json();if(d.items&&d.items.length)addShortsCards(d.items);}
+        break;
+      }
+      case 'show_blog_posts':{
+        const res=await fetch('/api/search?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
+        if(res.ok){const d=await res.json();if(d.items&&d.items.length)addSearchCards(d.items);}
+        break;
+      }
+      case 'show_hospitals':{
+        const res=await fetch('/api/places?region='+encodeURIComponent(p.region||'강남')+'&area=성형외과&limit='+(p.limit||8));
+        if(res.ok){const d=await res.json();if(d.items&&d.items.length){ensureChatActive();const wrap=document.createElement('div');wrap.className='hospital-cards';d.items.forEach(h=>{const card=document.createElement('div');card.className='hospital-card';card.innerHTML=`<div class="h-name">${esc(h.name||'')}</div><div class="h-addr">${esc(h.address||'')}</div>`;wrap.appendChild(card);});chatMessages.appendChild(wrap);scrollBottom();}}
+        break;
+      }
+      case 'request_photo':{
+        showUploadBtn();
+        state.photoStep=p.step||'front';
+        addAi(p.step==='side'?'측면 사진도 첨부해주세요.':'정면 사진을 첨부해주세요. 사진 버튼을 눌러주세요.');
+        break;
+      }
+      case 'show_celeb_style':{
+        const res=await fetch('/api/celeb-style',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:p.name,areaKey:p.areaKey||state.context?.areaKey})});
+        if(res.ok){const d=await res.json();if(d.style)addAi(d.style);}
+        break;
+      }
+      case 'show_trends':{
+        if(state.context?.areaKey){state.areaKey=state.context.areaKey;state.focus=state.context?.focus||'';await showFocusTrend();}
+        break;
+      }
+      case 'end_consultation':{
+        addAi('상담이 도움이 되셨길 바라요. 언제든 다시 오세요.');
+        break;
+      }
+    }
+    await new Promise(r=>setTimeout(r,300));
+  }
+}
+
 async function handleUserInput(text){
+  if(!text||state.busy)return;
+  hideRetryBtn();
+  pushUndo();
+  addUser(text);
+
+  // _awaitInput 브릿지
+  if(state._awaitInput){const resolve=state._awaitInput;state._awaitInput=null;resolve(text);return;}
+
+  // 사진 대기 중이면 기존 플로우 유지
+  if(state.photoStep&&state.waitingPhoto)return;
+
+  // 새 대화형 모드
+  await sendConversational(text);
+}
+
+/* ─── 기존 handleUserInput (레거시, 주석 처리) ─── */
+async function handleUserInput_legacy(text){
   if(!text||state.busy)return;
   hideRetryBtn();
   pushUndo();
