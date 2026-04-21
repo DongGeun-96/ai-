@@ -283,29 +283,60 @@ const FEW_SHOT = `[좋은 대화 예시]
 /**
  * 도구 사용 가이드 (function calling 모드용)
  */
-const TOOL_GUIDE = `[도구 사용 가이드]
-당신은 대화 중 적절한 시점에 도구를 호출해서 사용자에게 정보를 제공할 수 있어요.
+const TOOL_GUIDE = `[JSON 응답 모드]
+당신은 반드시 아래 JSON 포맷으로만 응답해야 합니다. 다른 형식으로 응답하지 마세요.
 
-- show_youtube: 관련 영상을 보여주고 싶을 때
-- show_shorts: 짧은 영상을 보여주고 싶을 때
-- show_blog_posts: 후기나 관련 글을 보여주고 싶을 때
-- show_hospitals: 사용자가 지역을 알려줬을 때 병원 정보 표시
-- request_photo: 사진을 보면 더 정확한 상담이 가능할 때
-- analyze_photo: 이미 업로드된 사진을 분석하고 싶을 때
-- show_celeb_style: 사용자가 연예인 이름을 언급했을 때
-- show_trends: 해당 부위의 트렌드 정보를 보여주고 싶을 때
-- end_consultation: 상담을 자연스럽게 마무리할 때
-- update_state: 사용자의 정보(부위, 나이, 성별, 고민 등)를 파악했을 때 반드시 호출
+{
+  "text": "상담 답변 텍스트 (필수)",
+  "state_update": { "areaKey": "eye", "focus": "세부고민" },
+  "actions": [
+    { "type": "show_youtube", "params": { "query": "검색어", "limit": 5 } }
+  ]
+}
 
-[도구 호출 규칙 — 반드시 지켜주세요]
-1. update_state는 사용자가 부위/나이/성별/고민/스타일/지역 중 하나라도 언급하면 무조건 호출. 매 턴 새로운 정보가 있으면 반드시 호출하세요.
-2. show_hospitals는 areaKey + 지역이 모두 파악된 후에만 호출
-3. show_youtube/show_shorts는 focus(세부 고민)가 파악된 후에 호출
-4. 한 번에 최대 3개 도구까지 호출 가능
-5. 텍스트 응답은 항상 포함해야 함
-6. 사용자의 첫 메시지에서 부위가 언급됐으면 update_state를 반드시 호출하세요.
+[state_update 필드]
+사용자가 아래 정보를 언급하면 state_update에 해당 필드를 반드시 포함하세요:
+- areaKey: 부위 (eye/nose/breast/lipo/contour/skin/hair)
+- focus: 세부 고민 (예: "눈이 작아 보임", "코끝이 둥글다")
+- mood: 원하는 스타일 (예: "자연스러운")
+- gender: 성별
+- age: 나이
+- region: 지역 (예: "강남", "부산")
+- celebName: 연예인 이름
+- revisit: 재수술 여부
+- sideEffect: 부작용 고민
+- priority: 우선순위
 
-예시: 사용자가 "눈이 작아서 고민이에요"라고 하면 → update_state({areaKey:"eye", focus:"눈이 작아 보임"}) 호출 + 공감 텍스트 응답`;
+[action 타입]
+- show_youtube: { query, limit(5) } — focus가 파악된 후에만
+- show_shorts: { query, limit(5) } — focus가 파악된 후에만
+- show_blog_posts: { query, limit(5) }
+- show_hospitals: { region, limit(8) } — areaKey + region 모두 파악 후에만
+- request_photo: { step: "front"|"side" }
+- show_celeb_style: { name, areaKey }
+- show_trends: { areaKey }
+- end_consultation: {}
+
+[규칙]
+1. text는 항상 포함 (비워두지 마세요)
+2. 사용자가 부위/고민/나이/성별/지역 등을 언급하면 state_update에 반드시 포함
+3. actions는 적절한 시점에만 (최대 3개)
+4. 아무 action이 필요 없으면 actions를 빈 배열로
+5. JSON만 출력. 설명이나 마크다운 금지.
+
+예시 1: 사용자 "눈이 작아서 고민이에요"
+{
+  "text": "눈이 작아 보이는 게 신경 쓰이시는군요. 쌍꺼풀이 없어서 그런 건지, 아니면 눈매 자체가 작은 느낌인지 어떤 부분이 제일 고민이세요?",
+  "state_update": { "areaKey": "eye", "focus": "눈이 작아 보임" },
+  "actions": []
+}
+
+예시 2: 사용자 "강남에서 알려주세요" (areaKey=eye, focus=쌍꺼풀)
+{
+  "text": "강남 쪽으로 정리해드릴게요.",
+  "state_update": { "region": "강남" },
+  "actions": [{ "type": "show_hospitals", "params": { "region": "강남", "limit": 8 } }]
+}`;
 
 /**
  * 최종 시스템 프롬프트 빌더
