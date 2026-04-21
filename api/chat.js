@@ -255,15 +255,22 @@ export default async function handler(req, res) {
   const textValidation = validateOutput(finalText);
   let cleanText = textValidation.ok ? textValidation.text : (textValidation.text || finalText);
 
-  // 성별/나이/지역 안 물어봤으면 텍스트에 질문 추가
-  if (mergedState.areaKey && mergedState.focus) {
-    if (!mergedState.gender && !cleanText.includes('성별') && turnCount >= 3) {
-      cleanText += ' 혹시 성별도 알려주실 수 있으세요?';
-    } else if (mergedState.gender && !mergedState.age && !cleanText.includes('나이') && turnCount >= 3) {
-      cleanText += ' 나이대도 알려주시면 더 맞춤형 상담이 가능해요.';
-    } else if (mergedState.gender && mergedState.age && !mergedState.region && !cleanText.includes('지역') && !cleanText.includes('어디') && !cleanText.includes('어느') && turnCount >= 2) {
-      cleanText += ' 어느 지역에서 알아보고 계세요?';
+  // 성별/나이 미수집 시 자동 질문 추가
+  if (mergedState.areaKey && (!mergedState.gender || !mergedState.age)) {
+    const needGender = !mergedState.gender && !cleanText.includes('성별');
+    const needAge = !mergedState.age && !cleanText.includes('나이');
+    if ((needGender || needAge) && !cleanText.includes('알려주세요')) {
+      const asks = [];
+      if (needGender) asks.push('성별');
+      if (needAge) asks.push('나이');
+      cleanText += ' ' + asks.join('과 ') + '도 알려주시면 더 맞춤형 상담이 가능해요.';
     }
+  }
+  // 지역 미수집 + 수술법 설명 후
+  if (mergedState.areaKey && mergedState.gender && mergedState.age && !mergedState.region
+      && !cleanText.includes('지역') && !cleanText.includes('어디') && !cleanText.includes('어느')
+      && state.trendShown) {
+    cleanText += ' 어느 지역에서 알아보고 계세요?';
   }
 
   return send(res, 200, {
