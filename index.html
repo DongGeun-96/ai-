@@ -1226,21 +1226,6 @@ async function executeActions(actions){
   for(const action of actions){
     const p=action.params||{};
     switch(action.type){
-      case 'show_youtube':{
-        const res=await fetch('/api/yt?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
-        if(res.ok){const d=await res.json();if(d.items&&d.items.length)addYtCards(d.items.map(v=>({id:v.id,title:v.title||'',channel:v.channel||'YouTube',views:v.views||'',tag:'참고'})));}
-        break;
-      }
-      case 'show_shorts':{
-        const res=await fetch('/api/shorts?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
-        if(res.ok){const d=await res.json();if(d.items&&d.items.length)addShortsCards(d.items);}
-        break;
-      }
-      case 'show_blog_posts':{
-        const res=await fetch('/api/search?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
-        if(res.ok){const d=await res.json();if(d.items&&d.items.length)addSearchCards(d.items);}
-        break;
-      }
       case 'show_hospitals':{
         const res=await fetch('/api/places?region='+encodeURIComponent(p.region||'강남')+'&area=성형외과&limit='+(p.limit||8));
         if(res.ok){const d=await res.json();if(d.items&&d.items.length){ensureChatActive();const wrap=document.createElement('div');wrap.className='hospital-cards';d.items.forEach(h=>{const card=document.createElement('div');card.className='hospital-card';card.innerHTML=`<div class="h-name">${esc(h.name||'')}</div><div class="h-addr">${esc(h.address||'')}</div>`;wrap.appendChild(card);});chatMessages.appendChild(wrap);scrollBottom();}}
@@ -1259,7 +1244,23 @@ async function executeActions(actions){
         break;
       }
       case 'show_trends':{
-        if(state.context?.areaKey){state.areaKey=state.context.areaKey;state.focus=state.context?.focus||'';await showFocusTrend();}
+        if(state.context?.areaKey){state.areaKey=state.context.areaKey;state.focus=state.context?.focus||'';await showFocusTrend();state.context.trendShown=true;}
+        break;
+      }
+      case 'show_youtube':case 'show_shorts':case 'show_blog_posts':{
+        // 영상/후기 실행 후 마킹
+        const actType=action.type;
+        if(actType==='show_youtube'){
+          const r2=await fetch('/api/yt?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
+          if(r2.ok){const d2=await r2.json();if(d2.items&&d2.items.length)addYtCards(d2.items.map(v=>({id:v.id,title:v.title||'',channel:v.channel||'YouTube',views:v.views||'',tag:'참고'})));}
+        }else if(actType==='show_shorts'){
+          const r2=await fetch('/api/shorts?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
+          if(r2.ok){const d2=await r2.json();if(d2.items&&d2.items.length)addShortsCards(d2.items);}
+        }else{
+          const r2=await fetch('/api/search?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
+          if(r2.ok){const d2=await r2.json();if(d2.items&&d2.items.length)addSearchCards(d2.items);}
+        }
+        state.context.videosShown=true;
         break;
       }
       case 'end_consultation':{

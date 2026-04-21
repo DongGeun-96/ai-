@@ -224,8 +224,31 @@ export default async function handler(req, res) {
 
   // state_update를 병합해서 validation에 사용
   const mergedState = { ...state, ...(stateUpdate || {}) };
-  const actions = validateActions(rawActions, mergedState);
   const phase = computePhase(turnCount, mergedState);
+
+  // ── 자동 action 주입: GPT가 빠뜨렸을 때 기존 플로우대로 보간 ──
+  const autoActions = [...rawActions];
+  const hasAction = (type) => autoActions.some(a => a.type === type);
+
+  // 2단계: areaKey + focus 파악됐는데 show_trends 없으면 자동 추가
+  if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && !state.trendShown) {
+    autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
+  }
+
+  // 3단계: 수술법 설명 후 (트렌드 본 다음 턴) 영상/후기 자동
+  if (state.trendShown && mergedState.areaKey && !state.videosShown) {
+    const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
+    if (!hasAction('show_youtube')) autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
+    if (!hasAction('show_shorts')) autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
+    if (!hasAction('show_blog_posts')) autoActions.push({ type: 'show_blog_posts', params: { query: q, limit: 5 } });
+  }
+
+  // 5단계: 지역 파악되면 병원 자동
+  if (mergedState.region && mergedState.areaKey && !hasAction('show_hospitals')) {
+    autoActions.push({ type: 'show_hospitals', params: { region: mergedState.region, limit: 8 } });
+  }
+
+  const actions = validateActions(autoActions, mergedState);
 
   // text에서 validateOutput 적용
   const textValidation = validateOutput(finalText);
