@@ -309,7 +309,7 @@ export default async function handler(req, res) {
   }
 
   // ── 6-1. conversational 모드 감지 (function calling + action 시스템)
-  const isConversational = payload.mode === 'conversational';
+  let isConversational = payload.mode === 'conversational';
 
   // ── 7. 동적 시스템 프롬프트 빌드 (턴 수 + 상태 + RAG)
   const systemPrompt = buildSystemPrompt({
@@ -348,7 +348,7 @@ export default async function handler(req, res) {
   let validationInfo = null;
   let rawToolCalls = null;
   let attempts = 0;
-  const MAX_ATTEMPTS = 2;
+  const MAX_ATTEMPTS = 3;
 
   while (attempts < MAX_ATTEMPTS) {
     attempts++;
@@ -365,12 +365,9 @@ export default async function handler(req, res) {
       // conversational 모드일 때만 function calling 활성화
       if (isConversational) {
         body.tools = TOOLS;
-        // 첫 턴이거나 state에 areaKey가 없으면 update_state 강제
-        if (turnCount <= 1 || !state.areaKey) {
-          body.tool_choice = 'required';
-        } else {
-          body.tool_choice = 'auto';
-        }
+        body.tool_choice = 'auto';
+        // parallel tool calling 허용 (update_state + 텍스트 동시 가능)
+        body.parallel_tool_calls = true;
       }
 
       const r = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -402,8 +399,10 @@ export default async function handler(req, res) {
             tool_call_id: tc.id,
             content: JSON.stringify({ ok: true })
           })),
-          { role: 'system', content: '위에서 호출한 도구에 대한 이어지는 자연스러운 텍스트 응답을 줄소. 추가 도구 호출은 하지 마세요.' }
+          { role: 'user', content: '계속 답변해주세요.' }
         ];
+        // 재시도에서는 도구 없이 텍스트만
+        isConversational = false;
         continue;
       }
 
