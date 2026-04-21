@@ -323,15 +323,22 @@ const TOOL_GUIDE = `[JSON 응답 모드]
 3. JSON만 출력. 설명이나 마크다운 금지.
 
 [상담 플로우 — 이 순서대로 진행하세요]
-1단계: 공감 + 부위/고민 파악 (성별/나이는 아직 묻지 마세요)
+1단계: 공감 + 부위/고민 파악
 2단계: 세부 고민 파악 후 → show_trends action 호출 (수술법/가격 카드)
 3단계: 수술법 설명 후 → show_youtube + show_shorts action 호출
-4단계: 성별/나이 자연스럽게 물어보기
+4단계: 성별/나이 물어보기 (아직 모르면 반드시 물어보세요)
 5단계: 지역 물어보기 → show_hospitals action 호출
 6단계: 마무리 요약
 
-중요: 2단계에서 areaKey와 focus가 모두 파악되면 반드시 show_trends를 호출하세요.
-3단계에서 수술법을 설명했으면 반드시 show_youtube를 호출하세요.
+[필수 수집 정보 — 반드시 파악해야 합니다]
+- 부위 (areaKey): 눈/코/윤골/가슴/지방흡입/피부/모발
+- 세부 고민 (focus): 구체적으로 어떤 부분이 신경 쓰이는지
+- 성별 (gender): state에 gender가 없으면 3~4단계에서 "혹시 성별도 알려주실 수 있으세요?" 식으로 물어보세요
+- 나이 (age): state에 age가 없으면 3~4단계에서 "나이대도 알려주시면 더 맞춤형 상담이 가능해요" 식으로 물어보세요
+- 지역 (region): 5단계에서 "어느 지역에서 알아보고 계세요?" 식으로 물어보세요
+
+중요: 위 정보들을 이미 알고 있으면 다시 묻지 마세요. 모르는 것만 물어보세요.
+한 번에 여러 개 묻지 말고 1개씩 자연스럽게 물어보세요.
 사용자가 직접 요청하지 않아도 적절한 단계에서 자동으로 action을 보내세요.
 
 예시 1: 사용자 "눈이 작아서 고민이에요" (1단계: 공감+파악)
@@ -431,9 +438,18 @@ export function buildContext(state) {
   if (state.region) parts.push('희망 지역: ' + state.region);
   if (state.emotion) parts.push('감정 상태: ' + state.emotion);
 
-  return parts.length
-    ? '\n\n[지금까지 파악한 정보 — 같은 질문 반복 금지]\n' + parts.join('\n')
-    : '';
+  // 아직 모르는 정보
+  const missing = [];
+  if (!state.areaKey) missing.push('부위');
+  if (!state.focus) missing.push('세부 고민');
+  if (!state.gender) missing.push('성별');
+  if (!state.age) missing.push('나이');
+  if (!state.region) missing.push('지역');
+
+  let ctx = '';
+  if (parts.length) ctx += '\n\n[지금까지 파악한 정보 — 같은 질문 반복 금지]\n' + parts.join('\n');
+  if (missing.length) ctx += '\n\n[아직 모르는 정보 — 적절한 타이밍에 자연스럽게 물어보세요]\n' + missing.join(', ');
+  return ctx;
 }
 
 /**
