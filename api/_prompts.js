@@ -281,11 +281,36 @@ const FEW_SHOT = `[좋은 대화 예시]
 수리: "저는 성형 상담을 도와드리고 있어요. 혹시 요즘 고민되는 부분 있으시면 편하게 말씀해주세요."`;
 
 /**
+ * 도구 사용 가이드 (function calling 모드용)
+ */
+const TOOL_GUIDE = `[도구 사용 가이드]
+당신은 대화 중 적절한 시점에 도구를 호출해서 사용자에게 정보를 제공할 수 있어요.
+
+- show_youtube: 관련 영상을 보여주고 싶을 때
+- show_shorts: 짧은 영상을 보여주고 싶을 때
+- show_blog_posts: 후기나 관련 글을 보여주고 싶을 때
+- show_hospitals: 사용자가 지역을 알려줬을 때 병원 정보 표시
+- request_photo: 사진을 보면 더 정확한 상담이 가능할 때
+- analyze_photo: 이미 업로드된 사진을 분석하고 싶을 때
+- show_celeb_style: 사용자가 연예인 이름을 언급했을 때
+- show_trends: 해당 부위의 트렌드 정보를 보여주고 싶을 때
+- end_consultation: 상담을 자연스럽게 마무리할 때
+- update_state: 사용자의 정보(부위, 나이, 성별, 고민 등)를 파악했을 때 반드시 호출
+
+[도구 호출 규칙]
+1. update_state는 새로운 정보를 파악할 때마다 반드시 호출
+2. show_hospitals는 areaKey + 지역이 파악된 후에만 호출
+3. show_youtube/show_shorts는 focus(세부 고민)가 파악된 후에만 호출
+4. 한 번에 최대 3개 도구까지 호출 가능
+5. 텍스트 응답은 항상 포함 (도구만 호출하고 텍스트 없으면 안 됨)
+6. 도구 호출은 '필요할 때만'. 매 턴마다 억지로 부르지 마세요.`;
+
+/**
  * 최종 시스템 프롬프트 빌더
- * @param {object} opts - { turnCount, state, ragContext }
+ * @param {object} opts - { turnCount, state, ragContext, enableTools }
  */
 export function buildSystemPrompt(opts = {}) {
-  const { turnCount = 0, state = {}, ragContext = '' } = opts;
+  const { turnCount = 0, state = {}, ragContext = '', enableTools = false } = opts;
 
   // 턴 수에 따른 전략 선택
   let strategy;
@@ -305,6 +330,7 @@ export function buildSystemPrompt(opts = {}) {
     SCOPE_RULES,
     strategy,
     FEW_SHOT,
+    enableTools ? TOOL_GUIDE : '',
     stateContext,
     ragContext
   ].filter(Boolean);
