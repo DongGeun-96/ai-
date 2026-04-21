@@ -58,9 +58,7 @@ export function loadReferences(areaKey) {
 }
 
 // ⚠️ 기존의 중복 SYSTEM_PROMPT는 제거됨.
-// 이제 _prompts.js의 buildSystemPrompt / SYSTEM_PROMPT를 단일 출처로 사용.
-// 레거시 코드 호환을 위해 re-export만 유지.
-export { SYSTEM_PROMPT, buildSystemPrompt, buildContext } from './_prompts.js';
+// _prompts.js에서 직접 import하세요.
 
 // 모델 및 API 키
 export const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
