@@ -252,7 +252,16 @@ export default async function handler(req, res) {
 
   // text에서 validateOutput 적용
   const textValidation = validateOutput(finalText);
-  const cleanText = textValidation.ok ? textValidation.text : (textValidation.text || finalText);
+  let cleanText = textValidation.ok ? textValidation.text : (textValidation.text || finalText);
+
+  // 성별/나이/지역 안 물어봤으면 텍스트에 질문 추가
+  if (mergedState.areaKey && mergedState.focus) {
+    if (!mergedState.gender && !mergedState.age && !cleanText.includes('성별') && !cleanText.includes('나이') && turnCount >= 3) {
+      cleanText += ' 혹시 성별이랑 나이도 알려주실 수 있으세요?';
+    } else if (mergedState.gender && mergedState.age && !mergedState.region && !cleanText.includes('지역') && !cleanText.includes('어디') && turnCount >= 4) {
+      cleanText += ' 어느 지역에서 알아보고 계세요?';
+    }
+  }
 
   return send(res, 200, {
     text: cleanText,
