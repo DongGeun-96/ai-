@@ -365,7 +365,12 @@ export default async function handler(req, res) {
       // conversational 모드일 때만 function calling 활성화
       if (isConversational) {
         body.tools = TOOLS;
-        body.tool_choice = 'auto';
+        // 첫 턴이거나 state에 areaKey가 없으면 update_state 강제
+        if (turnCount <= 1 || !state.areaKey) {
+          body.tool_choice = 'required';
+        } else {
+          body.tool_choice = 'auto';
+        }
       }
 
       const r = await fetch('https://api.openai.com/v1/chat/completions', {
