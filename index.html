@@ -1356,8 +1356,8 @@ async function askArea(){
   if(g==='남성') guide='참고로 요즘 남성은 눈(쌍꺼풀·눈밑지방)·코·턱라인 순으로 많이 찾아요.';
   else if(g==='여성') guide='참고로 요즘은 눈·코·지방·윤곽 순으로 관심 많아요.';
   else guide='참고로 이용자들이 가장 많이 물어보는 건 눈·코·윤곽이에요.';
-  addAi(`어느 부위가 지금 제일 고민이세요?\n${guide}`);
-  chatInputEl.placeholder='예: 눈, 코, 윤곽';
+  addAi(`어디가 제일 고민이세요? ${guide}`);
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 function addUserAck(key){
@@ -1383,15 +1383,15 @@ async function startConsultWithEmpathy(text, detectedAreaKey){
 
 async function askGender(){
   state.step='gender';
-  addAi('성별이 어떻게 되실까요?');
-  chatInputEl.placeholder='예: 여자, 남자';
+  addAi('혹시 성별 알려주실 수 있으세요? 시술 방법이 조금 달라질 수 있어서요 ~');
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 
 async function askAge(){
   state.step='age';
-  addAi('나이대도 알려주세요 ~ 연령대마다 많이 하시는 방식이 조금씩 달라서요 !');
-  chatInputEl.placeholder='예: 25살, 30대';
+  addAi('나이대도 살짝 알려주시면 더 맞춤으로 안내해드릴 수 있어요 ~');
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 
@@ -1425,23 +1425,23 @@ async function nextStep2Question(){
   const area=AREAS[state.areaKey];
   if(!state.revisit){
     state.step2Pending='revisit';
-    addAi(`${area.label} 수술 이력 여부 알려주세요. 재수술이면 체크 포인트가 달라져요.`);
-    chatInputEl.placeholder='예: 처음이에요, 재수술이에요';
+    addAi(`혹시 ${area.label} 쪽 수술 받으신 적 있으세요? 재수술이면 봐야 할 포인트가 달라져서요 ~`);
+    chatInputEl.placeholder='자유롭게 입력해 주세요';
     chatInputEl.focus();
     return;
   }
   if(state.revisit && state.revisit.includes('재수술') && !state.sideEffect){
     state.step2Pending='sideEffect';
-    addAi('이전 수술 후 부작용이나 불편하셨던 점 있으셨을까요? ~');
-    chatInputEl.placeholder='예: 모양 불만족, 비대칭';
+    addAi('이전 수술 후에 불편하셨던 점이 있었어요? 편하게 말씀해주시면 돼요 ~');
+    chatInputEl.placeholder='자유롭게 입력해 주세요';
     chatInputEl.focus();
     return;
   }
   if(!state.focus){
     state.step2Pending='focus';
-    addAi('요즘 특별히 신경 쓰이시는 부분 알려주세요 ~');
+    addAi('구체적으로 어떤 부분이 제일 신경 쓰이세요?');
     const hintOpts=(area.focusOptions&&area.focusOptions.length?area.focusOptions.slice(0,3).join(', '):'쌍꺼풀, 코끝, 콧대');
-    chatInputEl.placeholder='예: '+hintOpts;
+    chatInputEl.placeholder='자유롭게 입력해 주세요';
     chatInputEl.focus();
     return;
   }
@@ -1454,8 +1454,8 @@ async function nextStep2Question(){
   }
   if(!state.mood){
     state.step2Pending='mood';
-    addAi('원하시는 스타일 살짝 알려주세요 ! 직접 표현해주셔도 돼요 ~');
-    chatInputEl.placeholder='예: 자연스럽게, 또렷하게';
+    addAi('어떤 느낌으로 하고 싶으세요? 자연스럽게, 또렷하게 같은 표현이어도 좋아요 ~');
+    chatInputEl.placeholder='자유롭게 입력해 주세요';
     chatInputEl.focus();
     return;
   }
@@ -1868,14 +1868,14 @@ async function goStep3(){
 }
 
 async function askHospitalPriority(){
-  addAi('병원 찾을 때 어떤 걸 제일 중요하게 보세요? ~');
-  chatInputEl.placeholder='예: 비용, 안전, 후기';
+  addAi('병원 고를 때 뭘 제일 중요하게 생각하세요? 비용이든 안전이든 편하게 말씀해주세요 ~');
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 
 async function askRegion(){
-  addAi('어느 지역으로 찾아드릴까요 ? 직접 입력하셔도 돼요 !');
-  chatInputEl.placeholder='예: 강남, 신사, 홍대';
+  addAi('어디 쪽으로 찾아드릴까요?');
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 
@@ -1908,7 +1908,7 @@ function goStep5(){
   setStep(5);
   const recoveryLine=state.recovery?'':'· 회복 기간 / ';
   addAi('혹시 더 궁금한 게 있으세요? 필요하신 걸 알려주세요 ~\n'+recoveryLine+'상담 질문지 / 수술 비교표 / 비용 정보 / 부작용 사례 / 다른 지역 / 병원 체크리스트 / 정리');
-  chatInputEl.placeholder='예: 비용 정보, 정리해줘';
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 
@@ -1927,7 +1927,7 @@ function handleStep5Input(text){
 function askRecovery(){
   state.step='recovery';
   addAi('회복 기간 얼마나 여유 있으세요 ? ~');
-  chatInputEl.placeholder='예: 짧을수록, 1~2주, 상관없어요';
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 
@@ -2156,8 +2156,8 @@ async function showSurgeryCompare(){
 
 function askOtherRegion(){
   state.step='otherRegion';
-  addAi('어느 지역으로 다시 볼까요 ? 직접 입력하셔도 돼요 !');
-  chatInputEl.placeholder='예: 강남, 신사, 홍대';
+  addAi('어디 쪽으로 다시 볼까요?');
+  chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 async function applyOtherRegion(r){
