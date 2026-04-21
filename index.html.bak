@@ -991,7 +991,7 @@ async function greetAndAsk(){
 function closeChat(){_closeScreen(chatScreen);setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
   chatMessages.innerHTML='';chatMessages.classList.add('hidden');chatWelcome.style.display='';
-  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],context:{},busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false});
+  Object.assign(state,{step:1,areaKey:'',concern:'',gender:'',age:'',priority:'',revisit:'',sideEffect:'',focus:'',recovery:'',mood:'',region:'',hospitals:[],history:[],busy:false,step2Pending:'focus',celebName:'',celebVibe:'',greeted:false,focusShown:false,photoAnalysis:'',lastTrendItems:[],photoStep:'',frontPhoto:'',sidePhoto:'',waitingPhoto:false});
   setStep(1);setInputEnabled(true);chatInputEl.placeholder='자유롭게 입력해 주세요';
   state._undoStack=[];
 }
@@ -1192,7 +1192,6 @@ async function sendConversational(text){
   if(!text||state.busy)return;
   state.busy=true;
   setInputEnabled(false);
-  state.history.push({role:'user',content:text});
   const tp=addTyping();
   try{
     const res=await fetch('/api/chat',{
@@ -1208,10 +1207,7 @@ async function sendConversational(text){
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
     if(!res.ok){addError(data.error||'오류');return;}
-    if(data.text){
-      addAi(data.text);
-      state.history.push({role:'assistant',content:data.text});
-    }
+    if(data.text) addAi(data.text);
     if(data.state_update) Object.assign(state.context||(state.context={}),data.state_update);
     if(data.actions&&data.actions.length) await executeActions(data.actions);
     if(data.ui_hints&&data.ui_hints.input_placeholder) chatInputEl.placeholder=data.ui_hints.input_placeholder;
