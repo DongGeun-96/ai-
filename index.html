@@ -986,7 +986,9 @@ function openChat(initial){
 async function greetAndAsk(){
   ensureChatActive();
   state.greeted=true;
-  await scriptedReply('어떤 고민으로 오셨어요?',520);
+  await scriptedReply('안녕하세요, 수리입니다 :) 정성꼓 상담 도와드릴게요.',520);
+  await scriptedReply('정확한 상담을 위해 아래 내용을 알려주세요!',400);
+  addAi('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u2022 성별:\n\u2022 나이:\n\u2022 고민 부위:\n\u2022 세부 고민:\n\u2022 원하는 느낌/스타일:\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n편하게 적어주시면 그 내용 바탕으로 상담 시작할게요.');
 }
 function closeChat(){_closeScreen(chatScreen);setTimeout(()=>{resetChat();chatOrb.stop()},480)}
 function resetChat(){
