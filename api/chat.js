@@ -25,8 +25,8 @@ function validateActions(actions, state) {
   return actions.filter(a => {
     if (!a || !a.type) return false;
     if (a.type === 'show_hospitals' && !state.areaKey) return false;
-    if (a.type === 'show_youtube' && !state.focus) return false;
-    if (a.type === 'show_shorts' && !state.focus) return false;
+    if (a.type === 'show_youtube' && !state.areaKey) return false;
+    if (a.type === 'show_shorts' && !state.areaKey) return false;
     return true;
   }).slice(0, 3);
 }
