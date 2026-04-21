@@ -230,13 +230,14 @@ export default async function handler(req, res) {
   const autoActions = [...rawActions];
   const hasAction = (type) => autoActions.some(a => a.type === type);
 
-  // 2단계: areaKey + focus 파악됐는데 show_trends 없으면 자동 추가
-  if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && !state.trendShown) {
+  // 2단계: areaKey + focus 파악됐고, 최소 2턴 지난 후에만 show_trends 자동
+  // (첫 턴에 바로 카드 나오는 것 방지)
+  if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && !state.trendShown && turnCount >= 3) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
   }
 
   // 3단계: 수술법 설명 후 (트렌드 본 다음 턴) 영상/후기 자동
-  if (state.trendShown && mergedState.areaKey && !state.videosShown) {
+  if (state.trendShown && mergedState.areaKey && !state.videosShown && turnCount >= 4) {
     const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
     if (!hasAction('show_youtube')) autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
     if (!hasAction('show_shorts')) autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
@@ -256,8 +257,10 @@ export default async function handler(req, res) {
 
   // 성별/나이/지역 안 물어봤으면 텍스트에 질문 추가
   if (mergedState.areaKey && mergedState.focus) {
-    if (!mergedState.gender && !mergedState.age && !cleanText.includes('성별') && !cleanText.includes('나이') && turnCount >= 2) {
-      cleanText += ' 혹시 성별이랑 나이도 알려주실 수 있으세요?';
+    if (!mergedState.gender && !cleanText.includes('성별') && turnCount >= 3) {
+      cleanText += ' 혹시 성별도 알려주실 수 있으세요?';
+    } else if (mergedState.gender && !mergedState.age && !cleanText.includes('나이') && turnCount >= 3) {
+      cleanText += ' 나이대도 알려주시면 더 맞춤형 상담이 가능해요.';
     } else if (mergedState.gender && mergedState.age && !mergedState.region && !cleanText.includes('지역') && !cleanText.includes('어디') && !cleanText.includes('어느') && turnCount >= 2) {
       cleanText += ' 어느 지역에서 알아보고 계세요?';
     }
