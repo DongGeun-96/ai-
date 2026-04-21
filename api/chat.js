@@ -230,14 +230,13 @@ export default async function handler(req, res) {
   const autoActions = [...rawActions];
   const hasAction = (type) => autoActions.some(a => a.type === type);
 
-  // 2단계: areaKey + focus 파악됐고, 최소 2턴 지난 후에만 show_trends 자동
-  // (첫 턴에 바로 카드 나오는 것 방지)
-  if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && !state.trendShown && turnCount >= 3) {
+  // 턴5: areaKey + focus 파악됐고 최소 5턴 지난 후 show_trends
+  if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && !state.trendShown && turnCount >= 5) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
   }
 
-  // 3단계: 수술법 설명 후 (트렌드 본 다음 턴) 영상/후기 자동
-  if (state.trendShown && mergedState.areaKey && !state.videosShown && turnCount >= 4) {
+  // 턴11~13: 수술법 설명 후 영상/후기 (최소 8턴 후)
+  if (state.trendShown && mergedState.areaKey && !state.videosShown && turnCount >= 8) {
     const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
     if (!hasAction('show_youtube')) autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
     if (!hasAction('show_shorts')) autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
