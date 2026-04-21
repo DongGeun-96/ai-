@@ -1249,6 +1249,7 @@ async function executeActions(actions){
       case 'request_photo':{
         showUploadBtn();
         state.photoStep=p.step||'front';
+        state.waitingPhoto=true;
         addAi(p.step==='side'?'측면 사진도 첨부해주세요.':'정면 사진을 첨부해주세요. 사진 버튼을 눌러주세요.');
         break;
       }
@@ -1286,7 +1287,8 @@ async function handleUserInput(text){
   await sendConversational(text);
 }
 
-/* ─── 기존 handleUserInput (레거시, 주석 처리) ─── */
+/* LEGACY START — handleUserInput_legacy + step-based helpers */
+/*
 async function handleUserInput_legacy(text){
   if(!text||state.busy)return;
   hideRetryBtn();
@@ -1447,7 +1449,7 @@ async function handleUserInput_legacy(text){
 }
 
 /* ── 부위 되물기 (트렌드 가이드 포함) ── */
-async function askArea(){
+async function askArea_legacy(){
   state.step='area';
   const g=state.gender;
   let guide='';
@@ -1479,14 +1481,14 @@ async function startConsultWithEmpathy(text, detectedAreaKey){
   await scriptedReply(intro,420);
 }
 
-async function askGender(){
+async function askGender_legacy(){
   state.step='gender';
   addAi('혹시 성별 알려주실 수 있으세요? 시술 방법이 조금 달라질 수 있어서요 ~');
   chatInputEl.placeholder='자유롭게 입력해 주세요';
   chatInputEl.focus();
 }
 
-async function askAge(){
+async function askAge_legacy(){
   state.step='age';
   addAi('나이대도 살짝 알려주시면 더 맞춤으로 안내해드릴 수 있어요 ~');
   chatInputEl.placeholder='자유롭게 입력해 주세요';

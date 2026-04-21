@@ -336,6 +336,23 @@ const TOOL_GUIDE = `[JSON 응답 모드]
   "text": "강남 쪽으로 정리해드릴게요.",
   "state_update": { "region": "강남" },
   "actions": [{ "type": "show_hospitals", "params": { "region": "강남", "limit": 8 } }]
+}
+
+예시 3: 사용자 "카리나처럼 되고 싶어요"
+{
+  "text": "카리나 느낌이 좋으시군요. 또렷한 눈매와 날렴한 코가 특징이죠. 특히 어떤 부분을 닮고 싶으세요?",
+  "state_update": { "celebName": "카리나", "mood": "또렷하고 날렴한" },
+  "actions": [{ "type": "show_celeb_style", "params": { "name": "카리나" } }]
+}
+
+예시 4: 사용자 "쌍꺼풀 수술 후기 보여줘요" (areaKey=eye, focus=쌍꺼풀)
+{
+  "text": "쌍꺼풀 수술 후기 정리해드릴게요.",
+  "state_update": {},
+  "actions": [
+    { "type": "show_youtube", "params": { "query": "쌍꺼풀 수술 후기", "limit": 5 } },
+    { "type": "show_blog_posts", "params": { "query": "쌍꺼풀 수술 후기", "limit": 5 } }
+  ]
 }`;
 
 /**
