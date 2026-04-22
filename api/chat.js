@@ -21,7 +21,7 @@ export const config = { api: { bodyParser: { sizeLimit: '1mb' } } };
 
 // ── 백엔드 검증 레이어 ──
 function isPriceIntent(text = '') {
-  return /가격|비용|얼마|얼만|비싸|저렴|시세/.test(String(text || '').toLowerCase());
+  return /가격|비용|얼마나?\s*(해|하|드|들|정도|쯤|돼|되)|얼만|비싸|저렴|시세/.test(String(text || '').toLowerCase());
 }
 
 function asksMaterial(lastUserMsg = '', type = '') {
@@ -135,15 +135,20 @@ function normalizeMaterialQuestion(text = '') {
 function normalizePriceCardLead(text = '', actions = []) {
   const trend = actions.find(a => a.type === 'show_trends');
   if (!trend || trend.params?.intent !== 'price') return String(text || '');
-  return '가격은 수술 방법이랑 재료에 따라 차이가 있어서, 가격표 카드로 같이 보시는 게 더 이해가 쉬우실 거예요. 예상 가격표 먼저 정리해드릴게요. 어떤 방식이 더 궁금하신가요?';
+  // 가격 intent일 때만: GPT 본문의 긴 가격 설명을 짧은 안내로 교체
+  return '가격은 수술 방법이랑 재료에 따라 차이가 있어서, 가격표 카드로 같이 정리해드릴게요.';
 }
 
 function ensureMaterialLead(text = '', actions = []) {
   const t = String(text || '').trim();
   const types = actions.map(a => a.type);
+  const trendAction = actions.find(a => a.type === 'show_trends');
   if (types.includes('show_trends')) {
-    if (/가격|비용|수술 방법|수술법|카드/.test(t)) return t;
-    return `가격이랑 수술 방법은 카드로 같이 보시는 게 더 이해가 쉬우실 거예요. ${t}`.trim();
+    // 가격 intent이면 이미 normalizePriceCardLead에서 처리됨 → 그대로 반환
+    if (trendAction?.params?.intent === 'price') return t;
+    // 일반 trend: 이미 자연스러운 연결이 있으면 그대로, 없으면 간단 연결만
+    if (/수술법|방법|방식|카드|정리/.test(t)) return t;
+    return `수술 방법 카드도 같이 정리해드릴게요. ${t}`.trim();
   }
   if (types.includes('show_youtube') || types.includes('show_shorts') || types.includes('show_blog_posts')) {
     if (/자료|영상|후기|사례|비포\s*애프터|블로그/.test(t)) return t;
@@ -361,14 +366,16 @@ export default async function handler(req, res) {
   const autoActions = [...rawActions];
   const hasAction = (type) => autoActions.some(a => a.type === type);
 
-  if (mergedState.areaKey && mergedState.focus && !state.trendShown && !hasAction('show_trends') && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
+  // show_trends: trendShown이 아직 아닐 때만 자동 추가 (state에서도 체크)
+  const alreadyTrend = state.trendShown || mergedState.trendShown;
+  if (mergedState.areaKey && mergedState.focus && !alreadyTrend && !hasAction('show_trends') && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: isPriceIntent(lastUserMsg) ? 'price' : 'trend' } });
   }
-
-  if (hasAction('show_trends')) {
+  // 가격 질문인데 GPT가 이미 show_trends를 넣었으면 intent만 보강
+  if (hasAction('show_trends') && isPriceIntent(lastUserMsg)) {
     autoActions.forEach(a => {
       if (a.type === 'show_trends') {
-        a.params = { ...(a.params || {}), areaKey: (a.params||{}).areaKey || mergedState.areaKey, intent: (a.params||{}).intent || (isPriceIntent(lastUserMsg) ? 'price' : 'trend') };
+        a.params = { ...(a.params || {}), areaKey: (a.params||{}).areaKey || mergedState.areaKey, intent: 'price' };
       }
     });
   }
