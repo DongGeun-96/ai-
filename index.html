@@ -1040,6 +1040,7 @@ function showIntakeForm(){
         <button type="button" class="intake-chip intake-area-btn" data-v="lipo">지방흡입</button>
         <button type="button" class="intake-chip intake-area-btn" data-v="skin">피부</button>
         <button type="button" class="intake-chip intake-area-btn" data-v="hair">모발</button>
+        <button type="button" class="intake-chip intake-area-btn" data-v="unknown">잘 모르겠어요</button>
       </div>
       <input type="text" class="intake-input intake-area-direct" placeholder="직접 입력: 예) 코끝, 콧볼, 사각턱, 쌍꺼풀">
     </div>
@@ -1071,8 +1072,8 @@ function showIntakeForm(){
     };
   });
 
-  const focusExamples={eye:'예: 눈이 작아 보여요',nose:'예: 콧대가 낮아요',contour:'예: 사각턱이 넓어요',breast:'예: 가슴이 너무 작아요',lipo:'예: 복부 지방이 고민이에요',skin:'예: 모공이 넓고 기미가 있어요',hair:'예: M자 탈모가 심해요',lip:'예: 인중이 길어요'};
-  const styleExamples={eye:'예: 자연스럽게 또렷하게',nose:'예: 높지만 자연스럽게',contour:'예: 부드러운 V라인',breast:'예: 자연스러운 촉감',lipo:'예: 라인만 정리되게',skin:'예: 깨끗하고 탄력 있게',hair:'예: 자연스러운 헤어라인',lip:'예: 짧고 자연스럽게'};
+  const focusExamples={eye:'예: 눈이 작아 보여요',nose:'예: 콧대가 낮아요',contour:'예: 사각턱이 넓어요',breast:'예: 가슴이 너무 작아요',lipo:'예: 복부 지방이 고민이에요',skin:'예: 모공이 넓고 기미가 있어요',hair:'예: M자 탈모가 심해요',lip:'예: 인중이 길어요',unknown:'예: 얼굴이 커 보여요, 그냥 예쁘지고 싶어요'};
+  const styleExamples={eye:'예: 자연스럽게 또렷하게',nose:'예: 높지만 자연스럽게',contour:'예: 부드러운 V라인',breast:'예: 자연스러운 촉감',lipo:'예: 라인만 정리되게',skin:'예: 깨끗하고 탄력 있게',hair:'예: 자연스러운 헤어라인',lip:'예: 짧고 자연스럽게',unknown:'예: 자연스럽게 변화하고 싶어요'};
   const focusInput=wrapper.querySelector('.intake-focus');
   const styleInput=wrapper.querySelector('.intake-style');
   function updatePlaceholders(area){
@@ -1121,7 +1122,7 @@ function showIntakeForm(){
 
     wrapper.remove();
 
-    const areaNames={eye:'눈',nose:'코',contour:'윤곽',breast:'가슴',lipo:'지방흡입',skin:'피부',hair:'모발',lip:'인중·입술'};
+    const areaNames={eye:'눈',nose:'코',contour:'윤곽',breast:'가슴',lipo:'지방흡입',skin:'피부',hair:'모발',lip:'인중·입술',unknown:'잘 모르겠어요'};
     const areaLabel=directArea||areaNames[inferredArea]||inferredArea;
     const msg=`성별: ${selectedGender}\n나이: ${age}세\n고민 부위: ${areaLabel}\n세부 고민: ${focus}${style?`\n원하는 느낌: ${style}`:''}`;
     addUser(msg);
