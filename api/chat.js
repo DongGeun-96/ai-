@@ -397,8 +397,9 @@ export default async function handler(req, res) {
   const alreadyTrend = state.trendShown || mergedState.trendShown;
   const priceQ = isPriceIntent(lastUserMsg);
   // 처음 trend or 가격 질문이면 show_trends 추가
+  // history_check 단계에서는 답변을 먼저 듣고 넘어가야 하므로 자료를 선제 노출하지 않음
   if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends')) {
-    if (!alreadyTrend && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
+    if (!alreadyTrend && (['method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
       autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: priceQ ? 'price' : 'trend' } });
     } else if (alreadyTrend && priceQ) {
       // trendShown 이후라도 가격 질문이면 가격표 카드 보여줌
