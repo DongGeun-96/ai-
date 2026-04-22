@@ -107,13 +107,14 @@ function getFollowupQuestion(phase, state) {
     case 'style_identification':
       return '원하시는 방향은 자연스러운 쪽인지, 또렷하게 변화가 보이는 쪽인지 어떤 편이세요?';
     case 'history_check':
+      if (state.focus) return `${state.focus} 관련해서 이전에 상담이나 시술 받아보신 적 있으세요?`;
       return '혹시 이전에 시술이나 수술 받아보신 적이 있으세요?';
     case 'method_explanation':
-      return '지금 설명드린 방법 중에서는 어떤 방향이 가장 끌리세요?';
+      return '설명드린 방법 중에 끌리는 게 있으세요, 아니면 다른 부분이 더 궁금하세요?';
     case 'priority_check':
-      return '회복 기간, 자연스러움, 비용 중에서는 어떤 부분을 가장 중요하게 보세요?';
+      return '회복이 빠른 게 중요하세요, 아니면 결과가 자연스러운 게 더 중요하세요?';
     case 'evidence_share':
-      return '자료 보시고 어떤 스타일이 더 마음에 드는지 말씀해주실 수 있으세요?';
+      return '자료 보시고 마음에 드는 스타일 있으면 말씀해주세요.';
     case 'region_ask':
       return '어느 지역에서 알아보고 계세요?';
     default:
@@ -151,8 +152,15 @@ function ensureMaterialLead(text = '', actions = []) {
     return `수술 방법 카드도 같이 정리해드릴게요. ${t}`.trim();
   }
   if (types.includes('show_youtube') || types.includes('show_shorts') || types.includes('show_blog_posts')) {
-    if (/자료|영상|후기|사례|비포\s*애프터|블로그/.test(t)) return t;
-    return `이런 자료를 같이 보시면 더 감이 잘 오실 거예요. ${t}`.trim();
+    if (/자료|영상|후기|사례|비포\s*애프터|블로그|보시면|참고/.test(t)) return t;
+    // 다양한 연결 멘트 (반복 방지)
+    const leads = [
+      '실제 사례를 보시면 감이 더 잘 오실 거예요.',
+      '참고할 수 있는 자료도 같이 정리해드릴게요.',
+      '후기 영상이랑 글도 같이 보면 이해가 쉬우실 거예요.'
+    ];
+    const lead = leads[Math.floor(Math.random() * leads.length)];
+    return `${lead} ${t}`.trim();
   }
   if (types.includes('show_hospitals')) {
     if (/병원|지역/.test(t)) return t;
@@ -453,6 +461,11 @@ export default async function handler(req, res) {
   if (isMaterialTurn) {
     cleanText = normalizePriceCardLead(cleanText, actions);
     cleanText = ensureMaterialLead(normalizeMaterialQuestion(stripMaterialLeadNoise(cleanText)), actions);
+    // 카드가 있는 턴에서는 텍스트를 짧게 유지 (카드가 정보를 대신)
+    const sentences = cleanText.split(/(?<=[.요.요!.요?])\.?\s+/).filter(Boolean);
+    if (sentences.length > 4) {
+      cleanText = sentences.slice(0, 4).join(' ');
+    }
   }
   if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
     cleanText = `${getEmpathyLead(phase, mergedState)} ${cleanText}`.trim();
