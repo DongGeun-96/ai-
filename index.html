@@ -3256,19 +3256,8 @@ async function analyzeFaceMesh(imgEl){
 
 async function analyzeImage(dataUrl){
   if(state.busy)return;
-  // 사람 얼굴 감지 체크 (정면 사진일 때만)
-  if(state.photoStep==='front' || state.photoStep===''){
-    try{
-      const testImg=new Image();
-      await new Promise((ok,fail)=>{testImg.onload=ok;testImg.onerror=fail;testImg.src=dataUrl});
-      const faceCheck=await analyzeFaceMesh(testImg);
-      if(!faceCheck){
-        addAi('사진에서 얼굴이 감지되지 않았어요. 본인 얼굴이 나온 정면 사진을 다시 올려주세요 ! 너무 어둡거나 멀리서 얼굴이 잘 안 보이는 사진도 분석이 어려울 수 있어요.');
-        showUploadBtn();
-        return;
-      }
-    }catch(e){console.warn('face check skip',e);}
-  }
+  // MediaPipe 얼굴 감지 시도 (참고용, 실패해도 부분 사진일 수 있으므로 Vision API로 계속 진행)
+  // faceCheck 결과는 doAnalyzeImage에서 faceMesh 데이터로 활용
 
   // 정면→측면 2장 플로우
   if(state.photoStep==='front'){
@@ -3324,6 +3313,13 @@ async function doAnalyzeImage(frontUrl, sideUrl){
     const data=await res.json();
     tp.remove();chatOrb.setThinking(false);
     if(res.ok && data.text){
+      // 사람이 아닌 사진 감지
+      if(data.text.includes('NOT_HUMAN_PHOTO')){
+        addAi('사진에서 사람 얼굴이 확인되지 않았어요. 본인 얼굴이 나온 사진을 올려주시겠어요? 정면 또는 고민 부위가 잘 보이는 사진이면 돼요 !');
+        showUploadBtn();
+        state.busy=false;
+        return;
+      }
       state.photoAnalysis=data.text;addAi(data.text);
       // 사진 분석 후 추천 수술법 가격+정보 안내 제안
       await new Promise(r=>setTimeout(r,600));
