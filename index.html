@@ -1041,6 +1041,7 @@ function showIntakeForm(){
         <button type="button" class="intake-chip intake-area-btn" data-v="skin">피부</button>
         <button type="button" class="intake-chip intake-area-btn" data-v="hair">모발</button>
       </div>
+      <input type="text" class="intake-input intake-area-direct" placeholder="직접 입력: 예) 코끝, 콧볼, 사각턱, 쌍꺼풀">
     </div>
     <div class="intake-row-2">
       <div class="intake-field">
@@ -1083,18 +1084,20 @@ function showIntakeForm(){
     const age=wrapper.querySelector('.intake-age').value.trim();
     const focus=wrapper.querySelector('.intake-focus').value.trim();
     const style=wrapper.querySelector('.intake-style').value.trim();
+    const directArea=wrapper.querySelector('.intake-area-direct').value.trim();
+    const inferredArea=selectedArea||detectArea(directArea)||detectArea(focus);
 
-    if(!selectedGender||!age||!selectedArea||!focus){
-      alert('성별, 나이, 고민 부위, 세부 고민은 필수입니다.');
+    if(!selectedGender||!age||!inferredArea||!focus){
+      alert('성별, 나이, 고민 부위, 세부 고민은 필수입니다. 직접 입력하실 경우 부위를 알아볼 수 있게 적어주세요.');
       return;
     }
 
     state.context.gender=selectedGender;
     state.context.age=age;
-    state.context.areaKey=selectedArea;
+    state.context.areaKey=inferredArea;
     state.context.focus=focus;
     if(style) state.context.mood=style;
-    state.areaKey=selectedArea;
+    state.areaKey=inferredArea;
     state.gender=selectedGender;
     state.age=age;
     state.focus=focus;
@@ -1103,7 +1106,8 @@ function showIntakeForm(){
     wrapper.remove();
 
     const areaNames={eye:'눈',nose:'코',contour:'윤곽',breast:'가슴',lipo:'지방흡입',skin:'피부',hair:'모발'};
-    const msg=`성별: ${selectedGender}\n나이: ${age}세\n고민 부위: ${areaNames[selectedArea]||selectedArea}\n세부 고민: ${focus}${style?`\n원하는 느낌: ${style}`:''}`;
+    const areaLabel=directArea||areaNames[inferredArea]||inferredArea;
+    const msg=`성별: ${selectedGender}\n나이: ${age}세\n고민 부위: ${areaLabel}\n세부 고민: ${focus}${style?`\n원하는 느낌: ${style}`:''}`;
     addUser(msg);
     sendConversational(msg);
   };
