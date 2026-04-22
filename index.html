@@ -1126,7 +1126,14 @@ function showIntakeForm(){
     const areaLabel=directArea||areaNames[inferredArea]||inferredArea;
     const msg=`성별: ${selectedGender}\n나이: ${age}세\n고민 부위: ${areaLabel}\n세부 고민: ${focus}${style?`\n원하는 느낌: ${style}`:''}`;
     addUser(msg);
-    sendConversational(msg);
+    sendConversational(msg).then(()=>{
+      setTimeout(()=>{
+        addAi('📷 보다 정확한 상담을 위해 사진을 첨부해주시면 더 맞춤형 분석을 드릴 수 있어요. 정면 사진을 먼저 보여주시겠어요? 아래 카메라 버튼을 눌러주세요.');
+        showUploadBtn();
+        state.photoStep='front';
+        state.waitingPhoto=true;
+      },800);
+    });
   };
 }
 function closeChat(){_closeScreen(chatScreen);setTimeout(()=>{resetChat();chatOrb.stop()},480)}
