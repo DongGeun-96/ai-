@@ -132,6 +132,12 @@ function normalizeMaterialQuestion(text = '') {
   return String(text).replace(/\s*혹시\s*이전에\s*시술이나\s*수술\s*받아보신\s*적이\s*있으세요\?\s*$/,' 자료 보시고 어떤 스타일이 더 마음에 드는지 말씀해주시면 그 기준으로 더 좁혀드릴게요.');
 }
 
+function normalizePriceCardLead(text = '', actions = []) {
+  const trend = actions.find(a => a.type === 'show_trends');
+  if (!trend || trend.params?.intent !== 'price') return String(text || '');
+  return '가격은 수술 방법이랑 재료에 따라 차이가 있어서, 가격표 카드로 같이 보시는 게 더 이해가 쉬우실 거예요. 예상 가격표 먼저 정리해드릴게요. 어떤 방식이 더 궁금하신가요?';
+}
+
 function ensureMaterialLead(text = '', actions = []) {
   const t = String(text || '').trim();
   const types = actions.map(a => a.type);
@@ -395,6 +401,7 @@ export default async function handler(req, res) {
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
   const isMaterialTurn = actions.length > 0;
   if (isMaterialTurn) {
+    cleanText = normalizePriceCardLead(cleanText, actions);
     cleanText = ensureMaterialLead(normalizeMaterialQuestion(stripMaterialLeadNoise(cleanText)), actions);
   }
   if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
