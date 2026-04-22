@@ -34,7 +34,7 @@ function shouldSurfaceMaterial(type, state, phase, lastUserMsg = '') {
   if (asksMaterial(lastUserMsg, type)) return true;
   if (type === 'show_trends') return !!(state.areaKey && state.focus && ['history_check','method_explanation','priority_check','evidence_share'].includes(phase));
   if (type === 'show_youtube' || type === 'show_shorts' || type === 'show_blog_posts') {
-    return !!(state.areaKey && state.trendShown && ['priority_check','evidence_share','followup_qna','summary_close'].includes(phase));
+    return !!(state.areaKey && state.trendShown);
   }
   if (type === 'show_hospitals') return !!(state.areaKey && state.region && ['region_ask','summary_close','followup_qna'].includes(phase));
   return false;
@@ -134,6 +134,12 @@ function ensureMaterialLead(text = '', actions = []) {
   if (!hasMaterialAction) return t;
   if (/자료|영상|후기|사례|비포\s*애프터/.test(t)) return t;
   return `이런 자료를 같이 보시면 더 감이 잘 오실 거예요. ${t}`.trim();
+}
+
+function stripIrrelevantHistoryLead(text = '', lastUserMsg = '') {
+  const userT = String(lastUserMsg || '');
+  if (/이전|재수술|시술\s*받|수술\s*받/.test(userT)) return String(text || '');
+  return String(text || '').replace(/^수술이나 시술 경험이 있으셨다면 더 신중하게 보게 되실 거예요\.\s*/,'').trim();
 }
 
 // JSON 응답 파싱 (GPT 출력에서 JSON 추출)
@@ -331,7 +337,7 @@ export default async function handler(req, res) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
   }
 
-  if (state.trendShown && mergedState.areaKey && !state.videosShown && !hasAction('show_youtube') && (['priority_check','evidence_share','followup_qna'].includes(phase) || asksMaterial(lastUserMsg))) {
+  if (state.trendShown && mergedState.areaKey && !state.videosShown && !hasAction('show_youtube') && (turnCount >= 2 || asksMaterial(lastUserMsg))) {
     const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
     autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
     autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
@@ -353,6 +359,7 @@ export default async function handler(req, res) {
   // text에서 validateOutput 적용
   const textValidation = validateOutput(finalText);
   let cleanText = textValidation.ok ? textValidation.text : (textValidation.text || finalText);
+  cleanText = stripIrrelevantHistoryLead(cleanText, lastUserMsg);
 
   // 코디네이터식 대화 유도: 공감 없이 바로 설명하면 앞에 보강
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
