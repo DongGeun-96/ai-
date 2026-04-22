@@ -48,6 +48,19 @@ function hasQuestionTone(text = '') {
   return /\?|\uFF1F|신가요|세요\.|세요\?|알려주실|말씀해주실|어떠세요|어떤\s+편|궁금하신|있으세요/.test(String(text));
 }
 
+function hasEmpathyTone(text = '') {
+  return /고민이시군요|걱정되|많이\s*고민|불안하|신경\s*쓰이|마음에\s*걸리|부담되|스트레스/.test(String(text));
+}
+
+function getEmpathyLead(phase, state) {
+  if (state.sideEffect) return '그 부분이 계속 마음에 걸리실 수 있어요.';
+  if (phase === 'history_check') return '수술이나 시술 경험이 있으셨다면 더 신중하게 보게 되실 거예요.';
+  if (phase === 'priority_check') return '무엇을 더 중요하게 볼지 고민되실 수 있어요.';
+  if (phase === 'evidence_share') return '사진이나 후기 자료를 보실 때 더 복잡하게 느껴지실 수 있어요.';
+  if (state.focus) return `${state.focus} 부분이 고민이시군요.`;
+  return '많이 고민되셨을 것 같아요.';
+}
+
 function getFollowupQuestion(phase, state) {
   switch (phase) {
     case 'intake':
@@ -286,8 +299,13 @@ export default async function handler(req, res) {
   const textValidation = validateOutput(finalText);
   let cleanText = textValidation.ok ? textValidation.text : (textValidation.text || finalText);
 
-  // 코디네이터식 대화 유도: 설명만 하고 끝나지 않게 다음 질문 보강
+  // 코디네이터식 대화 유도: 공감 없이 바로 설명하면 앞에 보강
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
+  if (!hasEndAction && !hasEmpathyTone(cleanText)) {
+    cleanText = `${getEmpathyLead(phase, mergedState)} ${cleanText}`.trim();
+  }
+
+  // 설명만 하고 끝나지 않게 다음 질문 보강
   if (!hasEndAction && !hasQuestionTone(cleanText)) {
     cleanText += ' ' + getFollowupQuestion(phase, mergedState);
   }
