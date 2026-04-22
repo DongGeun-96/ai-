@@ -1812,6 +1812,8 @@ async function showFocusTrend(){
 - 부드러운 존댓말
 - JSON만 반환.`
     });
+    await new Promise(r=>setTimeout(r,500));
+    addAi('가격표 참고하시고, 혹시 어떤 방식이 더 궁금하시거나 비용 외에 다른 고민되는 부분이 있으면 말씀해주세요.');
     return;
   }
 
@@ -1839,6 +1841,14 @@ async function showFocusTrend(){
 - 수술법명은 실제 의학 용어 사용
 - JSON만 반환.`
   });
+  // 카드 후 대화 이어가기
+  await new Promise(r=>setTimeout(r,500));
+  const followups = [
+    `카드 보시고 끌리는 방식이 있으면 말씀해주세요. 더 자세히 설명드릴게요.`,
+    `세 가지 중에 마음에 드는 방식이 있으세요? 아니면 회복이나 비용 같은 다른 부분이 더 궁금하신지요.`,
+    `각 방식의 차이가 더 궁금하시면 하나씩 자세히 설명드릴 수 있어요. 어떤 부분이 제일 신경 쓰이세요?`
+  ];
+  addAi(followups[Math.floor(Math.random()*followups.length)]);
 }
 
 async function offerFocusVideos(){}
