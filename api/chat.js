@@ -42,6 +42,16 @@ function shouldSurfaceMaterial(type, state, phase, lastUserMsg = '') {
 
 function validateActions(actions, state, phase, lastUserMsg = '') {
   if (!Array.isArray(actions)) return [];
+  const priority = {
+    show_trends: 1,
+    show_youtube: 2,
+    show_shorts: 3,
+    show_blog_posts: 4,
+    show_hospitals: 5,
+    request_photo: 6,
+    show_celeb_style: 7,
+    end_consultation: 8
+  };
   return actions.filter(a => {
     if (!a || !a.type) return false;
     if (a.type === 'show_hospitals' && !state.areaKey) return false;
@@ -49,7 +59,7 @@ function validateActions(actions, state, phase, lastUserMsg = '') {
     if (a.type === 'show_shorts' && !state.areaKey) return false;
     if (['show_trends','show_youtube','show_shorts','show_blog_posts','show_hospitals'].includes(a.type) && !shouldSurfaceMaterial(a.type, state, phase, lastUserMsg)) return false;
     return true;
-  }).slice(0, 3);
+  }).sort((a,b)=>(priority[a.type]||99)-(priority[b.type]||99)).slice(0, 3);
 }
 
 // 대화 흐름에 따른 phase
@@ -307,6 +317,12 @@ export default async function handler(req, res) {
     autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
     autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
     autoActions.push({ type: 'show_blog_posts', params: { query: q, limit: 5 } });
+  }
+
+  // 쇼츠나 후기 자료를 꺼낼 때는 유튜브 본편도 같이 붙이기
+  if ((hasAction('show_shorts') || hasAction('show_blog_posts')) && !hasAction('show_youtube') && mergedState.areaKey) {
+    const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
+    autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
   }
 
   if (mergedState.areaKey && mergedState.region && !hasAction('show_hospitals') && phase === 'region_ask') {
