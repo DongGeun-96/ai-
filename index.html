@@ -333,7 +333,8 @@ window._mpVision={FaceLandmarker,FilesetResolver};
     .mini-card{align-self:stretch;width:100%;max-width:100%;margin:10px 0;padding:18px 18px 16px;border-radius:20px;background:#fff;border:1px solid rgba(123,143,212,0.25);box-shadow:0 4px 18px rgba(123,143,212,0.08);animation:msgSlide .32s both}
     .mini-card.variant-trend{border-color:rgba(123,143,212,0.35);background:linear-gradient(180deg,#F6F8FE,#fff)}
     .mini-card.variant-mood{border-color:rgba(255,200,170,0.6);background:linear-gradient(180deg,#FFF9F5,#fff)}
-    .mc-title{font-size:14px;font-weight:800;color:var(--accent-deep);margin-bottom:12px;letter-spacing:-.2px}
+    .mc-title{font-size:14px;font-weight:800;color:var(--accent-deep);margin-bottom:8px;letter-spacing:-.2px}
+    .mc-summary{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5}
     .mc-items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
     .mc-items li{padding:12px 14px;border-radius:14px;background:rgba(123,143,212,0.06);font-size:13.5px;line-height:1.55;border:1px solid rgba(123,143,212,0.1)}
     .mc-name{font-weight:800;color:var(--text-0);display:flex;align-items:center;gap:8px;font-size:14.5px;margin-bottom:6px}
@@ -1731,15 +1732,17 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
     tp.remove();chatOrb.setThinking(false);
     if(!data){addAi('관련 정보를 불러오지 못했어요.');return}
 
-    // 1) 요약 = 말풍선으로 (고객 공감)
-    if(data.summary){addAi(data.summary);await new Promise(r=>setTimeout(r,280))}
+    // 1) summary는 카드 안에 통합 (별도 말풍선 X)
 
-    // 2) 방식/특징 = 간략한 리스트 카드 (제목 없이 작은 카드)
+    // 2) 방식/특징 = 간략한 리스트 카드
     if(Array.isArray(data.items) && data.items.length){
       state.lastTrendItems=data.items;
       ensureChatActive();
       const card=document.createElement('div');card.className=`mini-card variant-${variant||'info'}`;
-      if(title){card.innerHTML=`<div class="mc-title">${emoji||''} ${esc(title)}</div>`}
+      let headerHtml='';
+      if(title) headerHtml+=`<div class="mc-title">${emoji||''} ${esc(title)}</div>`;
+      if(data.summary) headerHtml+=`<div class="mc-summary">${esc(data.summary)}</div>`;
+      card.innerHTML=headerHtml;
       const ul=document.createElement('ul');ul.className='mc-items';
       data.items.forEach(it=>{
         const li=document.createElement('li');
