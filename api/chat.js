@@ -22,10 +22,10 @@ export const config = { api: { bodyParser: { sizeLimit: '1mb' } } };
 // ── 백엔드 검증 레이어 ──
 function asksMaterial(lastUserMsg = '', type = '') {
   const t = String(lastUserMsg || '').toLowerCase();
-  const anyMaterial = /자료|예시|보여|보여줘|정리|링크|참고|후기|영상|블로그|쇼츠|shorts|유튜브|가격|비용|수술법|방법|병원|추천|사례|보고\s*싶/.test(t);
+  const anyMaterial = /자료|예시|보여|보여줘|정리|링크|참고|후기|영상|블로그|쇼츠|shorts|유튜브|가격|비용|수술법|방법|병원|추천|사례|보고\s*싶|얼마|얼만|비싸|저렴/.test(t);
   if (type === 'show_youtube' || type === 'show_shorts') return /영상|쇼츠|shorts|유튜브|자료|예시|후기|참고|사례|보고\s*싶/.test(t);
   if (type === 'show_blog_posts') return /블로그|후기|자료|예시|참고|사례|보고\s*싶/.test(t);
-  if (type === 'show_trends') return /수술법|방법|가격|비용|정리|추천|자료|예시|뭐가/.test(t);
+  if (type === 'show_trends') return /수술법|방법|가격|비용|정리|추천|자료|예시|뭐가|얼마|얼만|비싸|저렴/.test(t);
   if (type === 'show_hospitals') return /병원|추천|어디서|의원|자료|정리/.test(t);
   return anyMaterial;
 }
@@ -130,10 +130,17 @@ function normalizeMaterialQuestion(text = '') {
 
 function ensureMaterialLead(text = '', actions = []) {
   const t = String(text || '').trim();
-  const hasMaterialAction = actions.some(a => ['show_youtube','show_shorts','show_blog_posts'].includes(a.type));
-  if (!hasMaterialAction) return t;
-  if (/자료|영상|후기|사례|비포\s*애프터/.test(t)) return t;
-  return `이런 자료를 같이 보시면 더 감이 잘 오실 거예요. ${t}`.trim();
+  const hasTrend = actions.some(a => a.type === 'show_trends');
+  const hasMedia = actions.some(a => ['show_youtube','show_shorts','show_blog_posts'].includes(a.type));
+  if (hasTrend) {
+    if (/가격|비용|수술 방법|수술법|카드/.test(t)) return t;
+    return `가격이랑 수술 방법은 카드로 같이 보시는 게 더 이해가 쉬우실 거예요. ${t}`.trim();
+  }
+  if (hasMedia) {
+    if (/자료|영상|후기|사례|비포\s*애프터/.test(t)) return t;
+    return `이런 자료를 같이 보시면 더 감이 잘 오실 거예요. ${t}`.trim();
+  }
+  return t;
 }
 
 function stripIrrelevantHistoryLead(text = '', lastUserMsg = '') {
@@ -333,7 +340,7 @@ export default async function handler(req, res) {
   const autoActions = [...rawActions];
   const hasAction = (type) => autoActions.some(a => a.type === type);
 
-  if (mergedState.areaKey && mergedState.focus && !state.trendShown && !hasAction('show_trends') && ['history_check','method_explanation','priority_check'].includes(phase)) {
+  if (mergedState.areaKey && mergedState.focus && !state.trendShown && !hasAction('show_trends') && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
   }
 

@@ -1364,7 +1364,7 @@ async function executeActions(actions){
         break;
       }
       case 'show_trends':{
-        addAi('지금 고민하시는 포인트 기준으로 많이 비교하시는 수술 방법부터 먼저 정리해드릴게요.');
+        addAi('지금 고민하시는 포인트 기준으로 수술 방법이랑 가격 카드부터 같이 정리해드릴게요.');
         if(state.context?.areaKey){state.areaKey=state.context.areaKey;state.focus=state.context?.focus||'';await showFocusTrend();state.context.trendShown=true;}
         break;
       }
