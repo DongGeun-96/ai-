@@ -109,12 +109,23 @@ function getFollowupQuestion(phase, state) {
     case 'priority_check':
       return '회복 기간, 자연스러움, 비용 중에서는 어떤 부분을 가장 중요하게 보세요?';
     case 'evidence_share':
-      return '자료 보시면 어떤 스타일이 더 마음에 드는지 말씀해주실 수 있으세요?';
+      return '자료 보시고 어떤 스타일이 더 마음에 드는지 말씀해주실 수 있으세요?';
     case 'region_ask':
       return '어느 지역에서 알아보고 계세요?';
     default:
       return '지금 가장 궁금한 부분이 뭐예요?';
   }
+}
+
+function stripMaterialLeadNoise(text = '') {
+  return String(text)
+    .replace(/^수술이나 시술 경험이 있으셨다면 더 신중하게 보게 되실 거예요\.\s*/,'')
+    .replace(/^그 부분이 계속 마음에 걸리실 수 있어요\.\s*/,'')
+    .trim();
+}
+
+function normalizeMaterialQuestion(text = '') {
+  return String(text).replace(/\s*혹시\s*이전에\s*시술이나\s*수술\s*받아보신\s*적이\s*있으세요\?\s*$/,' 자료 보시고 어떤 스타일이 더 마음에 드는지 말씀해주시면 그 기준으로 더 좁혀드릴게요.');
 }
 
 // JSON 응답 파싱 (GPT 출력에서 JSON 추출)
@@ -338,6 +349,9 @@ export default async function handler(req, res) {
   // 코디네이터식 대화 유도: 공감 없이 바로 설명하면 앞에 보강
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
   const isMaterialTurn = actions.length > 0;
+  if (isMaterialTurn) {
+    cleanText = normalizeMaterialQuestion(stripMaterialLeadNoise(cleanText));
+  }
   if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
     cleanText = `${getEmpathyLead(phase, mergedState)} ${cleanText}`.trim();
   }

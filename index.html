@@ -1346,6 +1346,7 @@ async function executeActions(actions){
     const p=action.params||{};
     switch(action.type){
       case 'show_hospitals':{
+        addAi('지금까지 말씀해주신 기준으로 같이 볼 만한 병원 정보도 정리해드릴게요.');
         const res=await fetch('/api/places?region='+encodeURIComponent(p.region||'강남')+'&area=성형외과&limit='+(p.limit||8));
         if(res.ok){const d=await res.json();if(d.items&&d.items.length){ensureChatActive();const wrap=document.createElement('div');wrap.className='hospital-cards';d.items.forEach(h=>{const card=document.createElement('div');card.className='hospital-card';card.innerHTML=`<div class="h-name">${esc(h.name||'')}</div><div class="h-addr">${esc(h.address||'')}</div>`;wrap.appendChild(card);});chatMessages.appendChild(wrap);scrollBottom();}}
         break;
@@ -1363,19 +1364,22 @@ async function executeActions(actions){
         break;
       }
       case 'show_trends':{
+        addAi('지금 고민하시는 포인트 기준으로 많이 비교하시는 수술 방법부터 먼저 정리해드릴게요.');
         if(state.context?.areaKey){state.areaKey=state.context.areaKey;state.focus=state.context?.focus||'';await showFocusTrend();state.context.trendShown=true;}
         break;
       }
       case 'show_youtube':case 'show_shorts':case 'show_blog_posts':{
-        // 영상/후기 실행 후 마킹
         const actType=action.type;
         if(actType==='show_youtube'){
+          addAi('먼저 길게 보시기 좋은 후기 영상부터 같이 볼게요.');
           const r2=await fetch('/api/yt?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
           if(r2.ok){const d2=await r2.json();if(d2.items&&d2.items.length)addYtCards(d2.items.map(v=>({id:v.id,title:v.title||'',channel:v.channel||'YouTube',views:v.views||'',tag:'참고'})));}
         }else if(actType==='show_shorts'){
+          addAi('짧게 비교해보실 수 있게 쇼츠 사례도 같이 붙여드릴게요.');
           const r2=await fetch('/api/shorts?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
           if(r2.ok){const d2=await r2.json();if(d2.items&&d2.items.length)addShortsCards(d2.items);}
         }else{
+          addAi('후기나 비용 흐름 참고하실 수 있는 글도 같이 정리해드릴게요.');
           const r2=await fetch('/api/search?q='+encodeURIComponent(p.query||'')+'&limit='+(p.limit||5));
           if(r2.ok){const d2=await r2.json();if(d2.items&&d2.items.length)addSearchCards(d2.items);}
         }
