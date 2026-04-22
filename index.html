@@ -3256,6 +3256,20 @@ async function analyzeFaceMesh(imgEl){
 
 async function analyzeImage(dataUrl){
   if(state.busy)return;
+  // 사람 얼굴 감지 체크 (정면 사진일 때만)
+  if(state.photoStep==='front' || state.photoStep===''){
+    try{
+      const testImg=new Image();
+      await new Promise((ok,fail)=>{testImg.onload=ok;testImg.onerror=fail;testImg.src=dataUrl});
+      const faceCheck=await analyzeFaceMesh(testImg);
+      if(!faceCheck){
+        addAi('사진에서 얼굴이 감지되지 않았어요. 본인 얼굴이 나온 정면 사진을 다시 올려주세요 ! 너무 어둡거나 멀리서 얼굴이 잘 안 보이는 사진도 분석이 어려울 수 있어요.');
+        showUploadBtn();
+        return;
+      }
+    }catch(e){console.warn('face check skip',e);}
+  }
+
   // 정면→측면 2장 플로우
   if(state.photoStep==='front'){
     state.frontPhoto=dataUrl;
