@@ -36,7 +36,7 @@ function asksMaterial(lastUserMsg = '', type = '') {
 
 function shouldSurfaceMaterial(type, state, phase, lastUserMsg = '') {
   if (asksMaterial(lastUserMsg, type)) return true;
-  if (type === 'show_trends') return !!(state.areaKey && state.focus && ['method_explanation','priority_check','evidence_share'].includes(phase));
+  if (type === 'show_trends') return !!(state.areaKey && state.focus && ['history_check','method_explanation','priority_check','evidence_share'].includes(phase));
   if (type === 'show_youtube' || type === 'show_shorts' || type === 'show_blog_posts') {
     return !!(state.areaKey && state.trendShown);
   }
@@ -89,7 +89,7 @@ function hasEmpathyTone(text = '') {
 
 function getEmpathyLead(phase, state) {
   if (state.sideEffect) return '그 부분이 계속 마음에 걸리실 수 있어요.';
-  // history_check 단계에서는 엉뚜한 경험 언급 대신 감정 반영
+  // history_check 단계: 사용자 질문에 집중
   if (phase === 'history_check') return '';
   if (phase === 'priority_check') return '무엇을 더 중요하게 볼지 고민되실 수 있어요.';
   if (phase === 'evidence_share') return '사진이나 후기 자료를 보실 때 더 복잡하게 느껴지실 수 있어요.';
@@ -108,10 +108,10 @@ function getFollowupQuestion(phase, state) {
     case 'style_identification':
       return '원하시는 방향은 자연스러운 쪽인지, 또렷하게 변화가 보이는 쪽인지 어떤 편이세요?';
     case 'history_check':
-      if (state.focus) return `${state.focus} 관련해서 이전에 상담이나 시술 받아보신 적 있으세요?`;
-      return '혹시 이전에 시술이나 수술 받아보신 적이 있으세요?';
+      if (state.focus) return `${state.focus} 관련해서 이전에 상담이나 시술 받아보신 적 있으세요? 없으시다면 수술 방법이랑 가격표를 한번 보여드릴게요.`;
+      return '혹시 이전에 시술이나 수술 받아보신 적이 있으세요? 없으시다면 수술 방법이랑 가격표를 한번 보여드릴게요.';
     case 'method_explanation':
-      return '설명드린 방법 중에 끌리는 게 있으세요, 아니면 다른 부분이 더 궁금하세요?';
+      return '수술 방법이랑 가격표를 같이 보시면 비교가 쉬울 것 같은데, 한번 보여드릴까요?';
     case 'priority_check':
       return '회복이 빠른 게 중요하세요, 아니면 결과가 자연스러운 게 더 중요하세요?';
     case 'evidence_share':
@@ -397,13 +397,13 @@ export default async function handler(req, res) {
   // show_trends: 이미 보여줬으면 가격 intent일 때만 허용, 아니면 제거
   const alreadyTrend = state.trendShown || mergedState.trendShown;
   const priceQ = isPriceIntent(lastUserMsg);
-  // 처음 trend or 가격 질문이면 show_trends 추가
-  // history_check 단계에서는 답변을 먼저 듣고 넘어가야 하므로 자료를 선제 노출하지 않음
+  // history_check에서 사용자가 구체적 답변(재수술 여부, 부작용, 구체 질문 등)을 했으면
+  // 다음 단계로 넘어가며 자료 제공 가능
+  const historyAnswered = phase === 'history_check' && turnCount >= 2;
   if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends')) {
-    if (!alreadyTrend && (['method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
+    if (!alreadyTrend && (['method_explanation','priority_check'].includes(phase) || historyAnswered || asksMaterial(lastUserMsg, 'show_trends'))) {
       autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: priceQ ? 'price' : 'trend' } });
     } else if (alreadyTrend && priceQ) {
-      // trendShown 이후라도 가격 질문이면 가격표 카드 보여줌
       autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: 'price' } });
     }
   }
