@@ -130,15 +130,26 @@ function normalizeMaterialQuestion(text = '') {
 
 function ensureMaterialLead(text = '', actions = []) {
   const t = String(text || '').trim();
-  const hasTrend = actions.some(a => a.type === 'show_trends');
-  const hasMedia = actions.some(a => ['show_youtube','show_shorts','show_blog_posts'].includes(a.type));
-  if (hasTrend) {
+  const types = actions.map(a => a.type);
+  if (types.includes('show_trends')) {
     if (/가격|비용|수술 방법|수술법|카드/.test(t)) return t;
     return `가격이랑 수술 방법은 카드로 같이 보시는 게 더 이해가 쉬우실 거예요. ${t}`.trim();
   }
-  if (hasMedia) {
-    if (/자료|영상|후기|사례|비포\s*애프터/.test(t)) return t;
+  if (types.includes('show_youtube') || types.includes('show_shorts') || types.includes('show_blog_posts')) {
+    if (/자료|영상|후기|사례|비포\s*애프터|블로그/.test(t)) return t;
     return `이런 자료를 같이 보시면 더 감이 잘 오실 거예요. ${t}`.trim();
+  }
+  if (types.includes('show_hospitals')) {
+    if (/병원|지역/.test(t)) return t;
+    return `이제는 병원 정보도 같이 보시는 게 판단에 도움이 될 거예요. ${t}`.trim();
+  }
+  if (types.includes('request_photo')) {
+    if (/사진/.test(t)) return t;
+    return `사진으로 보면 더 정확하게 짚어드릴 수 있어요. ${t}`.trim();
+  }
+  if (types.includes('show_celeb_style')) {
+    if (/스타일|느낌|참고/.test(t)) return t;
+    return `원하시는 느낌을 더 구체적으로 맞추려면 참고 스타일도 같이 보는 게 도움이 돼요. ${t}`.trim();
   }
   return t;
 }
