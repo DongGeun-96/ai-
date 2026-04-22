@@ -1363,6 +1363,7 @@ async function executeActions(actions){
         break;
       }
       case 'show_trends':{
+        state.context.trendIntent=p.intent||'trend';
         if(state.context?.areaKey){state.areaKey=state.context.areaKey;state.focus=state.context?.focus||'';await showFocusTrend();state.context.trendShown=true;}
         break;
       }
@@ -1786,6 +1787,34 @@ async function showFocusTrend(){
   const area=AREAS[state.areaKey].label;
   const ageTxt=state.age||'';
   const genderTxt=state.gender||'';
+  const trendIntent=state.context?.trendIntent||'trend';
+
+  if(trendIntent==='price'){
+    await liveStructuredCard({
+      title:`${area} · ${state.focus} 예상 가격표`,
+      emoji:'',variant:'trend',
+      schema:`{"summary":"1~2줄 멘트","items":[{"name":"수술법","price":"가격대","note":"가격 영향 요소 1줄","tag":"키워드"}],"tip":"주의점 1줄"}`,
+      instruction:`강남 성형외과 상담실장(20후 여성) 톤으로 채워주세요.
+고객 맥락: ${genderTxt||'성별미지정'} / ${ageTxt||'나이미지정'} / ${area} 고민 "${state.focus}".
+
+1) summary: 1~2줄. "가격은 수술 방법과 재료에 따라 차이가 있어요" 같은 식으로 시작.
+2) items: 3개. 각각의:
+   - name: 실제 수술법/방식명
+   - price: 대략적 가격 범위 (예: "300~500만원대")
+   - note: 가격에 영향 주는 요소 1줄
+   - tag: 특징 키워드
+3) tip: "실제 비용은 병원, 재료, 의료진 경력에 따라 달라져요" 같은 주의점 1줄.
+
+규칙:
+- 정확한 금액 단정 금지, 범위로 표현
+- 특정 병원·의사명 금지
+- 이모지·하트 금지
+- 부드러운 존댓말
+- JSON만 반환.`
+    });
+    return;
+  }
+
   await liveStructuredCard({
     title:`${area} · ${state.focus} — 이런 방식이 있어요`,
     emoji:'',variant:'trend',
@@ -1795,19 +1824,19 @@ async function showFocusTrend(){
 
 1) summary: 2줄. 첫줄 "${ageTxt||'이 연령대'}는 보통 이런 방식을 많이 하세요 ~" + 둘째줄 "주요한 3가지 알려드릴게요 !"
 2) items: 3개. 각각의:
-   - name: 실제 수술법/방식명 (예: 매몰법, 부분절개, 눈매교정, 무보형물 코성형, 자가연골 코끝성형 등)
+   - name: 실제 수술법/방식명
    - desc: 이 방식이 ${ageTxt||'이 연령대'}에 왜 좋은지 한줄 (30자 이내)
-   - detail: 실제 진행방식 + 특징 + 회복감 2~3줄. 공개 의료정보 기반 (예: "눈꺼풀 안쪽 조직을 실로 고정해서 매듭 라인을 만드는 방식이에요. 흉터가 거의 없고 붓기도 적어 회복이 빠른 편이에요 ! 다만 오래 지나면 풀릴 수도 있고 조직 조건에 따라 맞지 않기도 해요")
+   - detail: 실제 진행방식 + 특징 + 회복감 2~3줄
    - tag: 특징 키워드 (빠른회복, 자연스러움 등)
 3) recommendation: 상담실장 입장에서 경험을 바탕으로, 위 3개 중 고객(${genderTxt||'고객님'} · ${ageTxt||''} · ${state.focus}) 조건에 가장 잘 맞을 것 같은 방식 1개를 골라서 2~3줄로 추천. 이유 포함. 마지막에 "다만 실제 적용 가능 여부는 대면 상담에서 꼭 확인해야 해요 !" 포함.
 4) tip: 이 고민에서 놓치기 쉬운 주의점 한 줄.
 
 규칙:
 - 광고·가격·특정 병원·의사명·수치(만족도/효과%) 금지
-- 의학 단정 금지 ("경향", "많아요", "편이에요" 형식)
+- 의학 단정 금지
 - 이모지·하트 금지
-- 부드러운 존댓말, 끝어미: ~에요/~죠/~드릴게요/~같아요
-- 수술법명은 실제 의학 용어 사용 (예: 무보형물 코성형, 자가연골 코끝성형 등)
+- 부드러운 존댓말
+- 수술법명은 실제 의학 용어 사용
 - JSON만 반환.`
   });
 }
