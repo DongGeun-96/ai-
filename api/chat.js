@@ -366,10 +366,26 @@ export default async function handler(req, res) {
   const autoActions = [...rawActions];
   const hasAction = (type) => autoActions.some(a => a.type === type);
 
-  // show_trends: trendShown이 아직 아닐 때만 자동 추가 (state에서도 체크)
+  // show_trends: 이미 보여줬으면 가격 intent일 때만 허용, 아니면 제거
   const alreadyTrend = state.trendShown || mergedState.trendShown;
-  if (mergedState.areaKey && mergedState.focus && !alreadyTrend && !hasAction('show_trends') && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
+  if (!alreadyTrend && mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: isPriceIntent(lastUserMsg) ? 'price' : 'trend' } });
+  }
+  // 이미 trendShown인데 GPT가 show_trends를 넣었으면: 가격 intent일 때만 허용, 아니면 제거
+  if (alreadyTrend && hasAction('show_trends')) {
+    const priceQ = isPriceIntent(lastUserMsg);
+    if (priceQ) {
+      autoActions.forEach(a => {
+        if (a.type === 'show_trends') {
+          a.params = { ...(a.params || {}), areaKey: (a.params||{}).areaKey || mergedState.areaKey, intent: 'price' };
+        }
+      });
+    } else {
+      // 가격 아니면 중복 show_trends 제거
+      for (let i = autoActions.length - 1; i >= 0; i--) {
+        if (autoActions[i].type === 'show_trends') autoActions.splice(i, 1);
+      }
+    }
   }
   // 가격 질문인데 GPT가 이미 show_trends를 넣었으면 intent만 보강
   if (hasAction('show_trends') && isPriceIntent(lastUserMsg)) {
