@@ -177,10 +177,13 @@ function hasIncompleteNameInput(text = '') {
 // GPT가 불완전 이름을 보정해서 공감한 경우 후처리
 function sanitizeCelebResponse(text = '', userMsg = '') {
   if (!hasIncompleteNameInput(userMsg)) return text;
-  // 유저가 불완전 이름 쳤는데 GPT가 특정인 외모를 묘사하면 교체
-  const celebPatterns = /([가-힣]{2,4})(씨|분)?(의\s+)?(코|눈|턱|입|얼굴|라인|느낌|스타일)(는|은|이|가|처럼|같은)?\s*(높|낮|또렷|매끈|예쁘|깔끔|시원|날카|자연|세련)/;
-  if (celebPatterns.test(text)) {
-    return '혹시 정확한 이름을 알려주실 수 있을까요? 이름이 정확해야 그 느낌을 참고해서 더 잘 안내해드릴 수 있거든요. 아니면 원하시는 코 느낌을 다른 방식으로 설명해주셔도 좋아요.';
+  // 유저가 불완전 이름을 쳤는데 GPT가 특정 인물 이름 + 외모 묘사를 했으면 교체
+  // 예: "차은우씨는 콧대가 높고", "차은우씨 코처럼"
+  const celebDescPattern = /([가-힣]{2,5})(씨|분)[는은의의]?[\s,]*.{0,20}(코|콧대|눈|턱|얼굴|라인|느낌|스타일).{0,15}(높|낮|또렷|매끈|예쁘|깔끔|시원|날카|자연|세련|부드럽|곡선|특징)/;
+  // 더 넓은 패턴: "OO씨 코처럼", "OO씨는 ~ 스타일"
+  const celebSimple = /([가-힣]{2,5})(씨|분)[는은]?\s+코처럼/;
+  if (celebDescPattern.test(text) || celebSimple.test(text)) {
+    return '혹시 정확한 이름을 알려주실 수 있을까요? 이름이 정확해야 그 느낌을 참고해서 더 잘 안내해드릴 수 있거든요. 원하시는 코 느낌을 다른 방식으로 설명해주셔도 좋아요.';
   }
   return text;
 }
