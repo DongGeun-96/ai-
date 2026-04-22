@@ -20,13 +20,24 @@ import { searchKnowledgeText } from './_rag.js';
 export const config = { api: { bodyParser: { sizeLimit: '1mb' } } };
 
 // ── 백엔드 검증 레이어 ──
-function validateActions(actions, state) {
+function wantsMaterial(lastUserMsg = '', type = '') {
+  const t = String(lastUserMsg || '').toLowerCase();
+  const anyMaterial = /자료|예시|보여|보여줘|정리|링크|참고|후기|영상|블로그|쇼츠|shorts|유튜브|가격|비용|수술법|방법|병원|추천/.test(t);
+  if (type === 'show_youtube' || type === 'show_shorts') return /영상|쇼츠|shorts|유튜브|자료|예시|후기|참고/.test(t);
+  if (type === 'show_blog_posts') return /블로그|후기|자료|예시|참고/.test(t);
+  if (type === 'show_trends') return /수술법|방법|가격|비용|정리|추천|자료|예시|뭐가/.test(t);
+  if (type === 'show_hospitals') return /병원|추천|어디서|의원|자료|정리/.test(t);
+  return anyMaterial;
+}
+
+function validateActions(actions, state, lastUserMsg = '') {
   if (!Array.isArray(actions)) return [];
   return actions.filter(a => {
     if (!a || !a.type) return false;
     if (a.type === 'show_hospitals' && !state.areaKey) return false;
     if (a.type === 'show_youtube' && !state.areaKey) return false;
     if (a.type === 'show_shorts' && !state.areaKey) return false;
+    if (['show_trends','show_youtube','show_shorts','show_blog_posts','show_hospitals'].includes(a.type) && !wantsMaterial(lastUserMsg, a.type)) return false;
     return true;
   }).slice(0, 3);
 }
@@ -271,29 +282,8 @@ export default async function handler(req, res) {
   const mergedState = { ...state, ...(stateUpdate || {}) };
   const phase = computePhase(turnCount, mergedState);
 
-  // ── 자동 action 주입: GPT가 빠뜨렸을 때 기존 플로우대로 보간 ──
-  const autoActions = [...rawActions];
-  const hasAction = (type) => autoActions.some(a => a.type === type);
-
-  // 턴2: areaKey + focus 파악됐으면 show_trends (정보 한번에 받으니까 2턴부터)
-  if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && !state.trendShown && turnCount >= 2) {
-    autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
-  }
-
-  // 턴6~7: 수술법 설명 후 영상/후기 (최소 5턴 후)
-  if (state.trendShown && mergedState.areaKey && !state.videosShown && turnCount >= 5) {
-    const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
-    if (!hasAction('show_youtube')) autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
-    if (!hasAction('show_shorts')) autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
-    if (!hasAction('show_blog_posts')) autoActions.push({ type: 'show_blog_posts', params: { query: q, limit: 5 } });
-  }
-
-  // 5단계: 지역 파악되면 병원 자동
-  if (mergedState.region && mergedState.areaKey && !hasAction('show_hospitals')) {
-    autoActions.push({ type: 'show_hospitals', params: { region: mergedState.region, limit: 8 } });
-  }
-
-  const actions = validateActions(autoActions, mergedState);
+  // 자료/카드/병원은 상담 근거 자료로 쓰고, 사용자가 원할 때만 노출
+  const actions = validateActions(rawActions, mergedState, lastUserMsg);
 
   // text에서 validateOutput 적용
   const textValidation = validateOutput(finalText);
@@ -301,7 +291,8 @@ export default async function handler(req, res) {
 
   // 코디네이터식 대화 유도: 공감 없이 바로 설명하면 앞에 보강
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
-  if (!hasEndAction && !hasEmpathyTone(cleanText)) {
+  const isMaterialTurn = actions.length > 0 && wantsMaterial(lastUserMsg);
+  if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
     cleanText = `${getEmpathyLead(phase, mergedState)} ${cleanText}`.trim();
   }
 
