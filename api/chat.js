@@ -135,6 +135,7 @@ export default async function handler(req, res) {
   const userMessage = payload.message || '';
   const rawMsgs = Array.isArray(payload.messages) ? payload.messages : [];
   const history = Array.isArray(payload.history) ? payload.history.slice(-20) : [];
+  const isConversational = payload.mode === 'conversational';
 
   if (!userMessage && !rawMsgs.length) {
     return send(res, 400, { error: 'message 또는 messages 필요' });
@@ -151,7 +152,8 @@ export default async function handler(req, res) {
   }
 
   // ── 2-1. 주제 이탈 감지
-  if (!payload.step && isOffTopic(lastUserMsg)) {
+  // conversational 상담 모드에서는 딴소리도 상담 흐름으로 다시 끌고 와야 하므로 즉시 차단하지 않음
+  if (!isConversational && !payload.step && isOffTopic(lastUserMsg)) {
     return send(res, 200, { text: getOffTopicResponse(), meta: { offTopic: true, emotion: emotion || 'neutral' } });
   }
 
@@ -191,11 +193,11 @@ export default async function handler(req, res) {
     } catch (err) { return send(res, 502, { error: String(err) }); }
   }
 
-  // ── 6-1. conversational 모드 감지
-  const isConversational = payload.mode === 'conversational';
-
   // ── 7. 시스템 프롬프트
-  const systemPrompt = buildSystemPrompt({ turnCount, state, ragContext, enableTools: isConversational });
+  const offTopicRedirectNote = (isConversational && isOffTopic(lastUserMsg))
+    ? '\n\n[현재 사용자 발화는 잠깐 상담 주제에서 벗어났습니다]\n- 그 말을 짧게 받아주세요\n- 하지만 대화를 그쪽으로 길게 끌고 가지 마세요\n- 지금까지 파악한 고민 부위와 상담 자료를 활용해 자연스럽게 현재 상담으로 다시 연결하세요\n- 거절형 응답 대신 상담 복귀형 응답을 하세요'
+    : '';
+  const systemPrompt = buildSystemPrompt({ turnCount, state, ragContext, enableTools: isConversational }) + offTopicRedirectNote;
 
   // ── 8. 메시지 구성
   let messages;
