@@ -1105,7 +1105,7 @@ function showIntakeForm(){
 
     wrapper.remove();
 
-    const areaNames={eye:'눈',nose:'코',contour:'윤곽',breast:'가슴',lipo:'지방흡입',skin:'피부',hair:'모발'};
+    const areaNames={eye:'눈',nose:'코',contour:'윤곽',breast:'가슴',lipo:'지방흡입',skin:'피부',hair:'모발',lip:'인중·입술'};
     const areaLabel=directArea||areaNames[inferredArea]||inferredArea;
     const msg=`성별: ${selectedGender}\n나이: ${age}세\n고민 부위: ${areaLabel}\n세부 고민: ${focus}${style?`\n원하는 느낌: ${style}`:''}`;
     addUser(msg);
@@ -2293,6 +2293,15 @@ const OFFICIAL_DATA={
       {item:'복합(광대+턱)',range:'약 900만~1,500만원'}
     ],
     sideMain:['신경손상(감각·미소 비대칭)','비대칭','회복기 장기 부종','출혈·혈종','재수술 제한적']
+  },
+  lip:{
+    label:'인중·입술',
+    cost:[
+      {item:'인중축소(립리프트)',range:'약 150만~350만원',note:'절개 방식, 흡터 관리'},
+      {item:'코너 립리프트',range:'약 100만~250만원',note:'입꼬리 거상'},
+      {item:'입술 필러',range:'약 20만~60만원',note:'비수술, 6~12개월 유지'}
+    ],
+    sideMain:['흡터(가장 주의)','코 막힘 변형','비대칭','감각 저하','윗입술 두꺼워짐']
   }
 };
 
@@ -2373,6 +2382,11 @@ const QUESTION_BANK={
     '제 얼굴·너비·대칭에 맞는 절골 범위는?',
     '안면신경·동맥·정맥과의 안전 거리 확보 방법은?',
     '양악 수술 필요 여부·교정을 겸한다면 어디에서 진행하나요?'
+  ],
+  lip:[
+    '인중 길이 기준으로 절제량은 어느 정도가 적절한가요?',
+    '흡터가 눈에 띄는 편인지, 관리 방법은?',
+    '인중 필러와 수술 중 어느 쪽이 제 상황에 더 나은가요?'
   ]
 };
 
@@ -2434,6 +2448,12 @@ const SURGERY_COMPARE={
     {name:'사각턱',recover:'2~3주',scar:'구강 내',duration:'반영구',fit:'턱선·너비 조절'},
     {name:'앞턱',recover:'2주',scar:'구강 내',duration:'반영구',fit:'무턱·앞턱 후퇴'},
     {name:'양악',recover:'4~6주',scar:'구강 내',duration:'반영구',fit:'교정·양악 필요 케이스'}
+  ]},
+  lip:{title:'인중·입술 시술 비교',rows:[
+    {name:'불혼 립리프트',recover:'5~7일',scar:'코 아래 주름선',duration:'반영구',fit:'인중이 긴 경우'},
+    {name:'이탈리안 립리프트',recover:'5~7일',scar:'코 안쪽',duration:'반영구',fit:'흡터 최소화 선호'},
+    {name:'코너 립리프트',recover:'5~7일',scar:'입꼬리',duration:'반영구',fit:'입꼬리 처짐'},
+    {name:'입술 필러',recover:'당일',scar:'없음',duration:'6~12개월',fit:'비수술 선호'}
   ]}
 };
 
@@ -2756,10 +2776,46 @@ const CATEGORY_DATA={
       '약물 치료 병행 계획은?',
       '쇼크로스 기간과 최종 결과까지의 일정은?'
     ]
+  },
+  lip:{
+    label:'인중·입술',
+    methods:[
+      {name:'불혼 립리프트 (Bullhorn)',tag:'절개',principle:'코 아래 주름선을 따라 피부 절제하여 윗입술 끌어올림',pros:'확실한 인중 축소(3~5mm), 윗입술 볼륨 효과',cons:'흡터(코 아래), 코 모양 변화 가능성',recovery:'5~7일 실밥 제거, 3~6개월 흡터 안정',fit:'인중이 긴 경우 (15mm 이상)'},
+      {name:'이탈리안 립리프트',tag:'절개',principle:'코 안쪽 점막을 통해 절제. 외부 흡터 최소화',pros:'외부 흡터 적음',cons:'효과 제한적(1~3mm), 불혼보다 약함',recovery:'5~7일',fit:'흡터 우려, 소폭 축소'},
+      {name:'코너 립리프트',tag:'절개',principle:'입꼬리 위쪽 피부 절제하여 입꼬리 거상',pros:'처진 입꼬리 교정',cons:'입꼬리 부위 흡터',recovery:'5~7일',fit:'입꼬리가 처진 경우'},
+      {name:'입술 필러',tag:'비수술',principle:'히알루론산 필러로 입술 볼륨 강화',pros:'즉각 효과, 되돌릴 수 있음, 다운타임 없음',cons:'6~12개월 유지, 반복 필요',recovery:'당일',fit:'비수술 선호, 입술 볼륨 보강'}
+    ],
+    recovery:[
+      {day:'D+0',text:'수술 당일. 부기·당김 시작'},
+      {day:'D+5~7',text:'실밥 제거. 이때까지 음식 주의'},
+      {day:'D+14',text:'외출 가능. 흡터 붉은 상태'},
+      {day:'D+30',text:'흡터 담홍색으로 변화'},
+      {day:'D+90~180',text:'흡터 희미해짐. 최종 결과'}
+    ],
+    pricing:[
+      {name:'불혼 립리프트',range:'150~350만원대',note:'절제량, 흡터 관리'},
+      {name:'코너 립리프트',range:'100~250만원대',note:'입꼬리 거상'},
+      {name:'입술 필러',range:'20~60만원대',note:'필러 종류, 주입량'}
+    ],
+    sideEffects:[
+      {name:'흡터',freq:'가장 주의',desc:'코 아래 주름선 흡터가 3~6개월에 걸쳐 희미해져요'},
+      {name:'코 모양 변화',freq:'드물게',desc:'코밑이 약간 들릴 수 있어요'},
+      {name:'비대칭',freq:'다양',desc:'부기 차이로 초기에 느껴질 수 있어요'},
+      {name:'감각 저하',freq:'일시적',desc:'윗입술 감각 변화. 대부분 회복되는 편이에요'},
+      {name:'윗입술 두께워짐',freq:'드물게',desc:'과다 절제 시 발생할 수 있어요'}
+    ],
+    checkpoints:[
+      '제 인중 길이 기준으로 적절한 절제량은?',
+      '흡터가 눈에 띄는 편인지, 관리 방법은?',
+      '코 모양 변화 가능성은?',
+      '필러로 먼저 테스트해볼 수 있나요?',
+      '수술 후 음식 제한과 생활 주의사항은?',
+      '인중축소 + 입술 필러 병행이 가능한가요?'
+    ]
   }
 };
 
-/* ─── 카테고리 상세 화면 렌더링 ─── */
+/* ─── 카테고리 상세 화띄 렌더링 ─── */
 const catDetailScreen=document.getElementById('catDetailScreen');
 
 function openCatDetail(areaKey){
