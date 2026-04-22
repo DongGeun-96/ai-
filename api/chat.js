@@ -462,9 +462,10 @@ export default async function handler(req, res) {
     cleanText = normalizePriceCardLead(cleanText, actions);
     cleanText = ensureMaterialLead(normalizeMaterialQuestion(stripMaterialLeadNoise(cleanText)), actions);
     // 카드가 있는 턴에서는 텍스트를 짧게 유지 (카드가 정보를 대신)
-    const sentences = cleanText.split(/(?<=[.요.요!.요?])\.?\s+/).filter(Boolean);
-    if (sentences.length > 4) {
-      cleanText = sentences.slice(0, 4).join(' ');
+    // 문장 단위로 자르기: 요./요?/요!/죠./요~  등
+    const sentences = cleanText.split(/(?<=[.?!])\s+/).filter(Boolean);
+    if (sentences.length > 3) {
+      cleanText = sentences.slice(0, 3).join(' ');
     }
   }
   if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
