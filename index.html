@@ -1369,7 +1369,15 @@ async function executeActions(actions){
       }
       case 'show_trends':{
         state.context.trendIntent=p.intent||'trend';
-        if(state.context?.areaKey){state.areaKey=state.context.areaKey;state.focus=state.context?.focus||'';await showFocusTrend();state.context.trendShown=true;}
+        // params.areaKey가 있으면 context에 동기화
+        if(p.areaKey && !state.context.areaKey) state.context.areaKey=p.areaKey;
+        if(p.areaKey && !state.areaKey) state.areaKey=p.areaKey;
+        if(state.context?.areaKey||state.areaKey){
+          state.areaKey=state.areaKey||state.context.areaKey;
+          state.focus=state.focus||state.context?.focus||'';
+          await showFocusTrend();
+          state.context.trendShown=true;
+        }
         break;
       }
       case 'show_youtube':case 'show_shorts':case 'show_blog_posts':{

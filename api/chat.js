@@ -397,11 +397,25 @@ export default async function handler(req, res) {
   // show_trends: 이미 보여줬으면 가격 intent일 때만 허용, 아니면 제거
   const alreadyTrend = state.trendShown || mergedState.trendShown;
   const priceQ = isPriceIntent(lastUserMsg);
-  // history_check에서 사용자가 구체적 답변(재수술 여부, 부작용, 구체 질문 등)을 했으면
-  // 다음 단계로 넘어가며 자료 제공 가능
-  const historyAnswered = phase === 'history_check' && turnCount >= 2;
+  // history_check 단계 자동 전환: GPT가 revisit/sideEffect를 state_update에 안 넣어도
+  // 사용자가 history_check 질문에 대답했으면 (이 턴의 lastUserMsg가 그 답변)
+  // revisit 값을 자동으로 채워서 method_explanation으로 넘김
+  if (phase === 'history_check' && lastUserMsg) {
+    const isRevisitAnswer = /없어|없어요|없어요|없에요|없다|없습니다|처음|아니요|있어|있어요|있어요|재수술|했어|했어요|받았|한번|두번|흡|흑터|부작용|맘에 안|마음에 안/.test(lastUserMsg);
+    if (isRevisitAnswer && !mergedState.revisit && !mergedState.sideEffect) {
+      const hasYes = /있어|재수술|했어|받았|한번|두번/.test(lastUserMsg);
+      const hasSide = /흡|흑터|부작용|맘에 안|마음에 안/.test(lastUserMsg);
+      if (!stateUpdate) parsedJson = { ...parsedJson, state_update: {} };
+      if (hasYes) { mergedState.revisit = '재수술 경험 있음'; }
+      else { mergedState.revisit = '없음'; }
+      if (hasSide) { mergedState.sideEffect = lastUserMsg; }
+    }
+  }
+  // phase 재계산 (history 답변 자동 채운 후)
+  const effectivePhase = computePhase(turnCount, mergedState);
+
   if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends')) {
-    if (!alreadyTrend && (['method_explanation','priority_check'].includes(phase) || historyAnswered || asksMaterial(lastUserMsg, 'show_trends'))) {
+    if (!alreadyTrend && (['method_explanation','priority_check'].includes(effectivePhase) || asksMaterial(lastUserMsg, 'show_trends'))) {
       autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: priceQ ? 'price' : 'trend' } });
     } else if (alreadyTrend && priceQ) {
       autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: 'price' } });
@@ -449,7 +463,7 @@ export default async function handler(req, res) {
     autoActions.push({ type: 'show_hospitals', params: { region: mergedState.region, limit: 8 } });
   }
 
-  const actions = validateActions(autoActions, mergedState, phase, lastUserMsg);
+  const actions = validateActions(autoActions, mergedState, effectivePhase, lastUserMsg);
 
   // text에서 validateOutput 적용
   const textValidation = validateOutput(finalText);
@@ -470,21 +484,26 @@ export default async function handler(req, res) {
       cleanText = sentences.slice(0, 3).join(' ');
     }
   }
-  const empathyLead = getEmpathyLead(phase, mergedState);
+  const empathyLead = getEmpathyLead(effectivePhase, mergedState);
   if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText) && empathyLead) {
     cleanText = `${empathyLead} ${cleanText}`.trim();
   }
 
   // 설명만 하고 끝나지 않게 다음 질문 보강
   if (!hasEndAction && !hasQuestionTone(cleanText)) {
-    cleanText += ' ' + getFollowupQuestion(phase, mergedState);
+    cleanText += ' ' + getFollowupQuestion(effectivePhase, mergedState);
   }
+
+  // history_check 자동 채운 값도 state_update에 반영
+  const finalStateUpdate = { ...(stateUpdate || {}) };
+  if (mergedState.revisit && !finalStateUpdate.revisit) finalStateUpdate.revisit = mergedState.revisit;
+  if (mergedState.sideEffect && !finalStateUpdate.sideEffect) finalStateUpdate.sideEffect = mergedState.sideEffect;
 
   return send(res, 200, {
     text: cleanText,
     actions,
-    state_update: stateUpdate,
+    state_update: Object.keys(finalStateUpdate).length ? finalStateUpdate : stateUpdate,
     ui_hints: { input_placeholder: '자유롭게 입력해 주세요' },
-    meta: { turnCount, emotion: emotion || 'neutral', phase, areaKey: mergedState.areaKey || null, attempts }
+    meta: { turnCount, emotion: emotion || 'neutral', phase: effectivePhase, areaKey: mergedState.areaKey || null, attempts }
   });
 }
