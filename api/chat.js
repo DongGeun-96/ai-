@@ -33,12 +33,44 @@ function validateActions(actions, state) {
 
 // 대화 흐름에 따른 phase
 function computePhase(turnCount, state) {
-  if (turnCount <= 2) return 'intake';
-  if (!state.areaKey) return 'area_identification';
+  if (!state.gender || !state.age || !state.areaKey) return 'intake';
   if (!state.focus) return 'focus_identification';
-  if (turnCount <= 5) return 'info_provision';
+  if (!state.mood) return 'style_identification';
+  if (!state.revisit && !state.sideEffect) return 'history_check';
+  if (!state.trendShown) return 'method_explanation';
+  if (!state.priority) return 'priority_check';
+  if (!state.videosShown) return 'evidence_share';
   if (!state.region) return 'region_ask';
-  return 'recommendation';
+  return turnCount >= 8 ? 'summary_close' : 'followup_qna';
+}
+
+function hasQuestionTone(text = '') {
+  return /\?|\uFF1F|신가요|세요\.|세요\?|알려주실|말씀해주실|어떠세요|어떤\s+편|궁금하신|있으세요/.test(String(text));
+}
+
+function getFollowupQuestion(phase, state) {
+  switch (phase) {
+    case 'intake':
+      if (!state.gender && !state.age) return '성별과 나이도 같이 알려주시면 더 정확하게 봐드릴 수 있어요.';
+      if (!state.areaKey) return '어느 부위가 가장 고민이세요?';
+      return '그 부위에서 어떤 점이 가장 신경 쓰이세요?';
+    case 'focus_identification':
+      return '사진에서 봤을 때 어떤 인상 때문에 가장 스트레스 받으시는지 말씀해주실 수 있으세요?';
+    case 'style_identification':
+      return '원하시는 방향은 자연스러운 쪽인지, 또렷하게 변화가 보이는 쪽인지 어떤 편이세요?';
+    case 'history_check':
+      return '혹시 이전에 시술이나 수술 받아보신 적이 있으세요?';
+    case 'method_explanation':
+      return '지금 설명드린 방법 중에서는 어떤 방향이 가장 끌리세요?';
+    case 'priority_check':
+      return '회복 기간, 자연스러움, 비용 중에서는 어떤 부분을 가장 중요하게 보세요?';
+    case 'evidence_share':
+      return '자료 보시면 어떤 스타일이 더 마음에 드는지 말씀해주실 수 있으세요?';
+    case 'region_ask':
+      return '어느 지역에서 알아보고 계세요?';
+    default:
+      return '지금 가장 궁금한 부분이 뭐예요?';
+  }
 }
 
 // JSON 응답 파싱 (GPT 출력에서 JSON 추출)
@@ -254,22 +286,10 @@ export default async function handler(req, res) {
   const textValidation = validateOutput(finalText);
   let cleanText = textValidation.ok ? textValidation.text : (textValidation.text || finalText);
 
-  // 성별/나이 미수집 시 자동 질문 추가
-  if (mergedState.areaKey && (!mergedState.gender || !mergedState.age)) {
-    const needGender = !mergedState.gender && !cleanText.includes('성별');
-    const needAge = !mergedState.age && !cleanText.includes('나이');
-    if ((needGender || needAge) && !cleanText.includes('알려주세요')) {
-      const asks = [];
-      if (needGender) asks.push('성별');
-      if (needAge) asks.push('나이');
-      cleanText += ' ' + asks.join('과 ') + '도 알려주시면 더 맞춤형 상담이 가능해요.';
-    }
-  }
-  // 지역 미수집 + 수술법 설명 후
-  if (mergedState.areaKey && mergedState.gender && mergedState.age && !mergedState.region
-      && !cleanText.includes('지역') && !cleanText.includes('어디') && !cleanText.includes('어느')
-      && state.trendShown) {
-    cleanText += ' 어느 지역에서 알아보고 계세요?';
+  // 코디네이터식 대화 유도: 설명만 하고 끝나지 않게 다음 질문 보강
+  const hasEndAction = actions.some(a => a.type === 'end_consultation');
+  if (!hasEndAction && !hasQuestionTone(cleanText)) {
+    cleanText += ' ' + getFollowupQuestion(phase, mergedState);
   }
 
   return send(res, 200, {
