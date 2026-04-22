@@ -1126,14 +1126,32 @@ function showIntakeForm(){
     const areaLabel=directArea||areaNames[inferredArea]||inferredArea;
     const msg=`성별: ${selectedGender}\n나이: ${age}세\n고민 부위: ${areaLabel}\n세부 고민: ${focus}${style?`\n원하는 느낌: ${style}`:''}`;
     addUser(msg);
-    sendConversational(msg).then(()=>{
-      setTimeout(()=>{
-        addAi('📷 보다 정확한 상담을 위해 사진을 첨부해주시면 더 맞춤형 분석을 드릴 수 있어요. 정면 사진을 먼저 보여주시겠어요? 아래 카메라 버튼을 눌러주세요.');
-        showUploadBtn();
-        state.photoStep='front';
-        state.waitingPhoto=true;
-      },800);
-    });
+
+    // ── 스크립트 응답 (GPT 호출 없이 즉시 응답) ──
+    const scriptedGreetings={
+      eye:`${focus} 고민이시군요. 눈은 쌓꺼풀 방식이나 눈매교정 여부에 따라 방향이 많이 달라져요. 우선 상태를 더 정확히 봐드릴게요.`,
+      nose:`${focus} 고민이시군요. 코는 재료와 부위에 따라 방법이 달라서, 먼저 상태를 확인해볼게요.`,
+      contour:`${focus} 고민이시군요. 윤곽은 얼굴형과 뼈 구조에 따라 방법이 달라서, 먼저 확인해드릴게요.`,
+      breast:`${focus} 고민이시군요. 가슴은 보형물과 자가지방 중 체형에 맞는 방법을 찾는 게 중요해요.`,
+      lipo:`${focus} 고민이시군요. 지방흡입은 부위와 피부 탄력에 따라 방식이 달라져요. 먼저 상태를 봐드릴게요.`,
+      skin:`${focus} 고민이시군요. 피부 시술은 피부 타입에 따라 조합이 달라져서, 먼저 확인해드릴게요.`,
+      hair:`${focus} 고민이시군요. 모발이식은 탈모 단계와 공여부 상태에 따라 방법이 달라져요.`,
+      lip:`${focus} 고민이시군요. 인중축소는 절개 방식에 따라 흡터와 효과가 달라져요. 먼저 확인해드릴게요.`,
+      unknown:`${focus} 고민이시군요. 어떤 부분이 가장 신경 쓰이시는지 같이 찾아볼게요.`
+    };
+    const greeting=scriptedGreetings[inferredArea]||`${focus} 고민이시군요. 먼저 상태를 확인해드릴게요.`;
+    state.history.push({role:'user',content:msg});
+    addAi(greeting);
+    state.history.push({role:'assistant',content:greeting});
+
+    // 사진 요청 (스크립트)
+    setTimeout(()=>{
+      addAi('📷 보다 정확한 상담을 위해 사진을 첨부해주시면 더 맞춤형 분석을 드릴 수 있어요. 정면 사진을 먼저 보여주시겠어요?\n사진 없이 바로 상담을 원하시면 그냥 말씩해주세요.');
+      state.history.push({role:'assistant',content:'보다 정확한 상담을 위해 사진을 첨부해주시면 더 맞춤형 분석을 드릴 수 있어요.'});
+      showUploadBtn();
+      state.photoStep='front';
+      state.waitingPhoto=true;
+    },600);
   };
 }
 function closeChat(){_closeScreen(chatScreen);setTimeout(()=>{resetChat();chatOrb.stop()},480)}
