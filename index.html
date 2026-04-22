@@ -1071,13 +1071,29 @@ function showIntakeForm(){
     };
   });
 
+  const focusExamples={eye:'예: 눈이 작아 보여요',nose:'예: 콧대가 낮아요',contour:'예: 사각턱이 넓어요',breast:'예: 가슴이 너무 작아요',lipo:'예: 복부 지방이 고민이에요',skin:'예: 모공이 넓고 기미가 있어요',hair:'예: M자 탈모가 심해요',lip:'예: 인중이 길어요'};
+  const styleExamples={eye:'예: 자연스럽게 또렷하게',nose:'예: 높지만 자연스럽게',contour:'예: 부드러운 V라인',breast:'예: 자연스러운 촉감',lipo:'예: 라인만 정리되게',skin:'예: 깨끗하고 탄력 있게',hair:'예: 자연스러운 헤어라인',lip:'예: 짧고 자연스럽게'};
+  const focusInput=wrapper.querySelector('.intake-focus');
+  const styleInput=wrapper.querySelector('.intake-style');
+  function updatePlaceholders(area){
+    if(focusExamples[area]) focusInput.placeholder=focusExamples[area];
+    if(styleExamples[area]) styleInput.placeholder=styleExamples[area];
+  }
+
   let selectedArea='';
   wrapper.querySelectorAll('.intake-area-btn').forEach(btn=>{
     btn.onclick=()=>{
       wrapper.querySelectorAll('.intake-area-btn').forEach(b=>b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedArea=btn.dataset.v;
+      updatePlaceholders(selectedArea);
     };
+  });
+
+  // 직접 입력 시에도 부위 감지해서 placeholder 변경
+  wrapper.querySelector('.intake-area-direct').addEventListener('input',function(){
+    const detected=detectArea(this.value);
+    if(detected) updatePlaceholders(detected);
   });
 
   wrapper.querySelector('.intake-submit').onclick=()=>{
