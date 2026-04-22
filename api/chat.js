@@ -387,8 +387,15 @@ export default async function handler(req, res) {
 
   // show_trends: 이미 보여줬으면 가격 intent일 때만 허용, 아니면 제거
   const alreadyTrend = state.trendShown || mergedState.trendShown;
-  if (!alreadyTrend && mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
-    autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: isPriceIntent(lastUserMsg) ? 'price' : 'trend' } });
+  const priceQ = isPriceIntent(lastUserMsg);
+  // 처음 trend or 가격 질문이면 show_trends 추가
+  if (mergedState.areaKey && mergedState.focus && !hasAction('show_trends')) {
+    if (!alreadyTrend && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
+      autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: priceQ ? 'price' : 'trend' } });
+    } else if (alreadyTrend && priceQ) {
+      // trendShown 이후라도 가격 질문이면 가격표 카드 보여줌
+      autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: 'price' } });
+    }
   }
   // 이미 trendShown인데 show_trends가 있으면: 가격 intent일 때만 허용, 아니면 제거
   if (alreadyTrend) {
