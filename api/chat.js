@@ -20,24 +20,34 @@ import { searchKnowledgeText } from './_rag.js';
 export const config = { api: { bodyParser: { sizeLimit: '1mb' } } };
 
 // ── 백엔드 검증 레이어 ──
-function wantsMaterial(lastUserMsg = '', type = '') {
+function asksMaterial(lastUserMsg = '', type = '') {
   const t = String(lastUserMsg || '').toLowerCase();
-  const anyMaterial = /자료|예시|보여|보여줘|정리|링크|참고|후기|영상|블로그|쇼츠|shorts|유튜브|가격|비용|수술법|방법|병원|추천/.test(t);
-  if (type === 'show_youtube' || type === 'show_shorts') return /영상|쇼츠|shorts|유튜브|자료|예시|후기|참고/.test(t);
-  if (type === 'show_blog_posts') return /블로그|후기|자료|예시|참고/.test(t);
+  const anyMaterial = /자료|예시|보여|보여줘|정리|링크|참고|후기|영상|블로그|쇼츠|shorts|유튜브|가격|비용|수술법|방법|병원|추천|사례|보고\s*싶/.test(t);
+  if (type === 'show_youtube' || type === 'show_shorts') return /영상|쇼츠|shorts|유튜브|자료|예시|후기|참고|사례|보고\s*싶/.test(t);
+  if (type === 'show_blog_posts') return /블로그|후기|자료|예시|참고|사례|보고\s*싶/.test(t);
   if (type === 'show_trends') return /수술법|방법|가격|비용|정리|추천|자료|예시|뭐가/.test(t);
   if (type === 'show_hospitals') return /병원|추천|어디서|의원|자료|정리/.test(t);
   return anyMaterial;
 }
 
-function validateActions(actions, state, lastUserMsg = '') {
+function shouldSurfaceMaterial(type, state, phase, lastUserMsg = '') {
+  if (asksMaterial(lastUserMsg, type)) return true;
+  if (type === 'show_trends') return !!(state.areaKey && state.focus && ['history_check','method_explanation','priority_check','evidence_share'].includes(phase));
+  if (type === 'show_youtube' || type === 'show_shorts' || type === 'show_blog_posts') {
+    return !!(state.areaKey && state.trendShown && ['evidence_share','followup_qna','summary_close'].includes(phase));
+  }
+  if (type === 'show_hospitals') return !!(state.areaKey && state.region && ['region_ask','summary_close','followup_qna'].includes(phase));
+  return false;
+}
+
+function validateActions(actions, state, phase, lastUserMsg = '') {
   if (!Array.isArray(actions)) return [];
   return actions.filter(a => {
     if (!a || !a.type) return false;
     if (a.type === 'show_hospitals' && !state.areaKey) return false;
     if (a.type === 'show_youtube' && !state.areaKey) return false;
     if (a.type === 'show_shorts' && !state.areaKey) return false;
-    if (['show_trends','show_youtube','show_shorts','show_blog_posts','show_hospitals'].includes(a.type) && !wantsMaterial(lastUserMsg, a.type)) return false;
+    if (['show_trends','show_youtube','show_shorts','show_blog_posts','show_hospitals'].includes(a.type) && !shouldSurfaceMaterial(a.type, state, phase, lastUserMsg)) return false;
     return true;
   }).slice(0, 3);
 }
@@ -282,8 +292,26 @@ export default async function handler(req, res) {
   const mergedState = { ...state, ...(stateUpdate || {}) };
   const phase = computePhase(turnCount, mergedState);
 
-  // 자료/카드/병원은 상담 근거 자료로 쓰고, 사용자가 원할 때만 노출
-  const actions = validateActions(rawActions, mergedState, lastUserMsg);
+  // 자료는 상담 근거로 활용하되, 적절한 타이밍에는 선제적으로 보여줌
+  const autoActions = [...rawActions];
+  const hasAction = (type) => autoActions.some(a => a.type === type);
+
+  if (mergedState.areaKey && mergedState.focus && !state.trendShown && !hasAction('show_trends') && ['history_check','method_explanation','priority_check'].includes(phase)) {
+    autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
+  }
+
+  if (state.trendShown && mergedState.areaKey && !state.videosShown && !hasAction('show_youtube') && (phase === 'evidence_share' || asksMaterial(lastUserMsg))) {
+    const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
+    autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
+    autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
+    autoActions.push({ type: 'show_blog_posts', params: { query: q, limit: 5 } });
+  }
+
+  if (mergedState.areaKey && mergedState.region && !hasAction('show_hospitals') && phase === 'region_ask') {
+    autoActions.push({ type: 'show_hospitals', params: { region: mergedState.region, limit: 8 } });
+  }
+
+  const actions = validateActions(autoActions, mergedState, phase, lastUserMsg);
 
   // text에서 validateOutput 적용
   const textValidation = validateOutput(finalText);
@@ -291,7 +319,7 @@ export default async function handler(req, res) {
 
   // 코디네이터식 대화 유도: 공감 없이 바로 설명하면 앞에 보강
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
-  const isMaterialTurn = actions.length > 0 && wantsMaterial(lastUserMsg);
+  const isMaterialTurn = actions.length > 0;
   if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
     cleanText = `${getEmpathyLead(phase, mergedState)} ${cleanText}`.trim();
   }
