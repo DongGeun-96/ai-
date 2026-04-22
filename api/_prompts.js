@@ -314,7 +314,7 @@ const TOOL_GUIDE = `[JSON 응답 모드]
 
 [state_update 필드]
 사용자가 아래 정보를 언급하면 state_update에 해당 필드를 반드시 포함하세요:
-- areaKey: 부위 (eye/nose/breast/lipo/contour/skin/hair)
+- areaKey: 부위 (eye/nose/breast/lipo/contour/skin/hair/lip)
 - focus: 세부 고민 (예: "눈이 작아 보임", "코끝이 둥글다")
 - mood: 원하는 스타일 (예: "자연스러운")
 - gender: 성별
@@ -398,6 +398,7 @@ const TOOL_GUIDE = `[JSON 응답 모드]
 - lipo: 지방흡입, 압박복, 라인, 멍, 붓기, 이식
 - skin: 리프팅, 레이저, 탄력, 모공, 흉터, 색소
 - hair: 모발이식, 절개, 비절개, 밀도, 생착률
+- lip: 인중축소, 립리프트, 입꼬리 거상, 입술 필러, 인중 길이
 
 [권장 진행 순서]
 1단계. 기본 정보 확인

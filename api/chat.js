@@ -36,7 +36,7 @@ function asksMaterial(lastUserMsg = '', type = '') {
 
 function shouldSurfaceMaterial(type, state, phase, lastUserMsg = '') {
   if (asksMaterial(lastUserMsg, type)) return true;
-  if (type === 'show_trends') return !!(state.areaKey && state.focus && ['history_check','method_explanation','priority_check','evidence_share'].includes(phase));
+  if (type === 'show_trends') return !!(state.areaKey && state.focus && ['method_explanation','priority_check','evidence_share'].includes(phase));
   if (type === 'show_youtube' || type === 'show_shorts' || type === 'show_blog_posts') {
     return !!(state.areaKey && state.trendShown);
   }
@@ -89,7 +89,8 @@ function hasEmpathyTone(text = '') {
 
 function getEmpathyLead(phase, state) {
   if (state.sideEffect) return '그 부분이 계속 마음에 걸리실 수 있어요.';
-  if (phase === 'history_check') return '수술이나 시술 경험이 있으셨다면 더 신중하게 보게 되실 거예요.';
+  // history_check 단계에서는 엉뚜한 경험 언급 대신 감정 반영
+  if (phase === 'history_check') return '';
   if (phase === 'priority_check') return '무엇을 더 중요하게 볼지 고민되실 수 있어요.';
   if (phase === 'evidence_share') return '사진이나 후기 자료를 보실 때 더 복잡하게 느껴지실 수 있어요.';
   if (state.focus) return `${state.focus} 부분이 고민이시군요.`;
@@ -469,8 +470,9 @@ export default async function handler(req, res) {
       cleanText = sentences.slice(0, 3).join(' ');
     }
   }
-  if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
-    cleanText = `${getEmpathyLead(phase, mergedState)} ${cleanText}`.trim();
+  const empathyLead = getEmpathyLead(phase, mergedState);
+  if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText) && empathyLead) {
+    cleanText = `${empathyLead} ${cleanText}`.trim();
   }
 
   // 설명만 하고 끝나지 않게 다음 질문 보강
