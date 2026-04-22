@@ -169,6 +169,22 @@ function ensureMaterialLead(text = '', actions = []) {
   return t;
 }
 
+// 불완전한 연예인 이름(초성/자음 포함) 감지
+function hasIncompleteNameInput(text = '') {
+  return /[가-힣]+[ㄱ-ㅎㅏ-ㅣ]/.test(String(text || ''));
+}
+
+// GPT가 불완전 이름을 보정해서 공감한 경우 후처리
+function sanitizeCelebResponse(text = '', userMsg = '') {
+  if (!hasIncompleteNameInput(userMsg)) return text;
+  // 유저가 불완전 이름 쳤는데 GPT가 특정인 외모를 묘사하면 교체
+  const celebPatterns = /([가-힣]{2,4})(씨|분)?(의\s+)?(코|눈|턱|입|얼굴|라인|느낌|스타일)(는|은|이|가|처럼|같은)?\s*(높|낮|또렷|매끈|예쁘|깔끔|시원|날카|자연|세련)/;
+  if (celebPatterns.test(text)) {
+    return '혹시 정확한 이름을 알려주실 수 있을까요? 이름이 정확해야 그 느낌을 참고해서 더 잘 안내해드릴 수 있거든요. 아니면 원하시는 코 느낌을 다른 방식으로 설명해주셔도 좋아요.';
+  }
+  return text;
+}
+
 function stripIrrelevantHistoryLead(text = '', lastUserMsg = '') {
   const userT = String(lastUserMsg || '');
   if (/이전|재수술|시술\s*받|수술\s*받/.test(userT)) return String(text || '');
@@ -371,17 +387,17 @@ export default async function handler(req, res) {
   if (!alreadyTrend && mergedState.areaKey && mergedState.focus && !hasAction('show_trends') && (['history_check','method_explanation','priority_check'].includes(phase) || asksMaterial(lastUserMsg, 'show_trends'))) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey, intent: isPriceIntent(lastUserMsg) ? 'price' : 'trend' } });
   }
-  // 이미 trendShown인데 GPT가 show_trends를 넣었으면: 가격 intent일 때만 허용, 아니면 제거
-  if (alreadyTrend && hasAction('show_trends')) {
+  // 이미 trendShown인데 show_trends가 있으면: 가격 intent일 때만 허용, 아니면 제거
+  if (alreadyTrend) {
     const priceQ = isPriceIntent(lastUserMsg);
-    if (priceQ) {
+    if (priceQ && hasAction('show_trends')) {
       autoActions.forEach(a => {
         if (a.type === 'show_trends') {
           a.params = { ...(a.params || {}), areaKey: (a.params||{}).areaKey || mergedState.areaKey, intent: 'price' };
         }
       });
     } else {
-      // 가격 아니면 중복 show_trends 제거
+      // 가격 아니면 모든 show_trends 제거 (중복 방지)
       for (let i = autoActions.length - 1; i >= 0; i--) {
         if (autoActions[i].type === 'show_trends') autoActions.splice(i, 1);
       }
@@ -419,6 +435,7 @@ export default async function handler(req, res) {
   const textValidation = validateOutput(finalText);
   let cleanText = textValidation.ok ? textValidation.text : (textValidation.text || finalText);
   cleanText = stripIrrelevantHistoryLead(cleanText, lastUserMsg);
+  cleanText = sanitizeCelebResponse(cleanText, lastUserMsg);
 
   // 코디네이터식 대화 유도: 공감 없이 바로 설명하면 앞에 보강
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
