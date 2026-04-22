@@ -1813,7 +1813,22 @@ async function showFocusTrend(){
 - JSON만 반환.`
     });
     await new Promise(r=>setTimeout(r,500));
-    addAi('가격표 참고하시고, 혹시 어떤 방식이 더 궁금하시거나 비용 외에 다른 고민되는 부분이 있으면 말씀해주세요.');
+    addAi('가격표 참고해보시고, 후기 자료도 같이 보시면 더 도움될 것 같아요. 보여드릴게요.');
+    await new Promise(r=>setTimeout(r,300));
+    const area2=AREAS[state.areaKey]?.label||'';
+    const q2=`${area2} ${state.focus||''} 수술 후기 비용`.trim();
+    try{
+      const [ytR,srR]=await Promise.all([
+        fetch('/api/yt?q='+encodeURIComponent(q2)+'&limit=5'),
+        fetch('/api/search?q='+encodeURIComponent(q2)+'&limit=5')
+      ]);
+      if(ytR.ok){const d=await ytR.json();if(d.items&&d.items.length)addYtCards(d.items.map(v=>({id:v.id,title:v.title||'',channel:v.channel||'YouTube',views:v.views||'',tag:'참고'})));}
+      if(srR.ok){const d=await srR.json();if(d.items&&d.items.length){const wrap=document.createElement('div');wrap.className='yt-cards';d.items.forEach(it=>{const card=document.createElement('a');card.className='yt-card';card.href=it.link||'#';card.target='_blank';card.rel='noopener';card.innerHTML=`<span class="yt-source">📝 ${esc(it.source||'블로그')}</span><span class="yt-title">${esc(it.title||'')}</span>`;wrap.appendChild(card);});chatMessages.appendChild(wrap);scrollBottom();}}
+    }catch(e){console.warn('price-material error',e);}
+    await new Promise(r=>setTimeout(r,400));
+    addAi('어떤 방식이 더 궁금하시거나, 비용 외에 다른 고민되는 부분이 있으면 편하게 말씀해주세요.');
+    state.context.trendShown=true;
+    state.context.videosShown=true;
     return;
   }
 
@@ -1841,14 +1856,34 @@ async function showFocusTrend(){
 - 수술법명은 실제 의학 용어 사용
 - JSON만 반환.`
   });
-  // 카드 후 대화 이어가기
+  // 카드 후: 자료 제공 + 대화 이어가기
   await new Promise(r=>setTimeout(r,500));
+  addAi('실제 후기 자료도 같이 보시면 더 도움될 것 같아요. 한번 보여드릴게요.');
+  await new Promise(r=>setTimeout(r,300));
+  // 영상 + 쇼츠 + 블로그 자동 제공
+  const matArea=AREAS[state.areaKey]?.label||'';
+  const q=`${matArea} ${state.focus||''} 수술 후기`.trim();
+  const shortsQ=`${matArea} ${state.focus||''} 성형 후기`.trim();
+  const searchQ=`${matArea} ${state.focus||''} 후기 비용 회복`.trim();
+  try{
+    const [ytRes,shortsRes,searchRes]=await Promise.all([
+      fetch('/api/yt?q='+encodeURIComponent(q)+'&limit=5'),
+      fetch('/api/shorts?q='+encodeURIComponent(shortsQ)+'&limit=5').catch(()=>({ok:false})),
+      fetch('/api/search?q='+encodeURIComponent(searchQ)+'&limit=5')
+    ]);
+    if(ytRes.ok){const d=await ytRes.json();if(d.items&&d.items.length)addYtCards(d.items.map(v=>({id:v.id,title:v.title||'',channel:v.channel||'YouTube',views:v.views||'',tag:'참고'})));}
+    if(shortsRes.ok){const d=await shortsRes.json();if(d.items&&d.items.length)addShortsCards(d.items);}
+    if(searchRes.ok){const d=await searchRes.json();if(d.items&&d.items.length){const wrap=document.createElement('div');wrap.className='yt-cards';d.items.forEach(it=>{const card=document.createElement('a');card.className='yt-card';card.href=it.link||'#';card.target='_blank';card.rel='noopener';card.innerHTML=`<span class="yt-source">📝 ${esc(it.source||'블로그')}</span><span class="yt-title">${esc(it.title||'')}</span>`;wrap.appendChild(card);});chatMessages.appendChild(wrap);scrollBottom();}}
+  }catch(e){console.warn('auto-material error',e);}
+  await new Promise(r=>setTimeout(r,400));
   const followups = [
-    `카드 보시고 끌리는 방식이 있으면 말씀해주세요. 더 자세히 설명드릴게요.`,
-    `세 가지 중에 마음에 드는 방식이 있으세요? 아니면 회복이나 비용 같은 다른 부분이 더 궁금하신지요.`,
-    `각 방식의 차이가 더 궁금하시면 하나씩 자세히 설명드릴 수 있어요. 어떤 부분이 제일 신경 쓰이세요?`
+    '자료 보시고 끌리는 방식이나 궁금한 점 있으면 편하게 말씀해주세요.',
+    '영상이랑 글 보시고 마음에 드는 스타일 있으면 말씀해주세요. 그 기준으로 더 좁혀드릴게요.',
+    '참고 자료 보시고 회복이나 비용 같은 다른 부분이 궁금하시면 언제든 물어봐주세요.'
   ];
   addAi(followups[Math.floor(Math.random()*followups.length)]);
+  state.context.trendShown=true;
+  state.context.videosShown=true;
 }
 
 async function offerFocusVideos(){}
