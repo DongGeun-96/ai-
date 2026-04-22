@@ -34,7 +34,7 @@ function shouldSurfaceMaterial(type, state, phase, lastUserMsg = '') {
   if (asksMaterial(lastUserMsg, type)) return true;
   if (type === 'show_trends') return !!(state.areaKey && state.focus && ['history_check','method_explanation','priority_check','evidence_share'].includes(phase));
   if (type === 'show_youtube' || type === 'show_shorts' || type === 'show_blog_posts') {
-    return !!(state.areaKey && state.trendShown && ['evidence_share','followup_qna','summary_close'].includes(phase));
+    return !!(state.areaKey && state.trendShown && ['priority_check','evidence_share','followup_qna','summary_close'].includes(phase));
   }
   if (type === 'show_hospitals') return !!(state.areaKey && state.region && ['region_ask','summary_close','followup_qna'].includes(phase));
   return false;
@@ -126,6 +126,14 @@ function stripMaterialLeadNoise(text = '') {
 
 function normalizeMaterialQuestion(text = '') {
   return String(text).replace(/\s*혹시\s*이전에\s*시술이나\s*수술\s*받아보신\s*적이\s*있으세요\?\s*$/,' 자료 보시고 어떤 스타일이 더 마음에 드는지 말씀해주시면 그 기준으로 더 좁혀드릴게요.');
+}
+
+function ensureMaterialLead(text = '', actions = []) {
+  const t = String(text || '').trim();
+  const hasMaterialAction = actions.some(a => ['show_youtube','show_shorts','show_blog_posts'].includes(a.type));
+  if (!hasMaterialAction) return t;
+  if (/자료|영상|후기|사례|비포\s*애프터/.test(t)) return t;
+  return `이런 자료를 같이 보시면 더 감이 잘 오실 거예요. ${t}`.trim();
 }
 
 // JSON 응답 파싱 (GPT 출력에서 JSON 추출)
@@ -323,7 +331,7 @@ export default async function handler(req, res) {
     autoActions.push({ type: 'show_trends', params: { areaKey: mergedState.areaKey } });
   }
 
-  if (state.trendShown && mergedState.areaKey && !state.videosShown && !hasAction('show_youtube') && (phase === 'evidence_share' || asksMaterial(lastUserMsg))) {
+  if (state.trendShown && mergedState.areaKey && !state.videosShown && !hasAction('show_youtube') && (['priority_check','evidence_share','followup_qna'].includes(phase) || asksMaterial(lastUserMsg))) {
     const q = (mergedState.focus || mergedState.areaKey) + ' 수술 후기';
     autoActions.push({ type: 'show_youtube', params: { query: q, limit: 5 } });
     autoActions.push({ type: 'show_shorts', params: { query: mergedState.areaKey + ' 수술 비포 애프터', limit: 5 } });
@@ -350,7 +358,7 @@ export default async function handler(req, res) {
   const hasEndAction = actions.some(a => a.type === 'end_consultation');
   const isMaterialTurn = actions.length > 0;
   if (isMaterialTurn) {
-    cleanText = normalizeMaterialQuestion(stripMaterialLeadNoise(cleanText));
+    cleanText = ensureMaterialLead(normalizeMaterialQuestion(stripMaterialLeadNoise(cleanText)), actions);
   }
   if (!hasEndAction && !isMaterialTurn && !hasEmpathyTone(cleanText)) {
     cleanText = `${getEmpathyLead(phase, mergedState)} ${cleanText}`.trim();
