@@ -701,8 +701,8 @@ export function validateOutput(text) {
     }
   }
 
-  // 2. 이모지 제거
-  const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}]/gu;
+  // 2. 이모지/특수기호/하트 제거 (범위 확장)
+  const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2700}-\u{27BF}\u{1F000}-\u{1F2FF}\u{2300}-\u{23FF}\u{2B00}-\u{2BFF}\u{1F100}-\u{1F1FF}\u{1F680}-\u{1F6FF}\u{2190}-\u{21FF}\u{25A0}-\u{25FF}]|\u2665|\u2764|\u2728|\u2B50|\u2605|\u2606|\u2660-\u2667|\uFE0F/gu;
   if (emojiRegex.test(cleaned)) {
     cleaned = cleaned.replace(emojiRegex, '');
     warnings.push('emoji_removed');
