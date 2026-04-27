@@ -11,15 +11,27 @@ export default async function handler(req, res) {
   const key = q + '|' + limit;
   const hit = CACHE.get(key);
   if (hit && Date.now() - hit.at < TTL) return send(res, 200, { items: hit.items, cached: true });
+  const headers = {
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+    'accept-language': 'ko-KR,ko;q=0.9,en;q=0.7'
+  };
+  // 여러 URL 순차 시도: 1) 일반 검색 영상필터 2) 순수 검색 3) 단순화된 쿼리
+    const candidates = [
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=EgIQAQ%253D%253D&hl=ko&gl=KR`,
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&hl=ko&gl=KR`,
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(q.split(' ').slice(0,3).join(' '))}&hl=ko&gl=KR`
+  ];
   try {
-    const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&sp=CAMSAhAB&hl=ko&gl=KR`, {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
-        'accept-language': 'ko-KR,ko;q=0.9,en;q=0.7'
-      }
-    });
-    const html = await r.text();
-    const items = extractYtItems(html, limit);
+    let items = [];
+    for (const url of candidates) {
+      try {
+        const r = await fetch(url, { headers });
+        if (!r.ok) continue;
+        const html = await r.text();
+        items = extractYtItems(html, limit);
+        if (items.length > 0) break;
+      } catch (e) { /* 다음 후보 시도 */ }
+    }
     CACHE.set(key, { at: Date.now(), items });
     return send(res, 200, { items });
   } catch (err) {
