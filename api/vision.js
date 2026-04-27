@@ -71,16 +71,19 @@ ${methods ? '앞서 안내한 3가지 수술법: ' + methods : ''}
   // 사진 검증 규칙 추가
   sys += `\n\n[사진 검증 규칙 - 최우선]\n제일 먼저 사진을 확인하세요:\n- 사람의 얼굴 또는 얼굴 부위(눈, 코, 입, 턱 등)가 보이면: 정상 분석 진행.\n- 얼굴 일부만 클로즈업으로 찍힌 사진 (눈만, 코만): 보이는 부위만 분석.\n- 사람이 전혀 없는 사진 (동물, 풍경, 물건, 음식, 만화, 그림, 컴퓨터 화면, 스크린샷, 문서, 차, 건물 등): \n  → 반드시 이 6글자만 출력: NOT_HUMAN_PHOTO\n  → 다른 설명, 분석, 공감, 인사 절대 금지\n  → "사진을 보셨는데~", "사진 잘 받았어요" 같은 멘트 절대 금지\n  → 사진 속 사물을 설명하거나 안내하면 안 됨`;
 
+  // user 번차 메시지에도 검증 명시
+  const userText = `[1단계 검증] 이 사진에 사람 얼굴이나 얼굴 부위가 있나요?\n- 없으면 (동물/풍경/물건/그림 등) 온전히 이다섯 글자만 출력: NOT_HUMAN_PHOTO\n- 있으면 [2단계 분석] 으로 이어서 진행.\n\n[2단계 분석] ${mode === '본인' ? `제 ${part||'현재'} 사진이에요.${payload.sideImage?' 정면+측면 2장 보냈어요.':''} 위 3가지 중 제 상태에 맞는 걸 추천해주세요.` : '이 스타일 봐주세요.'}`;
+
   try {
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: MODEL, temperature: 0.55, max_tokens: 480,
+        model: MODEL, temperature: 0.3, max_tokens: 480,
         messages: [
           { role: 'system', content: sys },
           { role: 'user', content: [
-            { type: 'text', text: mode === '본인' ? `제 ${part||'현재'} 사진이에요.${payload.sideImage?' 정면+측면 2장 보냈어요. 두 사진이 같은 각도이면 지적해주세요.':''} 위 3가지 중 제 상태에 맞는 걸 추천해주세요.` : '이 스타일 봐주세요.' },
+            { type: 'text', text: userText },
             { type: 'image_url', image_url: { url: image } },
             ...(payload.sideImage ? [{ type: 'image_url', image_url: { url: payload.sideImage } }] : [])
           ] }
