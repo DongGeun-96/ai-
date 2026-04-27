@@ -91,7 +91,22 @@ ${methods ? '앞서 안내한 3가지 수술법: ' + methods : ''}
       })
     });
     const j = await r.json();
-    const text = j.choices?.[0]?.message?.content?.trim() || '';
+    let text = j.choices?.[0]?.message?.content?.trim() || '';
+
+    // 후처리: 사람 얼굴이 아닌 사진이라고 모델이 돌려서 멘트하는 패턴 감지
+    const nonHumanPatterns = [
+      /NOT_HUMAN_PHOTO/i,
+      /(?:사진|이미지)에\s*(?:사람|얼굴)이\s*(?:없|안\s*보|확인.{0,5}않)/,
+      /(?:강아지|고양이|동물|먹|음식|풍경|물건|그림|만화|캐릭터|이모티콘|이모지)/i,
+      /(?:성형|수술|부위|눈|코|입|턱|탁|말공|장|아래)와.*?(?:관련|맞.{0,3}않)/
+    ];
+    const isNotHuman = /NOT_HUMAN_PHOTO/i.test(text) ||
+      (nonHumanPatterns.slice(1).some(p => p.test(text)) && !/콗대|쓌꺼풀|눈매|코끝|콧대|턱선|앬장|입술|이마|광대/.test(text));
+
+    if (isNotHuman) {
+      text = 'NOT_HUMAN_PHOTO';
+    }
+
     return send(res, 200, { text });
   } catch (err) {
     return send(res, 502, { error: String(err) });
