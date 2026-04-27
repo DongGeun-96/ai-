@@ -1153,7 +1153,7 @@ function showIntakeForm(){
 
     // 사진 요청 (스크립트)
     setTimeout(()=>{
-      addAi('📷 보다 정확한 상담을 위해 사진을 첨부해주시면 더 맞춤형 분석을 드릴 수 있어요. 정면 사진을 먼저 보여주시겠어요?\n사진 없이 바로 상담을 원하시면 그냥 말씀해주세요.');
+      addAi('보다 정확한 상담을 위해 사진을 첨부해주시면 더 맞춤형 분석을 드릴 수 있어요. 정면 사진을 먼저 보여주시겠어요?\n사진 없이 바로 상담을 원하시면 그냥 말씀해주세요.');
       state.history.push({role:'assistant',content:'보다 정확한 상담을 위해 사진을 첨부해주시면 더 맞춤형 분석을 드릴 수 있어요.'});
       showUploadBtn();
       state.photoStep='front';
@@ -1777,7 +1777,7 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
   ensureChatActive();
   const tp=addTyping();
   try{
-    const stepGoal=`${instruction}\n\n⚔️ 오직 유효 JSON 하나로만 반환. 설명·인사·마크다운 금지. 필드: ${schema}`;
+    const stepGoal=`${instruction}\n\n오직 유효 JSON 하나로만 반환. 설명·인사·마크다운 금지. 필드: ${schema}`;
     const ctx=context||{concern:state.concern,gender:state.gender,age:state.age,areaKey:state.areaKey,focus:state.focus,mood:state.mood,revisit:state.revisit,sideEffect:state.sideEffect,celebName:state.celebName};
     const payload={
       message:stepGoal,
@@ -1817,7 +1817,7 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
       // 상담실장 추천 한 줄 (recommendation)
       if(data.recommendation){
         const rec=document.createElement('div');rec.className='mc-reco';
-        rec.innerHTML=`<strong>✨ 제 추천</strong> ${esc(data.recommendation)}`;
+        rec.innerHTML=`<strong>제 추천</strong> ${esc(data.recommendation)}`;
         card.appendChild(rec);
       }
 
@@ -1829,7 +1829,7 @@ async function liveStructuredCard({title,emoji,variant,schema,context,instructio
     if(data.tip){
       ensureChatActive();
       const t=document.createElement('div');t.className='tip-line';
-      t.innerHTML=`💡 ${esc(data.tip)}`;
+      t.innerHTML=`${esc(data.tip)}`;
       chatMessages.appendChild(t);scrollBottom();
       await new Promise(r=>setTimeout(r,200));
     }
@@ -2387,7 +2387,7 @@ function renderSideCard(areaKey){
     <ul class="oc-bullets">
       ${d.sideMain.map(x=>`<li>${esc(x)}</li>`).join('')}
     </ul>
-    <div class="oc-tip">정상 회복 vs 이상 신호<br><span>✅ 초기 부기·붉기·가벼운 멍은 1~2주 감소<br>❌ 통증 악화·고열·고름·색 변화는 즉시 병원</span></div>
+    <div class="oc-tip">정상 회복 vs 이상 신호<br><span>정상: 초기 부기·붉기·가벼운 멍은 1~2주 감소<br>이상: 통증 악화·고열·고름·색 변화는 즉시 병원</span></div>
     <div class="oc-foot">참고: 한국소비자원 피해구제 · 한국의료분쟁조정중재원 공개 통계 기준</div>`;
   chatMessages.appendChild(el);scrollBottom();
 }
